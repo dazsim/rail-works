@@ -1,4 +1,23 @@
 {
-    "modmenu.nameTranslation.railworks": "Rail Works",
-    "itemGroup.railworks": "Rail Works"
+  "modmenu.nameTranslation.railworks": "Rail Works",
+  "itemGroup.railworks": "Rail Works",
+  "item.railworks.hammer": "Hammer",
+  "item.railworks.coke": "Coal Coke",
+  "item.railworks.creosote_bucket": "Creosote Bucket",
+  "item.railworks.tie": "Wooden Tie",
+  "block.railworks.coke_oven_bricks": "Coke Oven Bricks",
+  "block.railworks.coke_oven": "Coke Oven",
+  "block.railworks.creosote": "Creosote",
+  "block.railworks.creosote_vat": "Creosote Vat",
+  "block.railworks.treated_log": "Treated Log",
+  "block.railworks.treated_planks": "Treated Planks",
+  "block.railworks.treated_beam": "Treated Beam",
+  "fluid_type.railworks.creosote": "Creosote",
+  "fluid.railworks.creosote": "Creosote",
+  "container.railworks.coke_oven": "Coke Oven",
+  "gui.railworks.tank": "Creosote: %s / %s mB",
+  "message.railworks.coke_oven.formed": "Coke oven formed",
+  "message.railworks.coke_oven.incomplete": "The coke oven needs a full 3x3x3 of coke oven bricks with this brick in the middle of a side",
+  "message.railworks.vat.formed": "Creosote vat formed",
+  "message.railworks.vat.incomplete": "Place two creosote vats side by side, then hit one with a hammer"
 }

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "P": "#minecraft:planks"
+  },
+  "pattern": [
+    "I I",
+    "P P",
+    "PPP"
+  ],
+  "result": {
+    "id": "railworks:creosote_vat"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "railworks:block/coke_oven_front",
+    "side": "railworks:block/coke_oven_bricks",
+    "top": "railworks:block/coke_oven_bricks"
+  }
+}

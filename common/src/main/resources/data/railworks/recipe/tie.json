@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    "BBB"
+  ],
+  "result": {
+    "id": "railworks:tie",
+    "count": 6
+  }
+}

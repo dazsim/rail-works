@@ -1,0 +1,32 @@
+{
+  "textures": {
+    "particle": "railworks:block/creosote_still",
+    "fluid": "railworks:block/creosote_vat_surface"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        2,
+        0
+      ],
+      "to": [
+        14,
+        4.5,
+        14
+      ],
+      "shade": false,
+      "faces": {
+        "up": {
+          "texture": "#fluid",
+          "uv": [
+            2,
+            0,
+            14,
+            14
+          ]
+        }
+      }
+    }
+  ]
+}

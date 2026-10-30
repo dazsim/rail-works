@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "B": "minecraft:brick",
+    "S": "#minecraft:sand",
+    "C": "minecraft:clay_ball"
+  },
+  "pattern": [
+    "BSB",
+    "SCS",
+    "BSB"
+  ],
+  "result": {
+    "id": "railworks:coke_oven_bricks",
+    "count": 4
+  }
+}

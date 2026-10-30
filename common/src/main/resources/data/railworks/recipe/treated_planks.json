@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    "railworks:treated_log"
+  ],
+  "result": {
+    "id": "railworks:treated_planks",
+    "count": 4
+  }
+}

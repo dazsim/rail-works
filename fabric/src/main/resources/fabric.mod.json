@@ -9,9 +9,13 @@
     ],
     "license": "${license}",
     "environment": "*",
+    "accessWidener": "railworks.accesswidener",
     "entrypoints": {
         "main": [
             "com.workshopcraft.railworks.fabric.RailWorksFabric"
+        ],
+        "client": [
+            "com.workshopcraft.railworks.fabric.RailWorksFabricClient"
         ]
     },
     "depends": {

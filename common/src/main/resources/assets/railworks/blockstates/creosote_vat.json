@@ -1,0 +1,620 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "railworks:block/creosote_vat_floor"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "formed": "false"
+          },
+          {
+            "partner": "east|south|west"
+          }
+        ]
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_wall"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "formed": "false"
+          },
+          {
+            "partner": "north|south|west"
+          }
+        ]
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_wall",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "formed": "false"
+          },
+          {
+            "partner": "north|east|west"
+          }
+        ]
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_wall",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "formed": "false"
+          },
+          {
+            "partner": "north|east|south"
+          }
+        ]
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_wall",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "fluid": "1"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_1"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "fluid": "2"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_2"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "fluid": "3"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_3"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "fluid": "4"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_4"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "1|2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_1"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "1|2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_1"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_2"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_2"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_3"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_3"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_4"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "north",
+        "logs": "4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_4"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "fluid": "1"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "fluid": "2"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "fluid": "3"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "fluid": "4"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "1|2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "1|2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "east",
+        "logs": "4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "fluid": "1"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "fluid": "2"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "fluid": "3"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "fluid": "4"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "1|2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "1|2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "south",
+        "logs": "4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "fluid": "1"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "fluid": "2"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "fluid": "3"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "fluid": "4"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_fluid_4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "1|2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "1|2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "2|3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "2|3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "3|4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "3|4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "4",
+        "treated": "false"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_raw_4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "partner": "west",
+        "logs": "4",
+        "treated": "true"
+      },
+      "apply": {
+        "model": "railworks:block/creosote_vat_log_treated_4",
+        "y": 270
+      }
+    }
+  ]
+}
