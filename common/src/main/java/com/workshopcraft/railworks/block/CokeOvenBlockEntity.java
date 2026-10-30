@@ -9,6 +9,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -35,6 +36,7 @@ public class CokeOvenBlockEntity extends BaseContainerBlockEntity implements Wor
 
     private NonNullList<ItemStack> items = NonNullList.withSize(4, ItemStack.EMPTY);
     private boolean burning;
+    private ItemStack batch = ItemStack.EMPTY;
     private int progress;
     private int tank;
 
@@ -93,12 +95,13 @@ public class CokeOvenBlockEntity extends BaseContainerBlockEntity implements Wor
                 else out.grow(COKE_PER_BATCH);
                 tank = Math.min(CAPACITY, tank + BUCKET);
                 burning = false;
+                batch = ItemStack.EMPTY;
                 progress = 0;
             }
             changed = true;
         }
         if (!burning && canStart()) {
-            items.get(COAL_IN).shrink(COAL_PER_BATCH);
+            batch = items.get(COAL_IN).split(COAL_PER_BATCH);
             burning = true;
             progress = 0;
             changed = true;
@@ -165,6 +168,7 @@ public class CokeOvenBlockEntity extends BaseContainerBlockEntity implements Wor
         ContainerHelper.loadAllItems(input, items);
         burning = input.getBooleanOr("burning", false);
         progress = input.getIntOr("progress", 0);
+        batch = input.read("batch", ItemStack.CODEC).orElse(burning ? new ItemStack(Items.COAL, COAL_PER_BATCH) : ItemStack.EMPTY);
         tank = input.getIntOr("tank", 0);
     }
 
@@ -174,7 +178,17 @@ public class CokeOvenBlockEntity extends BaseContainerBlockEntity implements Wor
         ContainerHelper.saveAllItems(output, items);
         output.putBoolean("burning", burning);
         output.putInt("progress", progress);
+        if (!batch.isEmpty()) output.store("batch", ItemStack.CODEC, batch);
         output.putInt("tank", tank);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null && !batch.isEmpty()) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), batch);
+        batch = ItemStack.EMPTY;
+        burning = false;
+        progress = 0;
     }
 
     @Override
