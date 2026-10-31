@@ -677,10 +677,10 @@ public class HandTrolley extends Entity {
     /** The first solid block inside the trolley's outline, checking only the leading end when moving. */
     private @Nullable BlockPos outlineHit(Rail r, double at, int dir) {
         double[] c = r.path().pose(at);
-        double base = r.top(at);
         double h = c[2];
         double[] as = dir == 0 ? new double[]{-1.3, -0.65, 0, 0.65, 1.3} : new double[]{dir * 1.35};
         for (double a : as) {
+            double base = r.top(Mth.clamp(at + a, 0, r.length()));
             double x0 = c[0] + a * Math.cos(h), z0 = c[1] + a * Math.sin(h);
             for (double w = -1.0; w <= 1.001; w += 0.25) {
                 double x = x0 - w * Math.sin(h), z = z0 + w * Math.cos(h);
