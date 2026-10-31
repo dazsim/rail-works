@@ -36,14 +36,14 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
-/** Draws a node's stake, buffer stop and points, and each section that meets it unless the other end draws it, from a cached mesh. */
+/** Draws a node's stake, buffer stop, points and end marker from a cached mesh. Plain sections are drawn by {@link ClientTrack}. */
 public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, TrackRenderer.State> {
     static final double GAUGE = 1.5, TIE_L = 3, TIE_H = 1 / 3.0, TIE_W = 0.5, BLADE = 5;
     // bottom above the tie top, height, width: foot, web, head of a bullhead rail
     static final double[][] RAIL = {{0.04, 0.05, 0.11}, {0.09, 0.08, 0.05}, {0.17, 0.07, 0.13}};
     static final int WHITE = 0xFFFFFFFF, CHALK = 0xE8FFFFFF, CHALK_RED = 0xE8FF3A30, EDGE = 0x90FFFFFF, EDGE_RED = 0x90FF5040,
             GHOST = 0x7898CCFF, GHOST_RED = 0x78FF6050, GHOST_RAIL = 0xD0B8DCFF, GHOST_RAIL_RED = 0xD0FF7060, BLOCKED = 0x55FF2020,
-            BUFFER_RED = 0xFFB02020, LAMP = 0xFFFF3020, END = 0xC0FFC830, END_SOFT = 0x60FFD040;
+            BUFFER_RED = 0xFFB02020, LAMP = 0xFFFF3020, END = 0xF0FFC830, END_DARK = 0xD0201A10, END_SOFT = 0x60FFD040;
     static final double VIEW = 192, DETAIL = 40, GLASS = 128, FROG_IN = 1.4, FROG_OUT = 1.6;
 
     public static class State extends BlockEntityRenderState {
@@ -113,26 +113,24 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
         return be.renderCache instanceof TrackMesh m ? m.bounds : TrackMesh.EVERYWHERE;
     }
 
-    /** Whether the node at pos is loaded on this client and can draw its own sections. */
-    static boolean draws(Level level, long pos) {
-        return level.getBlockEntity(BlockPos.of(pos)) instanceof TrackNodeBlockEntity o && o.view != null;
-    }
-
     private static @Nullable TrackMesh mesh(TrackNodeBlockEntity be) {
         Level level = be.getLevel();
         if (level == null) return null;
         long now = level.getGameTime();
-        if (be.renderCache instanceof TrackMesh m && m.version == be.version && now - m.built < 100 && now >= m.built && watching(m, level)) return m;
-        TrackMesh m = new Builder(be, level).build();
+        if (be.renderCache instanceof TrackMesh m && m.version == be.version && now - m.built < 100 && now >= m.built) return m;
+        TrackMesh m = new Builder(level, be.getBlockPos(), be).build();
         m.version = be.version;
         m.built = now - Math.floorMod(be.getBlockPos().hashCode(), 50);
         be.renderCache = m;
         return m;
     }
 
-    private static boolean watching(TrackMesh m, Level level) {
-        for (int i = 0; i < m.watch.length; i++) if (draws(level, m.watch[i]) != m.watched[i]) return false;
-        return true;
+    /** The mesh of one plain section, in coordinates local to origin. */
+    static TrackMesh sectionMesh(Level level, BlockPos origin, TrackView.Seg seg) {
+        Builder b = new Builder(level, origin, null);
+        b.section(seg);
+        b.mesh.finish(b.ox, b.oy, b.oz);
+        return b.mesh;
     }
 
     static TextureAtlasSprite sprite(Identifier id) {
@@ -140,7 +138,7 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
     }
 
     private static final class Builder {
-        final TrackNodeBlockEntity be;
+        final @Nullable TrackNodeBlockEntity be;
         final Level level;
         final BlockPos origin;
         final double ox, oy, oz;
@@ -152,38 +150,24 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
                 stakeWood = sprite(Identifier.withDefaultNamespace("block/stripped_spruce_log")),
                 red = sprite(Identifier.withDefaultNamespace("block/red_concrete")), black = sprite(Identifier.withDefaultNamespace("block/black_concrete"));
 
-        Builder(TrackNodeBlockEntity be, Level level) {
+        Builder(Level level, BlockPos origin, @Nullable TrackNodeBlockEntity be) {
             this.be = be;
             this.level = level;
-            this.origin = be.getBlockPos();
+            this.origin = origin;
             this.ox = origin.getX();
             this.oy = origin.getY();
             this.oz = origin.getZ();
         }
 
         TrackMesh build() {
+            TrackNodeBlockEntity be = this.be;
+            if (be == null) throw new IllegalStateException();
             TrackView v = be.view;
             BlockState st = be.getBlockState();
             boolean staked = st.hasProperty(TrackNodeBlock.STAKE) && st.getValue(TrackNodeBlock.STAKE);
             part(ox + 0.5, oz + 0.5);
             if (staked) stake(v == null ? 0 : v.heading, v == null ? 0 : v.lift);
             if (v != null) {
-                List<Long> watch = new ArrayList<>();
-                for (TrackView.Seg s : v.segs) {
-                    if (s.own || s.aPos == 0) {
-                        section(s);
-                        continue;
-                    }
-                    boolean other = draws(level, s.aPos);
-                    watch.add(s.aPos);
-                    if (!other) section(s);
-                }
-                mesh.watch = new long[watch.size()];
-                mesh.watched = new boolean[watch.size()];
-                for (int i = 0; i < watch.size(); i++) {
-                    mesh.watch[i] = watch.get(i);
-                    mesh.watched[i] = draws(level, watch.get(i));
-                }
                 if (v.legs.size() == 2) points(v);
                 part(ox + 0.5, oz + 0.5);
                 if (v.buffer && v.hasOut) buffer(v.out, oy + v.lift / 8.0);
@@ -509,48 +493,50 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
             frog(l0, l1);
         }
 
+        /**
+         * A plain common crossing: the V nose where the two inner rails meet, a wing rail for each leg that runs in on its
+         * own inner rail, knuckles at the throat and lies beside the nose, and a check rail inside the opposite outer rail.
+         */
         void frog(TrackView.Seg l0, TrackView.Seg l1) {
             TrackView.Seg[] legs = {l0, l1};
             double fr = l0.frog[end(l0)];
             if (fr < 0) return;
             boolean[] on = {laid(l0, fr, true), laid(l1, fr, true)};
             if (!on[0] && !on[1]) return;
-            double[] x0 = inner(l0, fr), x1 = inner(l1, fr);
+            double[] x0 = inner(l0, fr);
             part(x0[0], x0[2]);
+            double throat = fr - 0.3;
             for (int i = 0; i < 2; i++) {
                 if (!on[i]) continue;
                 TrackView.Seg leg = legs[i], other = legs[1 - i];
                 List<double[]> pts = new ArrayList<>();
-                for (double d = fr + 0.03; d <= fr + FROG_OUT + 1e-6; d += 0.25) pts.add(inner(leg, d));
+                for (double d = fr + 0.08; d <= fr + FROG_OUT + 1e-6; d += 0.4) pts.add(inner(leg, d));
+                pts.add(inner(leg, fr + FROG_OUT));
                 railLine(pts, true, true);
-                // the wing rail follows this leg's inner rail up to the throat, then bends out beside the other leg's nose
                 pts = new ArrayList<>();
-                for (double d = fr - FROG_IN; d <= fr + 1.1 + 1e-6; d += 0.2) {
-                    double[] mine = inner(leg, d);
-                    double[] q = inner(other, d);
-                    double[] n = toward(leg, d);
-                    double gap = 0.2 + Math.max(0, d - fr - 0.7) * 0.5;
-                    double[] beside = {q[0] + n[0] * gap, q[1], q[2] + n[1] * gap};
-                    double t = Math.max(0, Math.min(1, (d - (fr - 0.35)) / 0.35));
-                    pts.add(new double[]{mine[0] + (beside[0] - mine[0]) * t, mine[1], mine[2] + (beside[2] - mine[2]) * t});
-                }
+                pts.add(inner(leg, fr - FROG_IN));
+                pts.add(inner(leg, throat));
+                pts.add(beside(other, leg, fr + 0.25, 0.17));
+                pts.add(beside(other, leg, fr + 0.95, 0.17));
+                pts.add(beside(other, leg, fr + 1.3, 0.3));
                 railLine(pts, true, true);
-                // check rail opposite the frog, inside the outer rail
                 int sd = leg.side[end(leg)];
                 pts = new ArrayList<>();
-                for (double d = fr - FROG_OUT; d <= fr + FROG_OUT + 1e-6; d += 0.25) {
-                    double flare = Math.max(0, Math.min(1, (Math.abs(d - fr) - 1.1) / 0.5)) * 0.14;
-                    pts.add(legPt(leg, d, across(leg, -sd, GAUGE / 2 - 0.2 - flare)));
-                }
-                part(pts.get(0)[0], pts.get(0)[2]);
+                pts.add(legPt(leg, fr - 1.3, across(leg, -sd, GAUGE / 2 - 0.3)));
+                pts.add(legPt(leg, fr - 1.0, across(leg, -sd, GAUGE / 2 - 0.17)));
+                pts.add(legPt(leg, fr + 1.0, across(leg, -sd, GAUGE / 2 - 0.17)));
+                pts.add(legPt(leg, fr + 1.3, across(leg, -sd, GAUGE / 2 - 0.3)));
+                part(pts.get(1)[0], pts.get(1)[2]);
                 railLine(pts, true, true);
                 part(x0[0], x0[2]);
             }
-            double[] m = {(x0[0] + x1[0]) / 2, 0, (x0[2] + x1[2]) / 2};
-            double th = (legPt(l0, fr, 0)[3] + legPt(l1, fr, 0)[3]) / 2;
-            double y = Math.min(x0[1], x1[1]) + 0.02;
-            double c = Math.cos(th), s = Math.sin(th);
-            box(cur.solid, cast, WHITE, m[0] + c * 0.3, y, m[2] + s * 0.3, th, 0, 3.0, 0.04, 0.8, true);
+        }
+
+        /** A point gap across from a leg's inner rail toward the leg that wing rail belongs to, d from the toe. */
+        double[] beside(TrackView.Seg nose, TrackView.Seg wing, double d, double gap) {
+            double[] q = inner(nose, d), n = toward(wing, d);
+            // the nose rail of one leg is crossed by the other leg; its wing lies on the far side from the nose leg's centre
+            return new double[]{q[0] + n[0] * gap, q[1], q[2] + n[1] * gap};
         }
 
         /** The rail of a leg on the side facing the other leg, d from the toe. */
@@ -587,17 +573,29 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
             double sEnd = atA ? 0 : seg.path.length;
             double th = (atA ? p0 : p1)[2] + (atA ? Math.PI : 0);
             double y = seg.height(sEnd) + TIE_H + 0.2;
-            double c = Math.cos(th), s = Math.sin(th);
             TrackMesh.Buf b = cur.marker;
             box(b, white, END, cx, y + 1.25, cz, th, 0, 0.16, 2.5, 0.16, true);
-            box(b, white, END, cx, y + 2.7, cz, th, 0, 0.42, 0.42, 0.42, true);
-            box(b, white, END_SOFT, cx, y + 0.02, cz, th, 0, 1.4, 0.03, GAUGE + 0.3, true);
-            for (int k = 0; k < 3; k++) {
-                double a = 0.9 + k * 0.55;
-                for (int e = -1; e <= 1; e += 2) {
-                    double px = cx + c * a - s * e * 0.3, pz = cz + s * a + c * e * 0.3;
-                    box(b, white, END, px, y + 0.03, pz, th - e * 0.8, 0, 0.75, 0.04, 0.12, true);
-                }
+            arrow(b, END, cx, y + 2.35, cz, th, -0.1, 1.3, 0.55, 0.7, 0.2, 0.16);
+            box(b, white, END_SOFT, cx, y + 0.02, cz, th, 0, 1.0, 0.03, GAUGE + 0.3, true);
+            for (int k = 0; k < 2; k++) {
+                double a0 = 0.7 + k * 1.7;
+                arrow(b, END_DARK, cx, y + 0.03, cz, th, a0 - 0.08, 1.56, 0.8, 1.36, 0.42, 0.03);
+                arrow(b, END, cx, y + 0.07, cz, th, a0, 1.4, 0.7, 1.1, 0.28, 0.04);
+            }
+        }
+
+        /** A flat arrow from a0 to a0 + len along th: a shaft, then a solid head of the given length and base width. */
+        void arrow(TrackMesh.Buf b, int color, double cx, double y, double cz, double th, double a0, double len, double head,
+                   double headW, double shaftW, double thick) {
+            double c = Math.cos(th), s = Math.sin(th);
+            double shaft = len - head;
+            box(b, white, color, cx + c * (a0 + shaft / 2), y, cz + s * (a0 + shaft / 2), th, 0, shaft + 0.02, thick, shaftW, true);
+            int steps = 7;
+            double st = head / steps;
+            for (int k = 0; k < steps; k++) {
+                double a = a0 + shaft + st * (k + 0.5);
+                double w = headW * (1 - (k + 0.5) / steps);
+                box(b, white, color, cx + c * a, y, cz + s * a, th, 0, st + 0.01, thick, w, true);
             }
         }
 

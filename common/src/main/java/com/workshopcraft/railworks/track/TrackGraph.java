@@ -77,6 +77,9 @@ public final class TrackGraph extends SavedData {
         List<BlockPos> blocked = List.of();
         BitSet unsupported = new BitSet();
         boolean checked;
+        /** Bumped whenever anything the client draws for this section may have changed. */
+        public int rev;
+        private double @Nullable [] box;
         // per end (0 at a, 1 at b) when that end is the toe of points
         final double[] skip = new double[2], frog = {-1, -1};
         final int[] side = new int[2];
@@ -96,6 +99,26 @@ public final class TrackGraph extends SavedData {
             unsupported = new BitSet();
             checked = false;
             live = false;
+            box = null;
+            rev++;
+        }
+
+        /** Horizontal distance from a point to this section's bounding box. */
+        public double reachFrom(double x, double z) {
+            if (box == null) {
+                double[] b = {Double.MAX_VALUE, Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE};
+                for (double t = 0; ; t += 2) {
+                    double[] p = path.pose(Math.min(t, path.length));
+                    b[0] = Math.min(b[0], p[0]);
+                    b[1] = Math.min(b[1], p[1]);
+                    b[2] = Math.max(b[2], p[0]);
+                    b[3] = Math.max(b[3], p[1]);
+                    if (t >= path.length) break;
+                }
+                box = b;
+            }
+            double dx = Math.max(0, Math.max(box[0] - x, x - box[2])), dz = Math.max(0, Math.max(box[1] - z, z - box[3]));
+            return Math.hypot(dx, dz);
         }
 
         public double tieS(int i) {
@@ -566,6 +589,7 @@ public final class TrackGraph extends SavedData {
         for (int i = 0; i < s.n; i++) if (!supported(level, s, i)) un.set(i);
         s.unsupported = un;
         s.checked = true;
+        s.rev++;
     }
 
     /** A tie needs something solid under its middle, or under both rails. */
@@ -627,7 +651,12 @@ public final class TrackGraph extends SavedData {
 
     public void changed(ServerLevel level, @Nullable Node n) {
         setDirty();
-        if (n == null || !level.isLoaded(n.pos)) return;
+        if (n == null) return;
+        for (long id : n.segs) {
+            Segment s = segments.get(id);
+            if (s != null) s.rev++;
+        }
+        if (!level.isLoaded(n.pos)) return;
         if (level.getBlockEntity(n.pos) instanceof TrackNodeBlockEntity be) be.sync();
     }
 
@@ -662,6 +691,12 @@ public final class TrackGraph extends SavedData {
         }
         t.put("segs", st);
         return t;
+    }
+
+    /** A section on its own, for clients that draw it wherever it runs. */
+    public CompoundTag syncTag(ServerLevel level, Segment s) {
+        annotate(s);
+        return segTag(level, s, 0);
     }
 
     private CompoundTag segTag(ServerLevel level, Segment s, long viewer) {

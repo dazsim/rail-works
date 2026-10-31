@@ -49,7 +49,7 @@ public final class TrackView {
         return v;
     }
 
-    private static Seg seg(CompoundTag c) {
+    public static Seg seg(CompoundTag c) {
         Seg s = new Seg();
         s.id = c.getLongOr("id", 0);
         s.path = TrackPath.load(c.getCompoundOrEmpty("path"));

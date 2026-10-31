@@ -22,14 +22,13 @@ final class TrackMesh {
     static final class Part {
         final Buf solid = new Buf(), detail = new Buf(), glass = new Buf(), marker = new Buf();
         AABB bounds;
+        int cx, cz;
     }
 
     final Map<Long, Part> parts = new HashMap<>();
     final List<Part> list = new ArrayList<>();
     int version;
     long built;
-    long[] watch = new long[0];
-    boolean[] watched = new boolean[0];
     static final AABB EVERYWHERE = new AABB(-3.0E7, -2048, -3.0E7, 3.0E7, 2048, 3.0E7);
     AABB bounds = EVERYWHERE;
 
@@ -37,6 +36,8 @@ final class TrackMesh {
         long k = ((long) Math.floor(wx / 16) << 32) ^ ((long) Math.floor(wz / 16) & 0xFFFFFFFFL);
         return parts.computeIfAbsent(k, x -> {
             Part p = new Part();
+            p.cx = (int) Math.floor(wx / 16);
+            p.cz = (int) Math.floor(wz / 16);
             list.add(p);
             return p;
         });

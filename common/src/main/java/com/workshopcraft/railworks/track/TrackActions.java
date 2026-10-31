@@ -3,6 +3,7 @@ package com.workshopcraft.railworks.track;
 import com.workshopcraft.railworks.block.GroundFrameBlock;
 import com.workshopcraft.railworks.block.TrackNodeBlock;
 import com.workshopcraft.railworks.registry.ModContent;
+import java.util.BitSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,7 +33,32 @@ public final class TrackActions {
     private static final long SELECT_TIMEOUT = 1200;
     private static final double TURN = Math.toRadians(2);
 
+    private static final long WARN_EVERY = 40, WARN_FOR = 1200;
+    private static final double WARN_REACH = 10;
+
+    private record Warning(ServerLevel level, long seg, int index, Vec3 at, Component text, long until) {}
+
+    private static final Map<UUID, Warning> WARNINGS = new java.util.concurrent.ConcurrentHashMap<>();
+
     private TrackActions() {}
+
+    /** Re-shows a ground check failure while the player stays near the failed spot with ties in hand. */
+    public static void tickWarnings(ServerLevel level) {
+        long now = level.getGameTime();
+        if (now % WARN_EVERY != 0 || WARNINGS.isEmpty()) return;
+        TrackGraph g = TrackGraph.get(level);
+        for (net.minecraft.server.level.ServerPlayer p : level.players()) {
+            Warning w = WARNINGS.get(p.getUUID());
+            if (w == null || w.level() != level) continue;
+            TrackGraph.Segment s = g.segment(w.seg());
+            boolean keep = now < w.until() && s != null && !s.live && w.index() < s.n
+                    && s.unsupported.get(w.index()) && !s.ties.get(w.index())
+                    && p.getMainHandItem().is(ModContent.TIE)
+                    && p.position().distanceTo(w.at()) <= WARN_REACH;
+            if (keep) p.sendOverlayMessage(w.text());
+            else WARNINGS.remove(p.getUUID());
+        }
+    }
 
     public static double headingFromYaw(float yaw) {
         double deg = yaw + 90;
@@ -72,12 +98,18 @@ public final class TrackActions {
         else c.append(Component.translatable("railworks.track.progress", s.ties.cardinality(), s.n, s.rails.cardinality(), s.n));
         if (!s.live && !s.blocked().isEmpty())
             c.append(Component.translatable("railworks.track.blocked", s.blocked().size()).withStyle(ChatFormatting.RED));
-        if (!s.live && s.unsupportedFree() > 0)
-            c.append(Component.translatable("railworks.track.over_air", s.unsupportedFree()).withStyle(ChatFormatting.RED));
+        if (!s.live && s.unsupportedFree() > 0) {
+            BitSet b = (BitSet) s.unsupported.clone();
+            b.andNot(s.ties);
+            Vec3 p = spot(new TrackGraph.Spot(s, b.nextSetBit(0), 0));
+            c.append(Component.translatable("railworks.track.over_air", s.unsupportedFree(),
+                    (int) Math.floor(p.x), (int) Math.floor(p.y - 0.3), (int) Math.floor(p.z)).withStyle(ChatFormatting.RED));
+        }
         return c;
     }
 
     private static void say(Player p, Component c) {
+        WARNINGS.remove(p.getUUID());
         p.sendOverlayMessage(c);
     }
 
@@ -325,8 +357,10 @@ public final class TrackActions {
                 g.changed(level, g.node(s.seg().a));
                 g.changed(level, g.node(s.seg().b));
                 Vec3 p = spot(s);
-                say(player, Component.translatable("railworks.track.unsupported", (int) Math.floor(p.x), (int) Math.floor(p.y - 0.3), (int) Math.floor(p.z))
-                        .withStyle(ChatFormatting.RED));
+                Component warn = Component.translatable("railworks.track.unsupported", (int) Math.floor(p.x), (int) Math.floor(p.y - 0.3), (int) Math.floor(p.z))
+                        .withStyle(ChatFormatting.RED);
+                say(player, warn);
+                WARNINGS.put(player.getUUID(), new Warning(level, s.seg().id, s.index(), p, warn, level.getGameTime() + WARN_FOR));
                 return laid > 0 ? InteractionResult.SUCCESS : InteractionResult.FAIL;
             }
             int extra = rails ? g.extraBars(s.seg(), s.index()) : 0;

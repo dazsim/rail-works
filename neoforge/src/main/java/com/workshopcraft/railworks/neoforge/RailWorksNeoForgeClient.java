@@ -6,7 +6,13 @@ import com.workshopcraft.railworks.client.CokeOvenScreen;
 import com.workshopcraft.railworks.client.RailWorksClient;
 import com.workshopcraft.railworks.client.TrackRenderer;
 import com.workshopcraft.railworks.registry.ModContent;
+import com.workshopcraft.railworks.client.ClientTrack;
+import com.workshopcraft.railworks.track.TrackSyncPayload;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
+import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
+import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
@@ -26,6 +32,12 @@ public class RailWorksNeoForgeClient {
             e.register(ModContent.COKE_OVEN_MENU, CokeOvenScreen::new);
             e.register(ModContent.BRICK_FURNACE_MENU, BrickFurnaceScreen::new);
         });
+        modBus.addListener((RegisterClientPayloadHandlersEvent e) -> e.register(TrackSyncPayload.TYPE, (p, ctx) -> ClientTrack.receive(p.tag())));
+        modBus.addListener((RegisterRenderPipelinesEvent e) -> {
+            e.registerPipeline(ClientTrack.SOLID);
+            e.registerPipeline(ClientTrack.GLASS);
+        });
+        NeoForge.EVENT_BUS.addListener((SubmitCustomGeometryEvent e) -> ClientTrack.submit(e.getSubmitNodeCollector(), e.getLevelRenderState()));
         modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> e.registerBlockEntityRenderer(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new));
         modBus.addListener((RegisterFluidModelsEvent e) -> {
             e.register(RailWorksClient.CREOSOTE_MODEL, ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE);

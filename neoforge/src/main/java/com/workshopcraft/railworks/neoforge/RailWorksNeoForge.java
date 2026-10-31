@@ -7,7 +7,13 @@ import com.workshopcraft.railworks.block.BrickFurnaceStructure;
 import com.workshopcraft.railworks.registry.ModContent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import com.workshopcraft.railworks.track.TrackSync;
+import com.workshopcraft.railworks.track.TrackSyncPayload;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -21,6 +27,10 @@ public class RailWorksNeoForge {
     public RailWorksNeoForge(IEventBus modBus, ModContainer container) {
         modBus.addListener(RailWorksNeoForge::onRegister);
         modBus.addListener(RailWorksNeoForge::onCapabilities);
+        modBus.addListener((RegisterPayloadHandlersEvent e) -> e.registrar("1").playToClient(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC));
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post e) -> {
+            if (e.getLevel() instanceof ServerLevel l) TrackSync.tick(l);
+        });
     }
 
     private static void onRegister(RegisterEvent e) {
