@@ -1,6 +1,7 @@
 package com.workshopcraft.railworks.track;
 
 import com.workshopcraft.railworks.block.GroundFrameBlock;
+import com.workshopcraft.railworks.block.StakeShapes;
 import com.workshopcraft.railworks.block.TrackNodeBlock;
 import com.workshopcraft.railworks.registry.ModContent;
 import java.util.BitSet;
@@ -126,39 +127,32 @@ public final class TrackActions {
             select(level, player, g, n);
             return InteractionResult.SUCCESS;
         }
-        Direction face = hit.getDirection();
-        if (face.getAxis().isVertical()) {
-            if (!sneak) select(level, player, g, n);
-            else if (n.segs.isEmpty()) {
-                n.stake = false;
-                SELECTED.values().remove(pos);
-                level.removeBlock(pos, false);
-                give(player, new ItemStack(ModContent.SURVEY_STAKE));
-                say(player, Component.translatable("railworks.track.picked_up"));
-            } else {
-                int c = g.unlink(level, n);
-                say(player, c > 0 ? Component.translatable("railworks.track.unlinked", c)
-                        : Component.translatable("railworks.track.take_up_first").withStyle(ChatFormatting.RED));
-            }
-            level.playSound(null, pos, SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 0.6F, 1.2F);
+        if (!sneak) {
+            select(level, player, g, n);
             return InteractionResult.SUCCESS;
         }
         if (g.anyLaid(n)) {
             say(player, Component.translatable("railworks.track.take_up_first").withStyle(ChatFormatting.RED));
             return InteractionResult.SUCCESS;
         }
-        double hy = hit.getLocation().y - pos.getY();
+        Direction face = hit.getDirection();
+        Vec3 at = hit.getLocation();
+        double hy = at.y - pos.getY();
         boolean ok;
         MutableComponent what;
-        if (hy > 0.62) {
-            ok = g.adjust(level, n, sneak ? -1 : 1, 0);
+        if (face == Direction.UP || (face != Direction.DOWN && hy >= StakeShapes.TOP / 2)) {
+            int d = face == Direction.UP ? -1 : 1;
+            if (n.lift + d < TrackGraph.MIN_LIFT || n.lift + d > TrackGraph.MAX_LIFT) {
+                say(player, Component.translatable(d < 0 ? "railworks.track.lowest" : "railworks.track.highest").withStyle(ChatFormatting.RED));
+                return InteractionResult.SUCCESS;
+            }
+            ok = g.adjust(level, n, d, 0);
             what = Component.translatable("railworks.track.height", (n.lift >= 0 ? "+" : "") + n.lift + "/8");
         } else {
-            double ox = hit.getLocation().x - (pos.getX() + 0.5), oz = hit.getLocation().z - (pos.getZ() + 0.5);
-            double side = face.getStepX() * oz - face.getStepZ() * ox;
-            ok = g.adjust(level, n, 0, side >= 0 ? TURN : -TURN);
+            boolean right = hitsRight(player, pos, at);
+            ok = g.adjust(level, n, 0, right ? TURN : -TURN);
             double bearing = Math.toDegrees(Math.atan2(Math.cos(n.heading), -Math.sin(n.heading)));
-            what = Component.translatable("railworks.track.bearing", f1((bearing + 360) % 360));
+            what = Component.translatable(right ? "railworks.track.turned_right" : "railworks.track.turned_left", f1((bearing + 360) % 360));
         }
         if (!ok) {
             say(player, Component.translatable("railworks.track.no_fit").withStyle(ChatFormatting.RED));
@@ -171,6 +165,18 @@ public final class TrackActions {
         }
         say(player, what);
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Which half of the stake the player hit, as they see it: true for the right half. Taken from the hit point's offset
+     * from the stake's centre line across the player's line of sight, so it does not depend on which face of the outline
+     * was hit. A right half hit turns the stake clockwise seen from above (to the right), a left half hit anticlockwise.
+     */
+    static boolean hitsRight(Player player, BlockPos pos, Vec3 at) {
+        double cx = pos.getX() + 0.5, cz = pos.getZ() + 0.5;
+        double dx = cx - player.getX(), dz = cz - player.getZ();
+        double rx = at.x - cx, rz = at.z - cz;
+        return dx * rz - dz * rx >= 0;
     }
 
     /** A hidden node with one section and no buffer: track can be continued from here. */

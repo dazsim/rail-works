@@ -5,7 +5,10 @@ import com.workshopcraft.railworks.registry.ModContent;
 import com.workshopcraft.railworks.registry.ModTags;
 import com.workshopcraft.railworks.track.TrackActions;
 import com.workshopcraft.railworks.track.TrackGraph;
+import com.workshopcraft.railworks.track.TrackView;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -31,7 +34,6 @@ import org.jspecify.annotations.Nullable;
 public class TrackNodeBlock extends BaseEntityBlock {
     public static final MapCodec<TrackNodeBlock> CODEC = simpleCodec(TrackNodeBlock::new);
     public static final BooleanProperty STAKE = BooleanProperty.create("stake");
-    private static final VoxelShape POST = Block.box(6.5, 0, 6.5, 9.5, 14, 9.5);
     private static final VoxelShape NUB = Block.box(4, 0, 4, 12, 4, 12);
 
     public TrackNodeBlock(Properties properties) {
@@ -56,8 +58,54 @@ public class TrackNodeBlock extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        if (state.getValue(STAKE)) return POST;
+        if (state.getValue(STAKE)) return StakeShapes.forHeading(heading(level, pos));
         return context.isHoldingItem(ModContent.HAMMER) || context.isHoldingItem(ModContent.SURVEY_STAKE) ? NUB : Shapes.empty();
+    }
+
+    /** The stake's heading: the graph on the server thread, the synced view on the client. */
+    private static double heading(BlockGetter level, BlockPos pos) {
+        if (level instanceof ServerLevel sl) {
+            if (!sl.getServer().isSameThread()) return 0;
+            TrackGraph.Node n = TrackGraph.get(sl).nodeAt(pos);
+            return n == null ? 0 : n.heading;
+        }
+        return level.getBlockEntity(pos) instanceof TrackNodeBlockEntity be && be.view != null ? be.view.heading : 0;
+    }
+
+    /** True when a section at this node has ties or rails down. */
+    private static boolean laid(BlockGetter level, BlockPos pos) {
+        if (level instanceof ServerLevel sl) {
+            TrackGraph.Node n = TrackGraph.get(sl).nodeAt(pos);
+            return n != null && TrackGraph.get(sl).anyLaid(n);
+        }
+        if (level.getBlockEntity(pos) instanceof TrackNodeBlockEntity be && be.view != null)
+            for (TrackView.Seg s : be.view.segs) if (!s.ties.isEmpty() || !s.rails.isEmpty()) return true;
+        return false;
+    }
+
+    /** Breaking a stake unlinks its sections and drops it, but not while track is laid on them. */
+    @Override
+    protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+        if (state.getValue(STAKE) && laid(level, pos)) return 0;
+        return super.getDestroyProgress(state, player, level, pos);
+    }
+
+    @Override
+    protected void attack(BlockState state, Level level, BlockPos pos, Player player) {
+        if (level instanceof ServerLevel && state.getValue(STAKE) && laid(level, pos))
+            player.sendOverlayMessage(Component.translatable("railworks.track.take_up_first").withStyle(ChatFormatting.RED));
+    }
+
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (level instanceof ServerLevel sl && state.getValue(STAKE)) {
+            TrackGraph g = TrackGraph.get(sl);
+            TrackGraph.Node n = g.nodeAt(pos);
+            int c = n == null ? 0 : n.sectionCount();
+            if (n == null || !g.anyLaid(n))
+                player.sendOverlayMessage(c > 0 ? Component.translatable("railworks.track.unlinked", c) : Component.translatable("railworks.track.picked_up"));
+        }
+        return super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override

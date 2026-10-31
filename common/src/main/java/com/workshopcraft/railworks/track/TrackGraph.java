@@ -41,6 +41,10 @@ public final class TrackGraph extends SavedData {
         public int route;
         final List<Long> segs = new ArrayList<>();
 
+        public int sectionCount() {
+            return segs.size();
+        }
+
         Node(long id, BlockPos pos, double heading) {
             this.id = id;
             this.pos = pos.immutable();

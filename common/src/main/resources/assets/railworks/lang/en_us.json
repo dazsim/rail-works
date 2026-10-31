@@ -70,13 +70,12 @@
   "railworks.track.end_staked": "Track end staked. Hammer it, then a new stake, to continue",
   "railworks.track.progress": ", ties %s/%s, rails %s/%s",
   "railworks.track.blocked": ", blocked at %s",
-  "railworks.track.picked_up": "Stake picked up",
-  "railworks.track.unlinked": "Unlinked %s",
+  "railworks.track.picked_up": "Stake pulled up",
+  "railworks.track.unlinked": "Unlinked %s and pulled up the stake",
   "railworks.track.take_up_first": "Take up the track first",
   "railworks.track.height": "Height %s",
-  "railworks.track.bearing": "Bearing %s",
   "railworks.track.no_fit": "No path fits that",
-  "railworks.track.selected": "Stake selected, now hit the next one",
+  "railworks.track.selected": "Stake selected, now hit the next one. Sneak and hit to raise, lower or turn it",
   "railworks.track.cleared": "Selection cleared",
   "railworks.track.link.same": "That is the same stake",
   "railworks.track.link.too_far": "more than 96 blocks apart",
@@ -98,5 +97,9 @@
   "railworks.track.sight_stake": "Sight on a survey stake",
   "railworks.track.sighted": "",
   "railworks.track.unlinked_reading": "%s blocks, rise %s, grade %s",
-  "railworks.track.stand_by_stake": "Stand near another stake to take a reading"
+  "railworks.track.stand_by_stake": "Stand near another stake to take a reading",
+  "railworks.track.turned_right": "Turned right, bearing %s",
+  "railworks.track.turned_left": "Turned left, bearing %s",
+  "railworks.track.lowest": "Already as low as it goes",
+  "railworks.track.highest": "Already as high as it goes"
 }

@@ -174,7 +174,7 @@ public final class ModContent {
         ROLLER_TABLE = block(r, "roller_table", RollerTableBlock::new, block("roller_table").mapColor(MapColor.METAL)
                 .strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion());
         TRACK_NODE = block(r, "track_node", TrackNodeBlock::new, block("track_node").mapColor(MapColor.WOOD).strength(0.5F)
-                .sound(SoundType.WOOD).noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK));
+                .sound(SoundType.WOOD).noOcclusion().noLootTable().dynamicShape().pushReaction(PushReaction.BLOCK));
         GROUND_FRAME = block(r, "ground_frame", GroundFrameBlock::new, block("ground_frame").mapColor(MapColor.WOOD)
                 .instrument(NoteBlockInstrument.BASS).strength(1.5F).sound(SoundType.WOOD).noOcclusion());
     }
