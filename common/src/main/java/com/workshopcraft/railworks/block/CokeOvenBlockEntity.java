@@ -78,7 +78,7 @@ public class CokeOvenBlockEntity extends BaseContainerBlockEntity implements Wor
         BlockState state = getBlockState();
         if (!state.is(ModContent.COKE_OVEN)) return;
         if (!CokeOvenStructure.bricksPresent(level, worldPosition, state.getValue(CokeOvenBlock.FACING), true)) {
-            level.setBlock(worldPosition, ModContent.COKE_OVEN_BRICKS.defaultBlockState(), 3);
+            CokeOvenStructure.unform(level, worldPosition, state.getValue(CokeOvenBlock.FACING));
         }
     }
 

@@ -1,33 +1,33 @@
 {
   "variants": {
     "facing=north,lit=false": {
-      "model": "railworks:block/coke_oven"
+      "model": "railworks:block/coke_oven/door"
     },
     "facing=north,lit=true": {
-      "model": "railworks:block/coke_oven_on"
+      "model": "railworks:block/coke_oven/door_lit"
     },
     "facing=east,lit=false": {
-      "model": "railworks:block/coke_oven",
+      "model": "railworks:block/coke_oven/door",
       "y": 90
     },
     "facing=east,lit=true": {
-      "model": "railworks:block/coke_oven_on",
+      "model": "railworks:block/coke_oven/door_lit",
       "y": 90
     },
     "facing=south,lit=false": {
-      "model": "railworks:block/coke_oven",
+      "model": "railworks:block/coke_oven/door",
       "y": 180
     },
     "facing=south,lit=true": {
-      "model": "railworks:block/coke_oven_on",
+      "model": "railworks:block/coke_oven/door_lit",
       "y": 180
     },
     "facing=west,lit=false": {
-      "model": "railworks:block/coke_oven",
+      "model": "railworks:block/coke_oven/door",
       "y": 270
     },
     "facing=west,lit=true": {
-      "model": "railworks:block/coke_oven_on",
+      "model": "railworks:block/coke_oven/door_lit",
       "y": 270
     }
   }

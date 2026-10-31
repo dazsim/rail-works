@@ -16,6 +16,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -31,9 +32,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
-/** The oven door. Only exists while the oven is formed; turns back into bricks when the oven breaks. */
+/** The oven door and controller. Only exists while the oven is formed; breaking any part dismantles the whole oven. */
 public class CokeOvenBlock extends BaseEntityBlock {
     public static final MapCodec<CokeOvenBlock> CODEC = simpleCodec(CokeOvenBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
@@ -61,7 +65,7 @@ public class CokeOvenBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hit) {
         if (stack.is(Items.BUCKET) && level.getBlockEntity(pos) instanceof CokeOvenBlockEntity oven && oven.tank() >= CokeOvenBlockEntity.BUCKET) {
             if (!level.isClientSide()) {
@@ -75,14 +79,30 @@ public class CokeOvenBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof CokeOvenBlockEntity be) player.openMenu(be);
         return InteractionResult.SUCCESS;
     }
 
     @Override
+    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return CokeOvenShapes.get(CokeOvenStructure.DOOR_PART, state.getValue(FACING));
+    }
+
+    @Override
+    protected VoxelShape getOcclusionShape(BlockState state) {
+        return Shapes.empty();
+    }
+
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        CokeOvenStructure.playerBreaking(player.isCreative());
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    @Override
     protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        CokeOvenStructure.setFormed(level, pos, state.getValue(FACING), false);
+        CokeOvenStructure.dismantle(level, pos, state.getValue(FACING), pos);
     }
 
     @Override
@@ -114,18 +134,22 @@ public class CokeOvenBlock extends BaseEntityBlock {
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         if (!state.getValue(LIT)) return;
         Direction facing = state.getValue(FACING);
-        BlockPos top = CokeOvenStructure.centre(pos, facing).above();
-        double tx = top.getX() + 0.5 + random.nextDouble() * 0.4 - 0.2;
-        double tz = top.getZ() + 0.5 + random.nextDouble() * 0.4 - 0.2;
-        level.addAlwaysVisibleParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true, tx, top.getY() + 1.1, tz, 0.0, 0.05, 0.0);
-        if (random.nextInt(3) == 0) level.addParticle(ParticleTypes.LARGE_SMOKE, tx, top.getY() + 1.05, tz, 0.0, 0.03, 0.0);
-        double side = random.nextDouble() * 0.5 - 0.25;
-        double dx = facing.getAxis() == Direction.Axis.X ? facing.getStepX() * 0.52 : side;
-        double dz = facing.getAxis() == Direction.Axis.Z ? facing.getStepZ() * 0.52 : side;
-        double y = pos.getY() + 0.15 + random.nextDouble() * 0.3;
-        level.addParticle(ParticleTypes.FLAME, pos.getX() + 0.5 + dx, y, pos.getZ() + 0.5 + dz, 0.0, 0.0, 0.0);
+        BlockPos c = CokeOvenStructure.centre(pos, facing);
+        double tx = c.getX() + 0.5 + random.nextDouble() * 0.36 - 0.18;
+        double tz = c.getZ() + 0.5 + random.nextDouble() * 0.36 - 0.18;
+        double ty = pos.getY() + 2.75;
+        level.addAlwaysVisibleParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, true, tx, ty, tz, 0.0, 0.05, 0.0);
+        if (random.nextInt(3) == 0) level.addParticle(ParticleTypes.LARGE_SMOKE, tx, ty + 0.1, tz, 0.0, 0.03, 0.0);
+        if (random.nextInt(3) == 0) {
+            double side = random.nextDouble() * 0.5 - 0.25;
+            double out = 0.5 - 4.5 / 16.0;
+            double dx = facing.getAxis() == Direction.Axis.X ? facing.getStepX() * out : side;
+            double dz = facing.getAxis() == Direction.Axis.Z ? facing.getStepZ() * out : side;
+            double y = pos.getY() - 1 + (3.5 + random.nextDouble() * 3.5) / 16.0;
+            level.addParticle(ParticleTypes.SMALL_FLAME, pos.getX() + 0.5 + dx, y, pos.getZ() + 0.5 + dz, 0.0, 0.0, 0.0);
+        }
         if (random.nextDouble() < 0.1) {
-            level.playLocalSound(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, SoundEvents.FURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 0.8F, false);
+            level.playLocalSound(pos.getX() + 0.5, pos.getY() - 0.7, pos.getZ() + 0.5, SoundEvents.FURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 0.8F, false);
         }
     }
 }

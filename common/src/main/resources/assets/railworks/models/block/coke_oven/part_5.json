@@ -1,0 +1,14 @@
+{"parent":"minecraft:block/block","textures":{"particle": "railworks:block/coke_oven_bricks", "brick": "railworks:block/coke_oven_bricks", "facade_2_1": "railworks:block/coke_oven_facade_2_1"},"elements":[
+{"from":[0,12,-1],"to":[7,12,0],"faces":{"down":{"uv":[0,0,7,1],"texture":"#brick"}}},
+{"from":[6,0,0],"to":[6,14,6],"faces":{"east":{"uv":[10,2,16,16],"texture":"#brick"}}},
+{"from":[6,8,6],"to":[6,14,7],"faces":{"east":{"uv":[9,2,10,8],"texture":"#brick"}}},
+{"from":[7,12,-1],"to":[7,14,0],"faces":{"east":{"uv":[0,2,1,4],"texture":"#brick"}}},
+{"from":[0,12,-1],"to":[7,14,-1],"faces":{"north":{"uv":[9,2,16,4],"texture":"#facade_2_1"}}},
+{"from":[0,0,0],"to":[6,12,0],"faces":{"north":{"uv":[10,4,16,16],"texture":"#facade_2_1"}}},
+{"from":[6,12,0],"to":[7,14,0],"faces":{"south":{"uv":[6,2,7,4],"texture":"#brick"}}},
+{"from":[5,12,7],"to":[6,14,7],"faces":{"south":{"uv":[5,2,6,4],"texture":"#brick"}}},
+{"from":[0,14,-1],"to":[7,14,0],"faces":{"up":{"uv":[0,15,7,16],"texture":"#brick"}}},
+{"from":[0,14,0],"to":[6,14,5],"faces":{"up":{"uv":[0,0,6,5],"texture":"#brick"}}},
+{"from":[1,14,5],"to":[6,14,6],"faces":{"up":{"uv":[1,5,6,6],"texture":"#brick"}}},
+{"from":[3,14,6],"to":[6,14,7],"faces":{"up":{"uv":[3,6,6,7],"texture":"#brick"}}}
+]}
