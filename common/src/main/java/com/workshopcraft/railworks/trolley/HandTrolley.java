@@ -61,7 +61,7 @@ import org.jspecify.annotations.Nullable;
  */
 public class HandTrolley extends Entity {
     public static final double LENGTH = 2.7, WIDTH = 2.1, HALF_WB = 0.8, WHEEL_R = 0.28, DECK = 0.64, SEAT = 0.98;
-    static final double DT = 0.05, G = 9.8, BRAKE = 4, CAP = 10, BUFFER_GAP = 0.59 + LENGTH / 2, END_GAP = 1.3;
+    static final double DT = 0.05, G = 9.8, BRAKE = 7.5, END_BRAKE = 4, CAP = 10, BUFFER_GAP = 0.59 + LENGTH / 2, END_GAP = 1.3;
     static final double STROKE = 3.5;
     public static final int FRAME = 0, PUMP = 3, DONE = 4;
     static final double[][] PLACES = {{0.95, DECK, 0}, {-0.95, DECK, 0}, {-0.2, SEAT, 0.72}, {0.3, SEAT, 0.72}};
@@ -99,6 +99,7 @@ public class HandTrolley extends Entity {
     private double clack;
 
     // server only
+    private boolean squealing;
     private int lastSync, hudHold, stopCooldown, squealCooldown, brakeCooldown;
     private boolean wasRidden, endBraking;
     private final Report report = new Report();
@@ -196,6 +197,17 @@ public class HandTrolley extends Entity {
         t.sync(true);
         level.addFreshEntity(t);
         level.playSound(null, t.getX(), t.getY(), t.getZ(), SoundEvents.WOOD_HIT, SoundSource.NEUTRAL, 1, 0.8f);
+        return true;
+    }
+
+    /** A sneaking hammer blow on the track near a trolley takes the trolley up rather than a rail. */
+    public static boolean hammerNear(ServerLevel level, Player player, Vec3 at) {
+        AABB box = new AABB(at, at).inflate(1.6, 1.2, 1.6);
+        HandTrolley best = null;
+        for (HandTrolley t : level.getEntitiesOfClass(HandTrolley.class, box, e -> e.getPassengers().isEmpty()))
+            if (best == null || t.distanceToSqr(at) < best.distanceToSqr(at)) best = t;
+        if (best == null || best.distanceToSqr(player) > 36) return false;
+        best.takeOff(level, player);
         return true;
     }
 
@@ -479,9 +491,18 @@ public class HandTrolley extends Entity {
         int n = Math.abs(ahead - back), d = Integer.signum(ahead - back);
         pumpOut[0] = (byte) (d * n);
         if (n == 0) return 0;
-        double k = n == 1 ? 0.988 : 1.45, c = n == 1 ? 7.76 : 9.5;
         int ds = d * (front ? 1 : -1);
-        return ds * Mth.clamp(k * (1 - us * ds / c), 0, k);
+        return ds * pumpForce(us * ds, n == 1);
+    }
+
+    // strong push from rest, a flat middle that sets the 1 in 20 climb, then a fall to the top speed
+    static double pumpForce(double v, boolean one) {
+        double f0 = one ? 1.5 : 2.2, flat = one ? 0.61 : 0.67, v1 = one ? 3 : 4, v2 = one ? 5.3 : 6.9, top = one ? 6 : 7.5;
+        if (v < 0) return f0;
+        if (v < v1) return f0 - (f0 - flat) * v / v1;
+        if (v < v2) return flat;
+        double end = 0.08 + 0.004 * top * top;
+        return Math.max(0, flat - (v - v2) * (flat - end) / (top - v2));
     }
 
     private static double step(double u, double force, double drag) {
@@ -593,8 +614,8 @@ public class HandTrolley extends Entity {
         Stop stop = dir == 0 ? NONE : stopAhead(level, dir);
         double drag = 0.08 + 0.004 * u * u + (brake ? BRAKE : 0);
         boolean endBrake = false;
-        if (!stop.buffer() && stop.dist() < 60 && u * u / (2 * BRAKE) >= stop.dist() - 0.1) {
-            drag += BRAKE;
+        if (!stop.buffer() && stop.dist() < 60 && u * u / (2 * END_BRAKE) >= stop.dist() - 0.1) {
+            drag += END_BRAKE;
             endBrake = true;
             if (!endBraking && Math.abs(u) > 0.3) tellRiders(Component.translatable("message.railworks.trolley.end").withStyle(ChatFormatting.YELLOW), true);
         }
@@ -720,10 +741,12 @@ public class HandTrolley extends Entity {
             if (a < 0.95 && b >= 0.95) play(level, SoundEvents.WOODEN_TRAPDOOR_OPEN, 0.25f, 0.6f);
             if (a > -0.95 && b <= -0.95) play(level, SoundEvents.CHAIN_HIT, 0.4f, 0.8f);
         }
-        if (brake && ridden && speed > 0.5 && --brakeCooldown <= 0) {
-            play(level, SoundEvents.GRINDSTONE_USE, 0.3f, 1.3f);
-            brakeCooldown = 6;
-        }
+        if (brake && ridden && speed > 0.5) {
+            if (!squealing) play(level, SoundEvents.GRINDSTONE_USE, 0.35f, 1.6f);
+            else if (--brakeCooldown <= 0) play(level, SoundEvents.GRINDSTONE_USE, 0.15f, 1.4f);
+            if (brakeCooldown <= 0 || !squealing) brakeCooldown = 10;
+            squealing = true;
+        } else squealing = false;
         double k = Math.abs(r.path().curvatureAt(Mth.clamp(s, 0, r.length())));
         if (k > 1 / 60.0 && speed > 2.5 && --squealCooldown <= 0) {
             play(level, SoundEvents.GRINDSTONE_USE, 0.12f, 1.9f);

@@ -50,7 +50,7 @@ public class MouldBlock extends BaseEntityBlock {
         RAIL(BrickFurnaceBlockEntity.INGOT, true, () -> ModContent.RAIL_PATTERN, () -> new ItemStack(ModContent.RAIL_BAR),
                 () -> ModContent.AXLE_PATTERN, () -> new ItemStack(ModContent.AXLE)),
         INGOT(4 * BrickFurnaceBlockEntity.INGOT, false, () -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4),
-                () -> ModContent.WHEEL_PATTERN, () -> new ItemStack(ModContent.WHEEL, 2));
+                () -> ModContent.WHEEL_PATTERN, () -> new ItemStack(ModContent.WHEEL, 4));
 
         public final int need;
         public final boolean longBox;
