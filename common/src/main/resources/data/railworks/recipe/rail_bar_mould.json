@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "#c:ingots/iron",
+    "P": "railworks:treated_planks"
+  },
+  "pattern": [
+    "I I",
+    "IPI",
+    "IPI"
+  ],
+  "result": {
+    "id": "railworks:rail_bar_mould"
+  }
+}

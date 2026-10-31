@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:treated_planks"
+  },
+  "pattern": [
+    "PP"
+  ],
+  "result": {
+    "id": "railworks:ingot_pattern"
+  }
+}

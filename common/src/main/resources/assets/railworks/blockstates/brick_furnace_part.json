@@ -1,0 +1,2632 @@
+{
+ "variants": {
+  "facing=north,part=0,tap=0": {
+   "model": "railworks:block/brick_furnace/part_0"
+  },
+  "facing=north,part=0,tap=1": {
+   "model": "railworks:block/brick_furnace/part_0"
+  },
+  "facing=north,part=0,tap=2": {
+   "model": "railworks:block/brick_furnace/part_0"
+  },
+  "facing=north,part=0,tap=3": {
+   "model": "railworks:block/brick_furnace/part_0"
+  },
+  "facing=north,part=1,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=1,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=1,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=1,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=2,tap=0": {
+   "model": "railworks:block/brick_furnace/part_2"
+  },
+  "facing=north,part=2,tap=1": {
+   "model": "railworks:block/brick_furnace/part_2"
+  },
+  "facing=north,part=2,tap=2": {
+   "model": "railworks:block/brick_furnace/part_2"
+  },
+  "facing=north,part=2,tap=3": {
+   "model": "railworks:block/brick_furnace/part_2"
+  },
+  "facing=north,part=3,tap=0": {
+   "model": "railworks:block/brick_furnace/part_3"
+  },
+  "facing=north,part=3,tap=1": {
+   "model": "railworks:block/brick_furnace/part_3"
+  },
+  "facing=north,part=3,tap=2": {
+   "model": "railworks:block/brick_furnace/part_3"
+  },
+  "facing=north,part=3,tap=3": {
+   "model": "railworks:block/brick_furnace/part_3"
+  },
+  "facing=north,part=4,tap=0": {
+   "model": "railworks:block/brick_furnace/part_4"
+  },
+  "facing=north,part=4,tap=1": {
+   "model": "railworks:block/brick_furnace/part_4"
+  },
+  "facing=north,part=4,tap=2": {
+   "model": "railworks:block/brick_furnace/part_4"
+  },
+  "facing=north,part=4,tap=3": {
+   "model": "railworks:block/brick_furnace/part_4"
+  },
+  "facing=north,part=5,tap=0": {
+   "model": "railworks:block/brick_furnace/part_5"
+  },
+  "facing=north,part=5,tap=1": {
+   "model": "railworks:block/brick_furnace/part_5"
+  },
+  "facing=north,part=5,tap=2": {
+   "model": "railworks:block/brick_furnace/part_5"
+  },
+  "facing=north,part=5,tap=3": {
+   "model": "railworks:block/brick_furnace/part_5"
+  },
+  "facing=north,part=6,tap=0": {
+   "model": "railworks:block/brick_furnace/part_6"
+  },
+  "facing=north,part=6,tap=1": {
+   "model": "railworks:block/brick_furnace/part_6"
+  },
+  "facing=north,part=6,tap=2": {
+   "model": "railworks:block/brick_furnace/part_6"
+  },
+  "facing=north,part=6,tap=3": {
+   "model": "railworks:block/brick_furnace/part_6"
+  },
+  "facing=north,part=7,tap=0": {
+   "model": "railworks:block/brick_furnace/part_7"
+  },
+  "facing=north,part=7,tap=1": {
+   "model": "railworks:block/brick_furnace/part_7"
+  },
+  "facing=north,part=7,tap=2": {
+   "model": "railworks:block/brick_furnace/part_7"
+  },
+  "facing=north,part=7,tap=3": {
+   "model": "railworks:block/brick_furnace/part_7"
+  },
+  "facing=north,part=8,tap=0": {
+   "model": "railworks:block/brick_furnace/part_8"
+  },
+  "facing=north,part=8,tap=1": {
+   "model": "railworks:block/brick_furnace/part_8"
+  },
+  "facing=north,part=8,tap=2": {
+   "model": "railworks:block/brick_furnace/part_8"
+  },
+  "facing=north,part=8,tap=3": {
+   "model": "railworks:block/brick_furnace/part_8"
+  },
+  "facing=north,part=9,tap=0": {
+   "model": "railworks:block/brick_furnace/part_9"
+  },
+  "facing=north,part=9,tap=1": {
+   "model": "railworks:block/brick_furnace/part_9"
+  },
+  "facing=north,part=9,tap=2": {
+   "model": "railworks:block/brick_furnace/part_9"
+  },
+  "facing=north,part=9,tap=3": {
+   "model": "railworks:block/brick_furnace/part_9"
+  },
+  "facing=north,part=10,tap=0": {
+   "model": "railworks:block/brick_furnace/part_10"
+  },
+  "facing=north,part=10,tap=1": {
+   "model": "railworks:block/brick_furnace/part_10"
+  },
+  "facing=north,part=10,tap=2": {
+   "model": "railworks:block/brick_furnace/part_10"
+  },
+  "facing=north,part=10,tap=3": {
+   "model": "railworks:block/brick_furnace/part_10"
+  },
+  "facing=north,part=11,tap=0": {
+   "model": "railworks:block/brick_furnace/part_11"
+  },
+  "facing=north,part=11,tap=1": {
+   "model": "railworks:block/brick_furnace/part_11"
+  },
+  "facing=north,part=11,tap=2": {
+   "model": "railworks:block/brick_furnace/part_11"
+  },
+  "facing=north,part=11,tap=3": {
+   "model": "railworks:block/brick_furnace/part_11"
+  },
+  "facing=north,part=12,tap=0": {
+   "model": "railworks:block/brick_furnace/part_12"
+  },
+  "facing=north,part=12,tap=1": {
+   "model": "railworks:block/brick_furnace/part_12"
+  },
+  "facing=north,part=12,tap=2": {
+   "model": "railworks:block/brick_furnace/part_12"
+  },
+  "facing=north,part=12,tap=3": {
+   "model": "railworks:block/brick_furnace/part_12"
+  },
+  "facing=north,part=13,tap=0": {
+   "model": "railworks:block/brick_furnace/part_13"
+  },
+  "facing=north,part=13,tap=1": {
+   "model": "railworks:block/brick_furnace/part_13"
+  },
+  "facing=north,part=13,tap=2": {
+   "model": "railworks:block/brick_furnace/part_13"
+  },
+  "facing=north,part=13,tap=3": {
+   "model": "railworks:block/brick_furnace/part_13"
+  },
+  "facing=north,part=14,tap=0": {
+   "model": "railworks:block/brick_furnace/part_14"
+  },
+  "facing=north,part=14,tap=1": {
+   "model": "railworks:block/brick_furnace/part_14"
+  },
+  "facing=north,part=14,tap=2": {
+   "model": "railworks:block/brick_furnace/part_14"
+  },
+  "facing=north,part=14,tap=3": {
+   "model": "railworks:block/brick_furnace/part_14"
+  },
+  "facing=north,part=15,tap=0": {
+   "model": "railworks:block/brick_furnace/part_15"
+  },
+  "facing=north,part=15,tap=1": {
+   "model": "railworks:block/brick_furnace/part_15"
+  },
+  "facing=north,part=15,tap=2": {
+   "model": "railworks:block/brick_furnace/part_15"
+  },
+  "facing=north,part=15,tap=3": {
+   "model": "railworks:block/brick_furnace/part_15"
+  },
+  "facing=north,part=16,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=16,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=16,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=16,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=17,tap=0": {
+   "model": "railworks:block/brick_furnace/part_17"
+  },
+  "facing=north,part=17,tap=1": {
+   "model": "railworks:block/brick_furnace/part_17"
+  },
+  "facing=north,part=17,tap=2": {
+   "model": "railworks:block/brick_furnace/part_17"
+  },
+  "facing=north,part=17,tap=3": {
+   "model": "railworks:block/brick_furnace/part_17"
+  },
+  "facing=north,part=18,tap=0": {
+   "model": "railworks:block/brick_furnace/tap_0"
+  },
+  "facing=north,part=18,tap=1": {
+   "model": "railworks:block/brick_furnace/tap_1"
+  },
+  "facing=north,part=18,tap=2": {
+   "model": "railworks:block/brick_furnace/tap_2"
+  },
+  "facing=north,part=18,tap=3": {
+   "model": "railworks:block/brick_furnace/tap_3"
+  },
+  "facing=north,part=19,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=19,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=19,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=19,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=20,tap=0": {
+   "model": "railworks:block/brick_furnace/part_20"
+  },
+  "facing=north,part=20,tap=1": {
+   "model": "railworks:block/brick_furnace/part_20"
+  },
+  "facing=north,part=20,tap=2": {
+   "model": "railworks:block/brick_furnace/part_20"
+  },
+  "facing=north,part=20,tap=3": {
+   "model": "railworks:block/brick_furnace/part_20"
+  },
+  "facing=north,part=21,tap=0": {
+   "model": "railworks:block/brick_furnace/part_21"
+  },
+  "facing=north,part=21,tap=1": {
+   "model": "railworks:block/brick_furnace/part_21"
+  },
+  "facing=north,part=21,tap=2": {
+   "model": "railworks:block/brick_furnace/part_21"
+  },
+  "facing=north,part=21,tap=3": {
+   "model": "railworks:block/brick_furnace/part_21"
+  },
+  "facing=north,part=22,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=22,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=22,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=22,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=23,tap=0": {
+   "model": "railworks:block/brick_furnace/part_23"
+  },
+  "facing=north,part=23,tap=1": {
+   "model": "railworks:block/brick_furnace/part_23"
+  },
+  "facing=north,part=23,tap=2": {
+   "model": "railworks:block/brick_furnace/part_23"
+  },
+  "facing=north,part=23,tap=3": {
+   "model": "railworks:block/brick_furnace/part_23"
+  },
+  "facing=north,part=24,tap=0": {
+   "model": "railworks:block/brick_furnace/part_24"
+  },
+  "facing=north,part=24,tap=1": {
+   "model": "railworks:block/brick_furnace/part_24"
+  },
+  "facing=north,part=24,tap=2": {
+   "model": "railworks:block/brick_furnace/part_24"
+  },
+  "facing=north,part=24,tap=3": {
+   "model": "railworks:block/brick_furnace/part_24"
+  },
+  "facing=north,part=25,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=25,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=25,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=25,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=26,tap=0": {
+   "model": "railworks:block/brick_furnace/part_26"
+  },
+  "facing=north,part=26,tap=1": {
+   "model": "railworks:block/brick_furnace/part_26"
+  },
+  "facing=north,part=26,tap=2": {
+   "model": "railworks:block/brick_furnace/part_26"
+  },
+  "facing=north,part=26,tap=3": {
+   "model": "railworks:block/brick_furnace/part_26"
+  },
+  "facing=north,part=27,tap=0": {
+   "model": "railworks:block/brick_furnace/part_27"
+  },
+  "facing=north,part=27,tap=1": {
+   "model": "railworks:block/brick_furnace/part_27"
+  },
+  "facing=north,part=27,tap=2": {
+   "model": "railworks:block/brick_furnace/part_27"
+  },
+  "facing=north,part=27,tap=3": {
+   "model": "railworks:block/brick_furnace/part_27"
+  },
+  "facing=north,part=28,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=28,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=28,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=28,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=north,part=29,tap=0": {
+   "model": "railworks:block/brick_furnace/part_29"
+  },
+  "facing=north,part=29,tap=1": {
+   "model": "railworks:block/brick_furnace/part_29"
+  },
+  "facing=north,part=29,tap=2": {
+   "model": "railworks:block/brick_furnace/part_29"
+  },
+  "facing=north,part=29,tap=3": {
+   "model": "railworks:block/brick_furnace/part_29"
+  },
+  "facing=north,part=30,tap=0": {
+   "model": "railworks:block/brick_furnace/part_30"
+  },
+  "facing=north,part=30,tap=1": {
+   "model": "railworks:block/brick_furnace/part_30"
+  },
+  "facing=north,part=30,tap=2": {
+   "model": "railworks:block/brick_furnace/part_30"
+  },
+  "facing=north,part=30,tap=3": {
+   "model": "railworks:block/brick_furnace/part_30"
+  },
+  "facing=north,part=31,tap=0": {
+   "model": "railworks:block/brick_furnace/part_31"
+  },
+  "facing=north,part=31,tap=1": {
+   "model": "railworks:block/brick_furnace/part_31"
+  },
+  "facing=north,part=31,tap=2": {
+   "model": "railworks:block/brick_furnace/part_31"
+  },
+  "facing=north,part=31,tap=3": {
+   "model": "railworks:block/brick_furnace/part_31"
+  },
+  "facing=north,part=32,tap=0": {
+   "model": "railworks:block/brick_furnace/part_32"
+  },
+  "facing=north,part=32,tap=1": {
+   "model": "railworks:block/brick_furnace/part_32"
+  },
+  "facing=north,part=32,tap=2": {
+   "model": "railworks:block/brick_furnace/part_32"
+  },
+  "facing=north,part=32,tap=3": {
+   "model": "railworks:block/brick_furnace/part_32"
+  },
+  "facing=north,part=33,tap=0": {
+   "model": "railworks:block/brick_furnace/part_33"
+  },
+  "facing=north,part=33,tap=1": {
+   "model": "railworks:block/brick_furnace/part_33"
+  },
+  "facing=north,part=33,tap=2": {
+   "model": "railworks:block/brick_furnace/part_33"
+  },
+  "facing=north,part=33,tap=3": {
+   "model": "railworks:block/brick_furnace/part_33"
+  },
+  "facing=north,part=34,tap=0": {
+   "model": "railworks:block/brick_furnace/part_34"
+  },
+  "facing=north,part=34,tap=1": {
+   "model": "railworks:block/brick_furnace/part_34"
+  },
+  "facing=north,part=34,tap=2": {
+   "model": "railworks:block/brick_furnace/part_34"
+  },
+  "facing=north,part=34,tap=3": {
+   "model": "railworks:block/brick_furnace/part_34"
+  },
+  "facing=north,part=35,tap=0": {
+   "model": "railworks:block/brick_furnace/part_35"
+  },
+  "facing=north,part=35,tap=1": {
+   "model": "railworks:block/brick_furnace/part_35"
+  },
+  "facing=north,part=35,tap=2": {
+   "model": "railworks:block/brick_furnace/part_35"
+  },
+  "facing=north,part=35,tap=3": {
+   "model": "railworks:block/brick_furnace/part_35"
+  },
+  "facing=north,part=36,tap=0": {
+   "model": "railworks:block/brick_furnace/part_36"
+  },
+  "facing=north,part=36,tap=1": {
+   "model": "railworks:block/brick_furnace/part_36"
+  },
+  "facing=north,part=36,tap=2": {
+   "model": "railworks:block/brick_furnace/part_36"
+  },
+  "facing=north,part=36,tap=3": {
+   "model": "railworks:block/brick_furnace/part_36"
+  },
+  "facing=north,part=37,tap=0": {
+   "model": "railworks:block/brick_furnace/part_37"
+  },
+  "facing=north,part=37,tap=1": {
+   "model": "railworks:block/brick_furnace/part_37"
+  },
+  "facing=north,part=37,tap=2": {
+   "model": "railworks:block/brick_furnace/part_37"
+  },
+  "facing=north,part=37,tap=3": {
+   "model": "railworks:block/brick_furnace/part_37"
+  },
+  "facing=north,part=38,tap=0": {
+   "model": "railworks:block/brick_furnace/part_38"
+  },
+  "facing=north,part=38,tap=1": {
+   "model": "railworks:block/brick_furnace/part_38"
+  },
+  "facing=north,part=38,tap=2": {
+   "model": "railworks:block/brick_furnace/part_38"
+  },
+  "facing=north,part=38,tap=3": {
+   "model": "railworks:block/brick_furnace/part_38"
+  },
+  "facing=north,part=39,tap=0": {
+   "model": "railworks:block/brick_furnace/part_39"
+  },
+  "facing=north,part=39,tap=1": {
+   "model": "railworks:block/brick_furnace/part_39"
+  },
+  "facing=north,part=39,tap=2": {
+   "model": "railworks:block/brick_furnace/part_39"
+  },
+  "facing=north,part=39,tap=3": {
+   "model": "railworks:block/brick_furnace/part_39"
+  },
+  "facing=north,part=40,tap=0": {
+   "model": "railworks:block/brick_furnace/part_40"
+  },
+  "facing=north,part=40,tap=1": {
+   "model": "railworks:block/brick_furnace/part_40"
+  },
+  "facing=north,part=40,tap=2": {
+   "model": "railworks:block/brick_furnace/part_40"
+  },
+  "facing=north,part=40,tap=3": {
+   "model": "railworks:block/brick_furnace/part_40"
+  },
+  "facing=north,part=41,tap=0": {
+   "model": "railworks:block/brick_furnace/part_41"
+  },
+  "facing=north,part=41,tap=1": {
+   "model": "railworks:block/brick_furnace/part_41"
+  },
+  "facing=north,part=41,tap=2": {
+   "model": "railworks:block/brick_furnace/part_41"
+  },
+  "facing=north,part=41,tap=3": {
+   "model": "railworks:block/brick_furnace/part_41"
+  },
+  "facing=north,part=42,tap=0": {
+   "model": "railworks:block/brick_furnace/part_42"
+  },
+  "facing=north,part=42,tap=1": {
+   "model": "railworks:block/brick_furnace/part_42"
+  },
+  "facing=north,part=42,tap=2": {
+   "model": "railworks:block/brick_furnace/part_42"
+  },
+  "facing=north,part=42,tap=3": {
+   "model": "railworks:block/brick_furnace/part_42"
+  },
+  "facing=north,part=43,tap=0": {
+   "model": "railworks:block/brick_furnace/part_43"
+  },
+  "facing=north,part=43,tap=1": {
+   "model": "railworks:block/brick_furnace/part_43"
+  },
+  "facing=north,part=43,tap=2": {
+   "model": "railworks:block/brick_furnace/part_43"
+  },
+  "facing=north,part=43,tap=3": {
+   "model": "railworks:block/brick_furnace/part_43"
+  },
+  "facing=north,part=44,tap=0": {
+   "model": "railworks:block/brick_furnace/part_44"
+  },
+  "facing=north,part=44,tap=1": {
+   "model": "railworks:block/brick_furnace/part_44"
+  },
+  "facing=north,part=44,tap=2": {
+   "model": "railworks:block/brick_furnace/part_44"
+  },
+  "facing=north,part=44,tap=3": {
+   "model": "railworks:block/brick_furnace/part_44"
+  },
+  "facing=east,part=0,tap=0": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 90
+  },
+  "facing=east,part=0,tap=1": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 90
+  },
+  "facing=east,part=0,tap=2": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 90
+  },
+  "facing=east,part=0,tap=3": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 90
+  },
+  "facing=east,part=1,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=1,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=1,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=1,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=2,tap=0": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 90
+  },
+  "facing=east,part=2,tap=1": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 90
+  },
+  "facing=east,part=2,tap=2": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 90
+  },
+  "facing=east,part=2,tap=3": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 90
+  },
+  "facing=east,part=3,tap=0": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 90
+  },
+  "facing=east,part=3,tap=1": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 90
+  },
+  "facing=east,part=3,tap=2": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 90
+  },
+  "facing=east,part=3,tap=3": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 90
+  },
+  "facing=east,part=4,tap=0": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 90
+  },
+  "facing=east,part=4,tap=1": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 90
+  },
+  "facing=east,part=4,tap=2": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 90
+  },
+  "facing=east,part=4,tap=3": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 90
+  },
+  "facing=east,part=5,tap=0": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 90
+  },
+  "facing=east,part=5,tap=1": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 90
+  },
+  "facing=east,part=5,tap=2": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 90
+  },
+  "facing=east,part=5,tap=3": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 90
+  },
+  "facing=east,part=6,tap=0": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 90
+  },
+  "facing=east,part=6,tap=1": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 90
+  },
+  "facing=east,part=6,tap=2": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 90
+  },
+  "facing=east,part=6,tap=3": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 90
+  },
+  "facing=east,part=7,tap=0": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 90
+  },
+  "facing=east,part=7,tap=1": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 90
+  },
+  "facing=east,part=7,tap=2": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 90
+  },
+  "facing=east,part=7,tap=3": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 90
+  },
+  "facing=east,part=8,tap=0": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 90
+  },
+  "facing=east,part=8,tap=1": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 90
+  },
+  "facing=east,part=8,tap=2": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 90
+  },
+  "facing=east,part=8,tap=3": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 90
+  },
+  "facing=east,part=9,tap=0": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 90
+  },
+  "facing=east,part=9,tap=1": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 90
+  },
+  "facing=east,part=9,tap=2": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 90
+  },
+  "facing=east,part=9,tap=3": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 90
+  },
+  "facing=east,part=10,tap=0": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 90
+  },
+  "facing=east,part=10,tap=1": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 90
+  },
+  "facing=east,part=10,tap=2": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 90
+  },
+  "facing=east,part=10,tap=3": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 90
+  },
+  "facing=east,part=11,tap=0": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 90
+  },
+  "facing=east,part=11,tap=1": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 90
+  },
+  "facing=east,part=11,tap=2": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 90
+  },
+  "facing=east,part=11,tap=3": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 90
+  },
+  "facing=east,part=12,tap=0": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 90
+  },
+  "facing=east,part=12,tap=1": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 90
+  },
+  "facing=east,part=12,tap=2": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 90
+  },
+  "facing=east,part=12,tap=3": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 90
+  },
+  "facing=east,part=13,tap=0": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 90
+  },
+  "facing=east,part=13,tap=1": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 90
+  },
+  "facing=east,part=13,tap=2": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 90
+  },
+  "facing=east,part=13,tap=3": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 90
+  },
+  "facing=east,part=14,tap=0": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 90
+  },
+  "facing=east,part=14,tap=1": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 90
+  },
+  "facing=east,part=14,tap=2": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 90
+  },
+  "facing=east,part=14,tap=3": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 90
+  },
+  "facing=east,part=15,tap=0": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 90
+  },
+  "facing=east,part=15,tap=1": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 90
+  },
+  "facing=east,part=15,tap=2": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 90
+  },
+  "facing=east,part=15,tap=3": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 90
+  },
+  "facing=east,part=16,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=16,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=16,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=16,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=17,tap=0": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 90
+  },
+  "facing=east,part=17,tap=1": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 90
+  },
+  "facing=east,part=17,tap=2": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 90
+  },
+  "facing=east,part=17,tap=3": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 90
+  },
+  "facing=east,part=18,tap=0": {
+   "model": "railworks:block/brick_furnace/tap_0",
+   "y": 90
+  },
+  "facing=east,part=18,tap=1": {
+   "model": "railworks:block/brick_furnace/tap_1",
+   "y": 90
+  },
+  "facing=east,part=18,tap=2": {
+   "model": "railworks:block/brick_furnace/tap_2",
+   "y": 90
+  },
+  "facing=east,part=18,tap=3": {
+   "model": "railworks:block/brick_furnace/tap_3",
+   "y": 90
+  },
+  "facing=east,part=19,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=19,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=19,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=19,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=20,tap=0": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 90
+  },
+  "facing=east,part=20,tap=1": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 90
+  },
+  "facing=east,part=20,tap=2": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 90
+  },
+  "facing=east,part=20,tap=3": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 90
+  },
+  "facing=east,part=21,tap=0": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 90
+  },
+  "facing=east,part=21,tap=1": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 90
+  },
+  "facing=east,part=21,tap=2": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 90
+  },
+  "facing=east,part=21,tap=3": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 90
+  },
+  "facing=east,part=22,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=22,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=22,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=22,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=23,tap=0": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 90
+  },
+  "facing=east,part=23,tap=1": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 90
+  },
+  "facing=east,part=23,tap=2": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 90
+  },
+  "facing=east,part=23,tap=3": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 90
+  },
+  "facing=east,part=24,tap=0": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 90
+  },
+  "facing=east,part=24,tap=1": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 90
+  },
+  "facing=east,part=24,tap=2": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 90
+  },
+  "facing=east,part=24,tap=3": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 90
+  },
+  "facing=east,part=25,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=25,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=25,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=25,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=26,tap=0": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 90
+  },
+  "facing=east,part=26,tap=1": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 90
+  },
+  "facing=east,part=26,tap=2": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 90
+  },
+  "facing=east,part=26,tap=3": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 90
+  },
+  "facing=east,part=27,tap=0": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 90
+  },
+  "facing=east,part=27,tap=1": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 90
+  },
+  "facing=east,part=27,tap=2": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 90
+  },
+  "facing=east,part=27,tap=3": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 90
+  },
+  "facing=east,part=28,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=28,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=28,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=28,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=east,part=29,tap=0": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 90
+  },
+  "facing=east,part=29,tap=1": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 90
+  },
+  "facing=east,part=29,tap=2": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 90
+  },
+  "facing=east,part=29,tap=3": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 90
+  },
+  "facing=east,part=30,tap=0": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 90
+  },
+  "facing=east,part=30,tap=1": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 90
+  },
+  "facing=east,part=30,tap=2": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 90
+  },
+  "facing=east,part=30,tap=3": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 90
+  },
+  "facing=east,part=31,tap=0": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 90
+  },
+  "facing=east,part=31,tap=1": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 90
+  },
+  "facing=east,part=31,tap=2": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 90
+  },
+  "facing=east,part=31,tap=3": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 90
+  },
+  "facing=east,part=32,tap=0": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 90
+  },
+  "facing=east,part=32,tap=1": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 90
+  },
+  "facing=east,part=32,tap=2": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 90
+  },
+  "facing=east,part=32,tap=3": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 90
+  },
+  "facing=east,part=33,tap=0": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 90
+  },
+  "facing=east,part=33,tap=1": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 90
+  },
+  "facing=east,part=33,tap=2": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 90
+  },
+  "facing=east,part=33,tap=3": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 90
+  },
+  "facing=east,part=34,tap=0": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 90
+  },
+  "facing=east,part=34,tap=1": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 90
+  },
+  "facing=east,part=34,tap=2": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 90
+  },
+  "facing=east,part=34,tap=3": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 90
+  },
+  "facing=east,part=35,tap=0": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 90
+  },
+  "facing=east,part=35,tap=1": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 90
+  },
+  "facing=east,part=35,tap=2": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 90
+  },
+  "facing=east,part=35,tap=3": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 90
+  },
+  "facing=east,part=36,tap=0": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 90
+  },
+  "facing=east,part=36,tap=1": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 90
+  },
+  "facing=east,part=36,tap=2": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 90
+  },
+  "facing=east,part=36,tap=3": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 90
+  },
+  "facing=east,part=37,tap=0": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 90
+  },
+  "facing=east,part=37,tap=1": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 90
+  },
+  "facing=east,part=37,tap=2": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 90
+  },
+  "facing=east,part=37,tap=3": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 90
+  },
+  "facing=east,part=38,tap=0": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 90
+  },
+  "facing=east,part=38,tap=1": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 90
+  },
+  "facing=east,part=38,tap=2": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 90
+  },
+  "facing=east,part=38,tap=3": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 90
+  },
+  "facing=east,part=39,tap=0": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 90
+  },
+  "facing=east,part=39,tap=1": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 90
+  },
+  "facing=east,part=39,tap=2": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 90
+  },
+  "facing=east,part=39,tap=3": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 90
+  },
+  "facing=east,part=40,tap=0": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 90
+  },
+  "facing=east,part=40,tap=1": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 90
+  },
+  "facing=east,part=40,tap=2": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 90
+  },
+  "facing=east,part=40,tap=3": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 90
+  },
+  "facing=east,part=41,tap=0": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 90
+  },
+  "facing=east,part=41,tap=1": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 90
+  },
+  "facing=east,part=41,tap=2": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 90
+  },
+  "facing=east,part=41,tap=3": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 90
+  },
+  "facing=east,part=42,tap=0": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 90
+  },
+  "facing=east,part=42,tap=1": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 90
+  },
+  "facing=east,part=42,tap=2": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 90
+  },
+  "facing=east,part=42,tap=3": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 90
+  },
+  "facing=east,part=43,tap=0": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 90
+  },
+  "facing=east,part=43,tap=1": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 90
+  },
+  "facing=east,part=43,tap=2": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 90
+  },
+  "facing=east,part=43,tap=3": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 90
+  },
+  "facing=east,part=44,tap=0": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 90
+  },
+  "facing=east,part=44,tap=1": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 90
+  },
+  "facing=east,part=44,tap=2": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 90
+  },
+  "facing=east,part=44,tap=3": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 90
+  },
+  "facing=south,part=0,tap=0": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 180
+  },
+  "facing=south,part=0,tap=1": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 180
+  },
+  "facing=south,part=0,tap=2": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 180
+  },
+  "facing=south,part=0,tap=3": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 180
+  },
+  "facing=south,part=1,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=1,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=1,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=1,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=2,tap=0": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 180
+  },
+  "facing=south,part=2,tap=1": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 180
+  },
+  "facing=south,part=2,tap=2": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 180
+  },
+  "facing=south,part=2,tap=3": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 180
+  },
+  "facing=south,part=3,tap=0": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 180
+  },
+  "facing=south,part=3,tap=1": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 180
+  },
+  "facing=south,part=3,tap=2": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 180
+  },
+  "facing=south,part=3,tap=3": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 180
+  },
+  "facing=south,part=4,tap=0": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 180
+  },
+  "facing=south,part=4,tap=1": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 180
+  },
+  "facing=south,part=4,tap=2": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 180
+  },
+  "facing=south,part=4,tap=3": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 180
+  },
+  "facing=south,part=5,tap=0": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 180
+  },
+  "facing=south,part=5,tap=1": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 180
+  },
+  "facing=south,part=5,tap=2": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 180
+  },
+  "facing=south,part=5,tap=3": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 180
+  },
+  "facing=south,part=6,tap=0": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 180
+  },
+  "facing=south,part=6,tap=1": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 180
+  },
+  "facing=south,part=6,tap=2": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 180
+  },
+  "facing=south,part=6,tap=3": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 180
+  },
+  "facing=south,part=7,tap=0": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 180
+  },
+  "facing=south,part=7,tap=1": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 180
+  },
+  "facing=south,part=7,tap=2": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 180
+  },
+  "facing=south,part=7,tap=3": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 180
+  },
+  "facing=south,part=8,tap=0": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 180
+  },
+  "facing=south,part=8,tap=1": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 180
+  },
+  "facing=south,part=8,tap=2": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 180
+  },
+  "facing=south,part=8,tap=3": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 180
+  },
+  "facing=south,part=9,tap=0": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 180
+  },
+  "facing=south,part=9,tap=1": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 180
+  },
+  "facing=south,part=9,tap=2": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 180
+  },
+  "facing=south,part=9,tap=3": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 180
+  },
+  "facing=south,part=10,tap=0": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 180
+  },
+  "facing=south,part=10,tap=1": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 180
+  },
+  "facing=south,part=10,tap=2": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 180
+  },
+  "facing=south,part=10,tap=3": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 180
+  },
+  "facing=south,part=11,tap=0": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 180
+  },
+  "facing=south,part=11,tap=1": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 180
+  },
+  "facing=south,part=11,tap=2": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 180
+  },
+  "facing=south,part=11,tap=3": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 180
+  },
+  "facing=south,part=12,tap=0": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 180
+  },
+  "facing=south,part=12,tap=1": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 180
+  },
+  "facing=south,part=12,tap=2": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 180
+  },
+  "facing=south,part=12,tap=3": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 180
+  },
+  "facing=south,part=13,tap=0": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 180
+  },
+  "facing=south,part=13,tap=1": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 180
+  },
+  "facing=south,part=13,tap=2": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 180
+  },
+  "facing=south,part=13,tap=3": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 180
+  },
+  "facing=south,part=14,tap=0": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 180
+  },
+  "facing=south,part=14,tap=1": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 180
+  },
+  "facing=south,part=14,tap=2": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 180
+  },
+  "facing=south,part=14,tap=3": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 180
+  },
+  "facing=south,part=15,tap=0": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 180
+  },
+  "facing=south,part=15,tap=1": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 180
+  },
+  "facing=south,part=15,tap=2": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 180
+  },
+  "facing=south,part=15,tap=3": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 180
+  },
+  "facing=south,part=16,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=16,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=16,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=16,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=17,tap=0": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 180
+  },
+  "facing=south,part=17,tap=1": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 180
+  },
+  "facing=south,part=17,tap=2": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 180
+  },
+  "facing=south,part=17,tap=3": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 180
+  },
+  "facing=south,part=18,tap=0": {
+   "model": "railworks:block/brick_furnace/tap_0",
+   "y": 180
+  },
+  "facing=south,part=18,tap=1": {
+   "model": "railworks:block/brick_furnace/tap_1",
+   "y": 180
+  },
+  "facing=south,part=18,tap=2": {
+   "model": "railworks:block/brick_furnace/tap_2",
+   "y": 180
+  },
+  "facing=south,part=18,tap=3": {
+   "model": "railworks:block/brick_furnace/tap_3",
+   "y": 180
+  },
+  "facing=south,part=19,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=19,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=19,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=19,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=20,tap=0": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 180
+  },
+  "facing=south,part=20,tap=1": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 180
+  },
+  "facing=south,part=20,tap=2": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 180
+  },
+  "facing=south,part=20,tap=3": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 180
+  },
+  "facing=south,part=21,tap=0": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 180
+  },
+  "facing=south,part=21,tap=1": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 180
+  },
+  "facing=south,part=21,tap=2": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 180
+  },
+  "facing=south,part=21,tap=3": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 180
+  },
+  "facing=south,part=22,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=22,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=22,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=22,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=23,tap=0": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 180
+  },
+  "facing=south,part=23,tap=1": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 180
+  },
+  "facing=south,part=23,tap=2": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 180
+  },
+  "facing=south,part=23,tap=3": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 180
+  },
+  "facing=south,part=24,tap=0": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 180
+  },
+  "facing=south,part=24,tap=1": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 180
+  },
+  "facing=south,part=24,tap=2": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 180
+  },
+  "facing=south,part=24,tap=3": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 180
+  },
+  "facing=south,part=25,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=25,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=25,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=25,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=26,tap=0": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 180
+  },
+  "facing=south,part=26,tap=1": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 180
+  },
+  "facing=south,part=26,tap=2": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 180
+  },
+  "facing=south,part=26,tap=3": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 180
+  },
+  "facing=south,part=27,tap=0": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 180
+  },
+  "facing=south,part=27,tap=1": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 180
+  },
+  "facing=south,part=27,tap=2": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 180
+  },
+  "facing=south,part=27,tap=3": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 180
+  },
+  "facing=south,part=28,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=28,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=28,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=28,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=south,part=29,tap=0": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 180
+  },
+  "facing=south,part=29,tap=1": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 180
+  },
+  "facing=south,part=29,tap=2": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 180
+  },
+  "facing=south,part=29,tap=3": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 180
+  },
+  "facing=south,part=30,tap=0": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 180
+  },
+  "facing=south,part=30,tap=1": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 180
+  },
+  "facing=south,part=30,tap=2": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 180
+  },
+  "facing=south,part=30,tap=3": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 180
+  },
+  "facing=south,part=31,tap=0": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 180
+  },
+  "facing=south,part=31,tap=1": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 180
+  },
+  "facing=south,part=31,tap=2": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 180
+  },
+  "facing=south,part=31,tap=3": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 180
+  },
+  "facing=south,part=32,tap=0": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 180
+  },
+  "facing=south,part=32,tap=1": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 180
+  },
+  "facing=south,part=32,tap=2": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 180
+  },
+  "facing=south,part=32,tap=3": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 180
+  },
+  "facing=south,part=33,tap=0": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 180
+  },
+  "facing=south,part=33,tap=1": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 180
+  },
+  "facing=south,part=33,tap=2": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 180
+  },
+  "facing=south,part=33,tap=3": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 180
+  },
+  "facing=south,part=34,tap=0": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 180
+  },
+  "facing=south,part=34,tap=1": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 180
+  },
+  "facing=south,part=34,tap=2": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 180
+  },
+  "facing=south,part=34,tap=3": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 180
+  },
+  "facing=south,part=35,tap=0": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 180
+  },
+  "facing=south,part=35,tap=1": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 180
+  },
+  "facing=south,part=35,tap=2": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 180
+  },
+  "facing=south,part=35,tap=3": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 180
+  },
+  "facing=south,part=36,tap=0": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 180
+  },
+  "facing=south,part=36,tap=1": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 180
+  },
+  "facing=south,part=36,tap=2": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 180
+  },
+  "facing=south,part=36,tap=3": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 180
+  },
+  "facing=south,part=37,tap=0": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 180
+  },
+  "facing=south,part=37,tap=1": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 180
+  },
+  "facing=south,part=37,tap=2": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 180
+  },
+  "facing=south,part=37,tap=3": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 180
+  },
+  "facing=south,part=38,tap=0": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 180
+  },
+  "facing=south,part=38,tap=1": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 180
+  },
+  "facing=south,part=38,tap=2": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 180
+  },
+  "facing=south,part=38,tap=3": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 180
+  },
+  "facing=south,part=39,tap=0": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 180
+  },
+  "facing=south,part=39,tap=1": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 180
+  },
+  "facing=south,part=39,tap=2": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 180
+  },
+  "facing=south,part=39,tap=3": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 180
+  },
+  "facing=south,part=40,tap=0": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 180
+  },
+  "facing=south,part=40,tap=1": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 180
+  },
+  "facing=south,part=40,tap=2": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 180
+  },
+  "facing=south,part=40,tap=3": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 180
+  },
+  "facing=south,part=41,tap=0": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 180
+  },
+  "facing=south,part=41,tap=1": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 180
+  },
+  "facing=south,part=41,tap=2": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 180
+  },
+  "facing=south,part=41,tap=3": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 180
+  },
+  "facing=south,part=42,tap=0": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 180
+  },
+  "facing=south,part=42,tap=1": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 180
+  },
+  "facing=south,part=42,tap=2": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 180
+  },
+  "facing=south,part=42,tap=3": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 180
+  },
+  "facing=south,part=43,tap=0": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 180
+  },
+  "facing=south,part=43,tap=1": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 180
+  },
+  "facing=south,part=43,tap=2": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 180
+  },
+  "facing=south,part=43,tap=3": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 180
+  },
+  "facing=south,part=44,tap=0": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 180
+  },
+  "facing=south,part=44,tap=1": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 180
+  },
+  "facing=south,part=44,tap=2": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 180
+  },
+  "facing=south,part=44,tap=3": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 180
+  },
+  "facing=west,part=0,tap=0": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 270
+  },
+  "facing=west,part=0,tap=1": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 270
+  },
+  "facing=west,part=0,tap=2": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 270
+  },
+  "facing=west,part=0,tap=3": {
+   "model": "railworks:block/brick_furnace/part_0",
+   "y": 270
+  },
+  "facing=west,part=1,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=1,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=1,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=1,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=2,tap=0": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 270
+  },
+  "facing=west,part=2,tap=1": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 270
+  },
+  "facing=west,part=2,tap=2": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 270
+  },
+  "facing=west,part=2,tap=3": {
+   "model": "railworks:block/brick_furnace/part_2",
+   "y": 270
+  },
+  "facing=west,part=3,tap=0": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 270
+  },
+  "facing=west,part=3,tap=1": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 270
+  },
+  "facing=west,part=3,tap=2": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 270
+  },
+  "facing=west,part=3,tap=3": {
+   "model": "railworks:block/brick_furnace/part_3",
+   "y": 270
+  },
+  "facing=west,part=4,tap=0": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 270
+  },
+  "facing=west,part=4,tap=1": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 270
+  },
+  "facing=west,part=4,tap=2": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 270
+  },
+  "facing=west,part=4,tap=3": {
+   "model": "railworks:block/brick_furnace/part_4",
+   "y": 270
+  },
+  "facing=west,part=5,tap=0": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 270
+  },
+  "facing=west,part=5,tap=1": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 270
+  },
+  "facing=west,part=5,tap=2": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 270
+  },
+  "facing=west,part=5,tap=3": {
+   "model": "railworks:block/brick_furnace/part_5",
+   "y": 270
+  },
+  "facing=west,part=6,tap=0": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 270
+  },
+  "facing=west,part=6,tap=1": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 270
+  },
+  "facing=west,part=6,tap=2": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 270
+  },
+  "facing=west,part=6,tap=3": {
+   "model": "railworks:block/brick_furnace/part_6",
+   "y": 270
+  },
+  "facing=west,part=7,tap=0": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 270
+  },
+  "facing=west,part=7,tap=1": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 270
+  },
+  "facing=west,part=7,tap=2": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 270
+  },
+  "facing=west,part=7,tap=3": {
+   "model": "railworks:block/brick_furnace/part_7",
+   "y": 270
+  },
+  "facing=west,part=8,tap=0": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 270
+  },
+  "facing=west,part=8,tap=1": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 270
+  },
+  "facing=west,part=8,tap=2": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 270
+  },
+  "facing=west,part=8,tap=3": {
+   "model": "railworks:block/brick_furnace/part_8",
+   "y": 270
+  },
+  "facing=west,part=9,tap=0": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 270
+  },
+  "facing=west,part=9,tap=1": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 270
+  },
+  "facing=west,part=9,tap=2": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 270
+  },
+  "facing=west,part=9,tap=3": {
+   "model": "railworks:block/brick_furnace/part_9",
+   "y": 270
+  },
+  "facing=west,part=10,tap=0": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 270
+  },
+  "facing=west,part=10,tap=1": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 270
+  },
+  "facing=west,part=10,tap=2": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 270
+  },
+  "facing=west,part=10,tap=3": {
+   "model": "railworks:block/brick_furnace/part_10",
+   "y": 270
+  },
+  "facing=west,part=11,tap=0": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 270
+  },
+  "facing=west,part=11,tap=1": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 270
+  },
+  "facing=west,part=11,tap=2": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 270
+  },
+  "facing=west,part=11,tap=3": {
+   "model": "railworks:block/brick_furnace/part_11",
+   "y": 270
+  },
+  "facing=west,part=12,tap=0": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 270
+  },
+  "facing=west,part=12,tap=1": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 270
+  },
+  "facing=west,part=12,tap=2": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 270
+  },
+  "facing=west,part=12,tap=3": {
+   "model": "railworks:block/brick_furnace/part_12",
+   "y": 270
+  },
+  "facing=west,part=13,tap=0": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 270
+  },
+  "facing=west,part=13,tap=1": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 270
+  },
+  "facing=west,part=13,tap=2": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 270
+  },
+  "facing=west,part=13,tap=3": {
+   "model": "railworks:block/brick_furnace/part_13",
+   "y": 270
+  },
+  "facing=west,part=14,tap=0": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 270
+  },
+  "facing=west,part=14,tap=1": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 270
+  },
+  "facing=west,part=14,tap=2": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 270
+  },
+  "facing=west,part=14,tap=3": {
+   "model": "railworks:block/brick_furnace/part_14",
+   "y": 270
+  },
+  "facing=west,part=15,tap=0": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 270
+  },
+  "facing=west,part=15,tap=1": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 270
+  },
+  "facing=west,part=15,tap=2": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 270
+  },
+  "facing=west,part=15,tap=3": {
+   "model": "railworks:block/brick_furnace/part_15",
+   "y": 270
+  },
+  "facing=west,part=16,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=16,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=16,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=16,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=17,tap=0": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 270
+  },
+  "facing=west,part=17,tap=1": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 270
+  },
+  "facing=west,part=17,tap=2": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 270
+  },
+  "facing=west,part=17,tap=3": {
+   "model": "railworks:block/brick_furnace/part_17",
+   "y": 270
+  },
+  "facing=west,part=18,tap=0": {
+   "model": "railworks:block/brick_furnace/tap_0",
+   "y": 270
+  },
+  "facing=west,part=18,tap=1": {
+   "model": "railworks:block/brick_furnace/tap_1",
+   "y": 270
+  },
+  "facing=west,part=18,tap=2": {
+   "model": "railworks:block/brick_furnace/tap_2",
+   "y": 270
+  },
+  "facing=west,part=18,tap=3": {
+   "model": "railworks:block/brick_furnace/tap_3",
+   "y": 270
+  },
+  "facing=west,part=19,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=19,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=19,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=19,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=20,tap=0": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 270
+  },
+  "facing=west,part=20,tap=1": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 270
+  },
+  "facing=west,part=20,tap=2": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 270
+  },
+  "facing=west,part=20,tap=3": {
+   "model": "railworks:block/brick_furnace/part_20",
+   "y": 270
+  },
+  "facing=west,part=21,tap=0": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 270
+  },
+  "facing=west,part=21,tap=1": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 270
+  },
+  "facing=west,part=21,tap=2": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 270
+  },
+  "facing=west,part=21,tap=3": {
+   "model": "railworks:block/brick_furnace/part_21",
+   "y": 270
+  },
+  "facing=west,part=22,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=22,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=22,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=22,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=23,tap=0": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 270
+  },
+  "facing=west,part=23,tap=1": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 270
+  },
+  "facing=west,part=23,tap=2": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 270
+  },
+  "facing=west,part=23,tap=3": {
+   "model": "railworks:block/brick_furnace/part_23",
+   "y": 270
+  },
+  "facing=west,part=24,tap=0": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 270
+  },
+  "facing=west,part=24,tap=1": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 270
+  },
+  "facing=west,part=24,tap=2": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 270
+  },
+  "facing=west,part=24,tap=3": {
+   "model": "railworks:block/brick_furnace/part_24",
+   "y": 270
+  },
+  "facing=west,part=25,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=25,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=25,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=25,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=26,tap=0": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 270
+  },
+  "facing=west,part=26,tap=1": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 270
+  },
+  "facing=west,part=26,tap=2": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 270
+  },
+  "facing=west,part=26,tap=3": {
+   "model": "railworks:block/brick_furnace/part_26",
+   "y": 270
+  },
+  "facing=west,part=27,tap=0": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 270
+  },
+  "facing=west,part=27,tap=1": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 270
+  },
+  "facing=west,part=27,tap=2": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 270
+  },
+  "facing=west,part=27,tap=3": {
+   "model": "railworks:block/brick_furnace/part_27",
+   "y": 270
+  },
+  "facing=west,part=28,tap=0": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=28,tap=1": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=28,tap=2": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=28,tap=3": {
+   "model": "railworks:block/fire_bricks"
+  },
+  "facing=west,part=29,tap=0": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 270
+  },
+  "facing=west,part=29,tap=1": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 270
+  },
+  "facing=west,part=29,tap=2": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 270
+  },
+  "facing=west,part=29,tap=3": {
+   "model": "railworks:block/brick_furnace/part_29",
+   "y": 270
+  },
+  "facing=west,part=30,tap=0": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 270
+  },
+  "facing=west,part=30,tap=1": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 270
+  },
+  "facing=west,part=30,tap=2": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 270
+  },
+  "facing=west,part=30,tap=3": {
+   "model": "railworks:block/brick_furnace/part_30",
+   "y": 270
+  },
+  "facing=west,part=31,tap=0": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 270
+  },
+  "facing=west,part=31,tap=1": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 270
+  },
+  "facing=west,part=31,tap=2": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 270
+  },
+  "facing=west,part=31,tap=3": {
+   "model": "railworks:block/brick_furnace/part_31",
+   "y": 270
+  },
+  "facing=west,part=32,tap=0": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 270
+  },
+  "facing=west,part=32,tap=1": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 270
+  },
+  "facing=west,part=32,tap=2": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 270
+  },
+  "facing=west,part=32,tap=3": {
+   "model": "railworks:block/brick_furnace/part_32",
+   "y": 270
+  },
+  "facing=west,part=33,tap=0": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 270
+  },
+  "facing=west,part=33,tap=1": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 270
+  },
+  "facing=west,part=33,tap=2": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 270
+  },
+  "facing=west,part=33,tap=3": {
+   "model": "railworks:block/brick_furnace/part_33",
+   "y": 270
+  },
+  "facing=west,part=34,tap=0": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 270
+  },
+  "facing=west,part=34,tap=1": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 270
+  },
+  "facing=west,part=34,tap=2": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 270
+  },
+  "facing=west,part=34,tap=3": {
+   "model": "railworks:block/brick_furnace/part_34",
+   "y": 270
+  },
+  "facing=west,part=35,tap=0": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 270
+  },
+  "facing=west,part=35,tap=1": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 270
+  },
+  "facing=west,part=35,tap=2": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 270
+  },
+  "facing=west,part=35,tap=3": {
+   "model": "railworks:block/brick_furnace/part_35",
+   "y": 270
+  },
+  "facing=west,part=36,tap=0": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 270
+  },
+  "facing=west,part=36,tap=1": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 270
+  },
+  "facing=west,part=36,tap=2": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 270
+  },
+  "facing=west,part=36,tap=3": {
+   "model": "railworks:block/brick_furnace/part_36",
+   "y": 270
+  },
+  "facing=west,part=37,tap=0": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 270
+  },
+  "facing=west,part=37,tap=1": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 270
+  },
+  "facing=west,part=37,tap=2": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 270
+  },
+  "facing=west,part=37,tap=3": {
+   "model": "railworks:block/brick_furnace/part_37",
+   "y": 270
+  },
+  "facing=west,part=38,tap=0": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 270
+  },
+  "facing=west,part=38,tap=1": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 270
+  },
+  "facing=west,part=38,tap=2": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 270
+  },
+  "facing=west,part=38,tap=3": {
+   "model": "railworks:block/brick_furnace/part_38",
+   "y": 270
+  },
+  "facing=west,part=39,tap=0": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 270
+  },
+  "facing=west,part=39,tap=1": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 270
+  },
+  "facing=west,part=39,tap=2": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 270
+  },
+  "facing=west,part=39,tap=3": {
+   "model": "railworks:block/brick_furnace/part_39",
+   "y": 270
+  },
+  "facing=west,part=40,tap=0": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 270
+  },
+  "facing=west,part=40,tap=1": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 270
+  },
+  "facing=west,part=40,tap=2": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 270
+  },
+  "facing=west,part=40,tap=3": {
+   "model": "railworks:block/brick_furnace/part_40",
+   "y": 270
+  },
+  "facing=west,part=41,tap=0": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 270
+  },
+  "facing=west,part=41,tap=1": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 270
+  },
+  "facing=west,part=41,tap=2": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 270
+  },
+  "facing=west,part=41,tap=3": {
+   "model": "railworks:block/brick_furnace/part_41",
+   "y": 270
+  },
+  "facing=west,part=42,tap=0": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 270
+  },
+  "facing=west,part=42,tap=1": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 270
+  },
+  "facing=west,part=42,tap=2": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 270
+  },
+  "facing=west,part=42,tap=3": {
+   "model": "railworks:block/brick_furnace/part_42",
+   "y": 270
+  },
+  "facing=west,part=43,tap=0": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 270
+  },
+  "facing=west,part=43,tap=1": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 270
+  },
+  "facing=west,part=43,tap=2": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 270
+  },
+  "facing=west,part=43,tap=3": {
+   "model": "railworks:block/brick_furnace/part_43",
+   "y": 270
+  },
+  "facing=west,part=44,tap=0": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 270
+  },
+  "facing=west,part=44,tap=1": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 270
+  },
+  "facing=west,part=44,tap=2": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 270
+  },
+  "facing=west,part=44,tap=3": {
+   "model": "railworks:block/brick_furnace/part_44",
+   "y": 270
+  }
+ }
+}

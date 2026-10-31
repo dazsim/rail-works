@@ -2,6 +2,14 @@
   "values": [
     "railworks:coke_oven_bricks",
     "railworks:coke_oven_part",
-    "railworks:coke_oven"
+    "railworks:coke_oven",
+    "railworks:fire_bricks",
+    "railworks:brick_furnace",
+    "railworks:brick_furnace_part",
+    "railworks:set_steel",
+    "railworks:steel_block",
+    "railworks:rail_bar_mould",
+    "railworks:ingot_mould",
+    "railworks:roller_table"
   ]
 }

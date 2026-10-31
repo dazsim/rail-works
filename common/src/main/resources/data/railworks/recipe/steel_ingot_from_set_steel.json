@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "railworks:set_steel"
+  ],
+  "result": {
+    "id": "railworks:steel_ingot",
+    "count": 10
+  }
+}

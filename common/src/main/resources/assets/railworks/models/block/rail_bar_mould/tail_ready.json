@@ -1,0 +1,74 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "iron": "railworks:block/coke_oven_iron",
+    "sand": "minecraft:block/sand",
+    "wood": "railworks:block/treated_planks",
+    "steel": "railworks:block/cast_steel",
+    "hot": "railworks:block/molten_steel_still",
+    "red": "railworks:block/cooling_steel",
+    "dark": "railworks:block/coke_oven_flue",
+    "particle": "railworks:block/coke_oven_iron"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        10,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            6,
+            14,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "east": {
+          "uv": [
+            2,
+            6,
+            16,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "west": {
+          "uv": [
+            2,
+            6,
+            16,
+            16
+          ],
+          "texture": "#iron"
+        },
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            16
+          ],
+          "texture": "#sand"
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            14,
+            16
+          ],
+          "texture": "#iron"
+        }
+      }
+    }
+  ]
+}

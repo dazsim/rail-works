@@ -1,0 +1,21 @@
+{"parent":"minecraft:block/block","textures":{"particle": "railworks:block/fire_bricks", "brick": "railworks:block/fire_bricks", "facade_1": "railworks:block/brick_furnace_facade_1"},"elements":[
+{"from":[3,3,0],"to":[4,3,1],"faces":{"down":{"uv":[3,15,4,16],"texture":"#brick"}}},
+{"from":[12,3,0],"to":[13,3,1],"faces":{"down":{"uv":[12,15,13,16],"texture":"#brick"}}},
+{"from":[4,5,0],"to":[6,5,1],"faces":{"down":{"uv":[4,15,6,16],"texture":"#brick"}}},
+{"from":[10,5,0],"to":[12,5,1],"faces":{"down":{"uv":[10,15,12,16],"texture":"#brick"}}},
+{"from":[6,6,0],"to":[10,6,1],"faces":{"down":{"uv":[6,15,10,16],"texture":"#brick"}}},
+{"from":[3,0,0],"to":[3,3,1],"faces":{"east":{"uv":[15,13,16,16],"texture":"#brick"}}},
+{"from":[4,3,0],"to":[4,5,1],"faces":{"east":{"uv":[15,11,16,13],"texture":"#brick"}}},
+{"from":[6,5,0],"to":[6,6,1],"faces":{"east":{"uv":[15,10,16,11],"texture":"#brick"}}},
+{"from":[0,0,0],"to":[3,16,0],"faces":{"north":{"uv":[13,0,16,16],"texture":"#facade_1"}}},
+{"from":[13,0,0],"to":[16,16,0],"faces":{"north":{"uv":[0,0,3,16],"texture":"#facade_1"}}},
+{"from":[3,3,0],"to":[4,16,0],"faces":{"north":{"uv":[12,0,13,13],"texture":"#facade_1"}}},
+{"from":[12,3,0],"to":[13,16,0],"faces":{"north":{"uv":[3,0,4,13],"texture":"#facade_1"}}},
+{"from":[4,5,0],"to":[6,16,0],"faces":{"north":{"uv":[10,0,12,11],"texture":"#facade_1"}}},
+{"from":[10,5,0],"to":[12,16,0],"faces":{"north":{"uv":[4,0,6,11],"texture":"#facade_1"}}},
+{"from":[6,6,0],"to":[10,16,0],"faces":{"north":{"uv":[6,0,10,10],"texture":"#facade_1"}}},
+{"from":[0,0,16],"to":[16,16,16],"faces":{"south":{"uv":[0,0,16,16],"texture":"#brick"}}},
+{"from":[10,5,0],"to":[10,6,1],"faces":{"west":{"uv":[0,10,1,11],"texture":"#brick"}}},
+{"from":[12,3,0],"to":[12,5,1],"faces":{"west":{"uv":[0,11,1,13],"texture":"#brick"}}},
+{"from":[13,0,0],"to":[13,3,1],"faces":{"west":{"uv":[0,13,1,16],"texture":"#brick"}}}
+]}

@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=z": {
+      "model": "railworks:block/roller_table"
+    },
+    "axis=x": {
+      "model": "railworks:block/roller_table",
+      "y": 90
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+ "variants": {
+  "facing=north,level=0,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_0"
+  },
+  "facing=north,level=1,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_1"
+  },
+  "facing=north,level=2,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_2"
+  },
+  "facing=north,level=3,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_3"
+  },
+  "facing=north,level=4,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_4"
+  },
+  "facing=north,level=0,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_0"
+  },
+  "facing=north,level=1,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_1"
+  },
+  "facing=north,level=2,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_2"
+  },
+  "facing=north,level=3,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_3"
+  },
+  "facing=north,level=4,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_4"
+  },
+  "facing=east,level=0,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_0",
+   "y": 90
+  },
+  "facing=east,level=1,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_1",
+   "y": 90
+  },
+  "facing=east,level=2,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_2",
+   "y": 90
+  },
+  "facing=east,level=3,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_3",
+   "y": 90
+  },
+  "facing=east,level=4,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_4",
+   "y": 90
+  },
+  "facing=east,level=0,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_0",
+   "y": 90
+  },
+  "facing=east,level=1,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_1",
+   "y": 90
+  },
+  "facing=east,level=2,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_2",
+   "y": 90
+  },
+  "facing=east,level=3,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_3",
+   "y": 90
+  },
+  "facing=east,level=4,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_4",
+   "y": 90
+  },
+  "facing=south,level=0,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_0",
+   "y": 180
+  },
+  "facing=south,level=1,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_1",
+   "y": 180
+  },
+  "facing=south,level=2,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_2",
+   "y": 180
+  },
+  "facing=south,level=3,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_3",
+   "y": 180
+  },
+  "facing=south,level=4,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_4",
+   "y": 180
+  },
+  "facing=south,level=0,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_0",
+   "y": 180
+  },
+  "facing=south,level=1,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_1",
+   "y": 180
+  },
+  "facing=south,level=2,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_2",
+   "y": 180
+  },
+  "facing=south,level=3,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_3",
+   "y": 180
+  },
+  "facing=south,level=4,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_4",
+   "y": 180
+  },
+  "facing=west,level=0,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_0",
+   "y": 270
+  },
+  "facing=west,level=1,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_1",
+   "y": 270
+  },
+  "facing=west,level=2,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_2",
+   "y": 270
+  },
+  "facing=west,level=3,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_3",
+   "y": 270
+  },
+  "facing=west,level=4,lit=false": {
+   "model": "railworks:block/brick_furnace/door_unlit_4",
+   "y": 270
+  },
+  "facing=west,level=0,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_0",
+   "y": 270
+  },
+  "facing=west,level=1,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_1",
+   "y": 270
+  },
+  "facing=west,level=2,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_2",
+   "y": 270
+  },
+  "facing=west,level=3,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_3",
+   "y": 270
+  },
+  "facing=west,level=4,lit=true": {
+   "model": "railworks:block/brick_furnace/door_lit_4",
+   "y": 270
+  }
+ }
+}

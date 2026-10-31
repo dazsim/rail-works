@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "railworks:rail_bar_mould",
+          "properties": {
+            "tail": "false"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "railworks:rail_bar_mould"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "railworks:blocks/rail_bar_mould"
+}

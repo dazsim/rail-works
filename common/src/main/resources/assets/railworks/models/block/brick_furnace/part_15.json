@@ -1,0 +1,4 @@
+{"parent":"minecraft:block/block","textures":{"particle": "railworks:block/fire_bricks", "brick": "railworks:block/fire_bricks"},"elements":[
+{"from":[16,0,0],"to":[16,16,16],"faces":{"east":{"uv":[0,0,16,16],"texture":"#brick"}}},
+{"from":[0,0,0],"to":[0,16,16],"faces":{"west":{"uv":[0,0,16,16],"texture":"#brick"}}}
+]}

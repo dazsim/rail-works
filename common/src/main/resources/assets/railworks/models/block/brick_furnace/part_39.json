@@ -1,0 +1,5 @@
+{"parent":"minecraft:block/block","textures":{"particle": "railworks:block/fire_bricks", "brick": "railworks:block/fire_bricks"},"elements":[
+{"from":[10,0,16],"to":[16,16,16],"faces":{"south":{"uv":[10,0,16,16],"texture":"#brick"}}},
+{"from":[0,0,0],"to":[0,16,6],"faces":{"west":{"uv":[0,0,6,16],"texture":"#brick"}}},
+{"from":[-2.0711,0,10.0],"to":[12.0711,16,11.0],"rotation":{"origin":[5.0,0,11.0],"axis":"y","angle":-45},"faces":{"south":{"uv":[0,0,14.1421,16],"texture":"#brick"}}}
+]}

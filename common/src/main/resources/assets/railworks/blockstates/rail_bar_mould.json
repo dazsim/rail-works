@@ -1,0 +1,184 @@
+{
+  "variants": {
+    "facing=north,stage=empty,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_empty"
+    },
+    "facing=east,stage=empty,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_empty",
+      "y": 90
+    },
+    "facing=south,stage=empty,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_empty",
+      "y": 180
+    },
+    "facing=west,stage=empty,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_empty",
+      "y": 270
+    },
+    "facing=north,stage=pattern,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_pattern"
+    },
+    "facing=east,stage=pattern,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_pattern",
+      "y": 90
+    },
+    "facing=south,stage=pattern,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_pattern",
+      "y": 180
+    },
+    "facing=west,stage=pattern,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_pattern",
+      "y": 270
+    },
+    "facing=north,stage=ready,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_ready"
+    },
+    "facing=east,stage=ready,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_ready",
+      "y": 90
+    },
+    "facing=south,stage=ready,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_ready",
+      "y": 180
+    },
+    "facing=west,stage=ready,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_ready",
+      "y": 270
+    },
+    "facing=north,stage=filling,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_filling"
+    },
+    "facing=east,stage=filling,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_filling",
+      "y": 90
+    },
+    "facing=south,stage=filling,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_filling",
+      "y": 180
+    },
+    "facing=west,stage=filling,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_filling",
+      "y": 270
+    },
+    "facing=north,stage=hot,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_hot"
+    },
+    "facing=east,stage=hot,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_hot",
+      "y": 90
+    },
+    "facing=south,stage=hot,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_hot",
+      "y": 180
+    },
+    "facing=west,stage=hot,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_hot",
+      "y": 270
+    },
+    "facing=north,stage=cast,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_cast"
+    },
+    "facing=east,stage=cast,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_cast",
+      "y": 90
+    },
+    "facing=south,stage=cast,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_cast",
+      "y": 180
+    },
+    "facing=west,stage=cast,tail=false": {
+      "model": "railworks:block/rail_bar_mould/main_cast",
+      "y": 270
+    },
+    "facing=north,stage=empty,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_empty"
+    },
+    "facing=east,stage=empty,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_empty",
+      "y": 90
+    },
+    "facing=south,stage=empty,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_empty",
+      "y": 180
+    },
+    "facing=west,stage=empty,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_empty",
+      "y": 270
+    },
+    "facing=north,stage=pattern,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_pattern"
+    },
+    "facing=east,stage=pattern,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_pattern",
+      "y": 90
+    },
+    "facing=south,stage=pattern,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_pattern",
+      "y": 180
+    },
+    "facing=west,stage=pattern,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_pattern",
+      "y": 270
+    },
+    "facing=north,stage=ready,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_ready"
+    },
+    "facing=east,stage=ready,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_ready",
+      "y": 90
+    },
+    "facing=south,stage=ready,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_ready",
+      "y": 180
+    },
+    "facing=west,stage=ready,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_ready",
+      "y": 270
+    },
+    "facing=north,stage=filling,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_filling"
+    },
+    "facing=east,stage=filling,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_filling",
+      "y": 90
+    },
+    "facing=south,stage=filling,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_filling",
+      "y": 180
+    },
+    "facing=west,stage=filling,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_filling",
+      "y": 270
+    },
+    "facing=north,stage=hot,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_hot"
+    },
+    "facing=east,stage=hot,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_hot",
+      "y": 90
+    },
+    "facing=south,stage=hot,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_hot",
+      "y": 180
+    },
+    "facing=west,stage=hot,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_hot",
+      "y": 270
+    },
+    "facing=north,stage=cast,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_cast"
+    },
+    "facing=east,stage=cast,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_cast",
+      "y": 90
+    },
+    "facing=south,stage=cast,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_cast",
+      "y": 180
+    },
+    "facing=west,stage=cast,tail=true": {
+      "model": "railworks:block/rail_bar_mould/tail_cast",
+      "y": 270
+    }
+  }
+}

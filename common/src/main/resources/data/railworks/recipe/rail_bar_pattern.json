@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:treated_planks"
+  },
+  "pattern": [
+    "PPP"
+  ],
+  "result": {
+    "id": "railworks:rail_bar_pattern"
+  }
+}

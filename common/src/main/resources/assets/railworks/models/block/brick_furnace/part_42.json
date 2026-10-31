@@ -1,0 +1,19 @@
+{"parent":"minecraft:block/block","textures":{"particle": "railworks:block/fire_bricks", "brick": "railworks:block/fire_bricks", "iron": "railworks:block/coke_oven_iron"},"elements":[
+{"from":[10,0,16],"to":[16,14,16],"faces":{"south":{"uv":[10,2,16,16],"texture":"#brick"}}},
+{"from":[10,14,16],"to":[16,16,16],"faces":{"south":{"uv":[10,0,16,2],"texture":"#iron"}}},
+{"from":[0,16,0],"to":[16,16,6],"faces":{"up":{"uv":[0,0,16,6],"texture":"#iron"}}},
+{"from":[1,16,6],"to":[16,16,7],"faces":{"up":{"uv":[1,6,16,7],"texture":"#iron"}}},
+{"from":[2,16,7],"to":[16,16,8],"faces":{"up":{"uv":[2,7,16,8],"texture":"#iron"}}},
+{"from":[3,16,8],"to":[16,16,9],"faces":{"up":{"uv":[3,8,16,9],"texture":"#iron"}}},
+{"from":[4,16,9],"to":[16,16,10],"faces":{"up":{"uv":[4,9,16,10],"texture":"#iron"}}},
+{"from":[5,16,10],"to":[16,16,11],"faces":{"up":{"uv":[5,10,16,11],"texture":"#iron"}}},
+{"from":[6,16,11],"to":[16,16,12],"faces":{"up":{"uv":[6,11,16,12],"texture":"#iron"}}},
+{"from":[7,16,12],"to":[16,16,13],"faces":{"up":{"uv":[7,12,16,13],"texture":"#iron"}}},
+{"from":[8,16,13],"to":[16,16,14],"faces":{"up":{"uv":[8,13,16,14],"texture":"#iron"}}},
+{"from":[9,16,14],"to":[16,16,15],"faces":{"up":{"uv":[9,14,16,15],"texture":"#iron"}}},
+{"from":[10,16,15],"to":[16,16,16],"faces":{"up":{"uv":[10,15,16,16],"texture":"#iron"}}},
+{"from":[0,0,0],"to":[0,14,6],"faces":{"west":{"uv":[0,2,6,16],"texture":"#brick"}}},
+{"from":[0,14,0],"to":[0,16,6],"faces":{"west":{"uv":[0,0,6,2],"texture":"#iron"}}},
+{"from":[-2.0711,0,10.0],"to":[12.0711,14,11.0],"rotation":{"origin":[5.0,0,11.0],"axis":"y","angle":-45},"faces":{"south":{"uv":[0,2,14.1421,16],"texture":"#brick"}}},
+{"from":[-2.0711,14,10.0],"to":[12.0711,16,11.0],"rotation":{"origin":[5.0,0,11.0],"axis":"y","angle":-45},"faces":{"south":{"uv":[0,0,14.1421,2],"texture":"#iron"},"up":{"uv":[0,0,14.1421,1],"texture":"#iron"}}}
+]}

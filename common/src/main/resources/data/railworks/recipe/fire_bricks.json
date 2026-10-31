@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "B": "railworks:fire_brick"
+  },
+  "pattern": [
+    "BB",
+    "BB"
+  ],
+  "result": {
+    "id": "railworks:fire_bricks"
+  }
+}
