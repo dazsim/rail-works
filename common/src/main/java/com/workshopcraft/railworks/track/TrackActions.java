@@ -258,7 +258,15 @@ public final class TrackActions {
             if (toe != null) {
                 throwPoints(level, g, toe);
                 player.getCooldowns().addCooldown(player.getMainHandItem(), 8);
-                say(player, Component.translatable("railworks.track.points", toe.route == 0 ? "A" : "B"));
+                MutableComponent msg = Component.translatable("railworks.track.points", toe.route == 0 ? "A" : "B");
+                TrackGraph.Spot near = g.nearestSegment(at.x, at.y, at.z, 4);
+                if (near != null && !near.seg().live) {
+                    g.refresh(level, near.seg());
+                    g.changed(level, g.node(near.seg().a));
+                    g.changed(level, g.node(near.seg().b));
+                    msg.append(". ").append(progress(g, near.seg()));
+                }
+                say(player, msg);
                 return InteractionResult.SUCCESS;
             }
             TrackGraph.Spot s = g.nearestSegment(at.x, at.y, at.z, 4);

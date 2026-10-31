@@ -608,6 +608,37 @@ public final class TrackGraph extends SavedData {
         return c;
     }
 
+    /** Unlaid sections whose clearance or support may have changed, re-checked a few at a time. */
+    private final java.util.Set<Long> recheck = new java.util.LinkedHashSet<>();
+
+    /** A block changed somewhere in the level: queue any unfinished section whose envelope might hold it. */
+    public void blockChanged(BlockPos pos) {
+        if (segments.isEmpty()) return;
+        double x = pos.getX() + 0.5, z = pos.getZ() + 0.5;
+        for (Segment s : segments.values()) {
+            if (s.live || pos.getY() < s.baseY - 24 || pos.getY() > s.baseY + 24) continue;
+            if (s.reachFrom(x, z) <= 5) recheck.add(s.id);
+        }
+    }
+
+    /** Re-check queued sections, a handful every half second, and resync those whose readout changed. */
+    public void recheckChanged(ServerLevel level) {
+        if (recheck.isEmpty() || level.getGameTime() % 10 != 0) return;
+        java.util.Iterator<Long> it = recheck.iterator();
+        for (int budget = 8; budget > 0 && it.hasNext(); budget--) {
+            Segment s = segments.get(it.next());
+            it.remove();
+            if (s == null || s.live) continue;
+            List<BlockPos> was = s.blocked;
+            BitSet un = s.unsupported;
+            refresh(level, s);
+            if (!was.equals(s.blocked) || !un.equals(s.unsupported)) {
+                changed(level, nodes.get(s.a));
+                changed(level, nodes.get(s.b));
+            }
+        }
+    }
+
     /** Re-check what stands in the way of a section's clearance envelope. */
     public void refresh(ServerLevel level, Segment s) {
         List<BlockPos> out = new ArrayList<>();
@@ -624,7 +655,7 @@ public final class TrackGraph extends SavedData {
                     BlockPos im = m.immutable();
                     seen.add(im);
                     BlockState st = level.getBlockState(im);
-                    if (st.isAir() || st.is(ModContent.TRACK_NODE)) continue;
+                    if (st.isAir() || st.is(ModContent.TRACK_NODE) || st.is(ModContent.GROUND_FRAME)) continue;
                     if (!st.getCollisionShape(level, im).isEmpty()) out.add(im);
                 }
         }

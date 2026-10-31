@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.workshopcraft.railworks.neoforge.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ServerLevelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

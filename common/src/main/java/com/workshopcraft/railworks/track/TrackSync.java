@@ -38,9 +38,17 @@ public final class TrackSync {
 
     private TrackSync() {}
 
+    /** Called by the loader mixins whenever a block changes in a server level. */
+    public static void blockChanged(ServerLevel level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState old,
+                                    net.minecraft.world.level.block.state.BlockState now) {
+        if (old != now) TrackGraph.get(level).blockChanged(pos);
+    }
+
     public static void tick(ServerLevel level) {
         TrackActions.tickWarnings(level);
-        TrackGraph.get(level).restoreBroken(level);
+        TrackGraph tg = TrackGraph.get(level);
+        tg.restoreBroken(level);
+        tg.recheckChanged(level);
         if (level.getGameTime() % PERIOD != 0) return;
         TrackGraph g = TrackGraph.get(level);
         int view = level.getServer().getPlayerList().getViewDistance();
