@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,reversed=false": {
+      "model": "railworks:block/ground_frame"
+    },
+    "facing=north,reversed=true": {
+      "model": "railworks:block/ground_frame_reversed"
+    },
+    "facing=east,reversed=false": {
+      "model": "railworks:block/ground_frame",
+      "y": 90
+    },
+    "facing=east,reversed=true": {
+      "model": "railworks:block/ground_frame_reversed",
+      "y": 90
+    },
+    "facing=south,reversed=false": {
+      "model": "railworks:block/ground_frame",
+      "y": 180
+    },
+    "facing=south,reversed=true": {
+      "model": "railworks:block/ground_frame_reversed",
+      "y": 180
+    },
+    "facing=west,reversed=false": {
+      "model": "railworks:block/ground_frame",
+      "y": 270
+    },
+    "facing=west,reversed=true": {
+      "model": "railworks:block/ground_frame_reversed",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "L": "minecraft:lever",
+    "I": "minecraft:iron_ingot",
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    " L ",
+    "IBI"
+  ],
+  "result": {
+    "id": "railworks:ground_frame",
+    "count": 1
+  }
+}

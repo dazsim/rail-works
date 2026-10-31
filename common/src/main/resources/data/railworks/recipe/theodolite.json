@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "tools",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "G": "minecraft:spyglass",
+    "C": "minecraft:compass",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "IGI",
+    "SCS",
+    " S "
+  ],
+  "result": {
+    "id": "railworks:theodolite",
+    "count": 1
+  }
+}

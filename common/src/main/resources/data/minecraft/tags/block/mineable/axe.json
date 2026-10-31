@@ -3,6 +3,8 @@
     "railworks:creosote_vat",
     "railworks:treated_log",
     "railworks:treated_planks",
-    "railworks:treated_beam"
+    "railworks:treated_beam",
+    "railworks:track_node",
+    "railworks:ground_frame"
   ]
 }

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "railworks:treated_beam",
+    "L": "minecraft:lantern",
+    "R": "railworks:rail_bar",
+    "D": "minecraft:red_dye",
+    "S": "#c:ingots/steel"
+  },
+  "pattern": [
+    "BLB",
+    "RDR",
+    "SBS"
+  ],
+  "result": {
+    "id": "railworks:buffer_stop",
+    "count": 1
+  }
+}
