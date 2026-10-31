@@ -4,10 +4,12 @@ import com.workshopcraft.railworks.RailWorks;
 import com.workshopcraft.railworks.client.BrickFurnaceScreen;
 import com.workshopcraft.railworks.client.CokeOvenScreen;
 import com.workshopcraft.railworks.client.RailWorksClient;
+import com.workshopcraft.railworks.client.TrackRenderer;
 import com.workshopcraft.railworks.registry.ModContent;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -24,6 +26,7 @@ public class RailWorksNeoForgeClient {
             e.register(ModContent.COKE_OVEN_MENU, CokeOvenScreen::new);
             e.register(ModContent.BRICK_FURNACE_MENU, BrickFurnaceScreen::new);
         });
+        modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> e.registerBlockEntityRenderer(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new));
         modBus.addListener((RegisterFluidModelsEvent e) -> {
             e.register(RailWorksClient.CREOSOTE_MODEL, ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE);
             e.register(RailWorksClient.MOLTEN_STEEL_MODEL, ModContent.MOLTEN_STEEL, ModContent.FLOWING_MOLTEN_STEEL);

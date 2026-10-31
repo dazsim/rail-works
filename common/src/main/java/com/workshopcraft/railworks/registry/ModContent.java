@@ -16,7 +16,11 @@ import com.workshopcraft.railworks.block.MoltenSteelBlock;
 import com.workshopcraft.railworks.block.MouldBlock;
 import com.workshopcraft.railworks.block.MouldBlockEntity;
 import com.workshopcraft.railworks.block.RollerTableBlock;
+import com.workshopcraft.railworks.block.GroundFrameBlock;
+import com.workshopcraft.railworks.block.TrackNodeBlock;
+import com.workshopcraft.railworks.block.TrackNodeBlockEntity;
 import com.workshopcraft.railworks.item.LadleItem;
+import com.workshopcraft.railworks.item.TrackItems;
 import com.workshopcraft.railworks.menu.BrickFurnaceMenu;
 import com.workshopcraft.railworks.menu.CokeOvenMenu;
 import net.minecraft.core.Registry;
@@ -71,6 +75,8 @@ public final class ModContent {
     public static Block RAIL_BAR_MOULD;
     public static Block INGOT_MOULD;
     public static Block ROLLER_TABLE;
+    public static Block TRACK_NODE;
+    public static Block GROUND_FRAME;
 
     public static Item HAMMER;
     public static Item COKE;
@@ -84,11 +90,15 @@ public final class ModContent {
     public static Item INGOT_PATTERN;
     public static Item HAND_LADLE;
     public static Item MOLTEN_STEEL_BUCKET;
+    public static Item SURVEY_STAKE;
+    public static Item THEODOLITE;
+    public static Item BUFFER_STOP;
 
     public static BlockEntityType<CokeOvenBlockEntity> COKE_OVEN_ENTITY;
     public static BlockEntityType<CreosoteVatBlockEntity> VAT_ENTITY;
     public static BlockEntityType<BrickFurnaceBlockEntity> BRICK_FURNACE_ENTITY;
     public static BlockEntityType<MouldBlockEntity> MOULD_ENTITY;
+    public static BlockEntityType<TrackNodeBlockEntity> TRACK_NODE_ENTITY;
     public static final MenuType<CokeOvenMenu> COKE_OVEN_MENU = new MenuType<>(CokeOvenMenu::client, FeatureFlags.VANILLA_SET);
     public static final MenuType<BrickFurnaceMenu> BRICK_FURNACE_MENU = new MenuType<>(BrickFurnaceMenu::client, FeatureFlags.VANILLA_SET);
     public static CreativeModeTab TAB;
@@ -163,6 +173,10 @@ public final class ModContent {
                 .strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
         ROLLER_TABLE = block(r, "roller_table", RollerTableBlock::new, block("roller_table").mapColor(MapColor.METAL)
                 .strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion());
+        TRACK_NODE = block(r, "track_node", TrackNodeBlock::new, block("track_node").mapColor(MapColor.WOOD).strength(0.5F)
+                .sound(SoundType.WOOD).noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK));
+        GROUND_FRAME = block(r, "ground_frame", GroundFrameBlock::new, block("ground_frame").mapColor(MapColor.WOOD)
+                .instrument(NoteBlockInstrument.BASS).strength(1.5F).sound(SoundType.WOOD).noOcclusion());
     }
 
     private static Item blockItem(BiConsumer<Identifier, Item> r, Block b, String name) {
@@ -172,13 +186,13 @@ public final class ModContent {
     }
 
     public static void registerItems(BiConsumer<Identifier, Item> r) {
-        HAMMER = new Item(item("hammer").pickaxe(ToolMaterial.IRON, 4.0F, -3.0F));
+        HAMMER = new TrackItems.Hammer(item("hammer").pickaxe(ToolMaterial.IRON, 4.0F, -3.0F));
         r.accept(RailWorks.id("hammer"), HAMMER);
         COKE = new Item(item("coke"));
         r.accept(RailWorks.id("coke"), COKE);
         CREOSOTE_BUCKET = new BucketItem(CREOSOTE, item("creosote_bucket").craftRemainder(Items.BUCKET).stacksTo(1));
         r.accept(RailWorks.id("creosote_bucket"), CREOSOTE_BUCKET);
-        TIE = new Item(item("tie"));
+        TIE = new TrackItems.Layable(item("tie"), false);
         r.accept(RailWorks.id("tie"), TIE);
         blockItem(r, COKE_OVEN_BRICKS, "coke_oven_bricks");
         blockItem(r, CREOSOTE_VAT, "creosote_vat");
@@ -189,7 +203,8 @@ public final class ModContent {
         FIRE_CLAY = simple(r, "fire_clay");
         FIRE_BRICK = simple(r, "fire_brick");
         STEEL_INGOT = simple(r, "steel_ingot");
-        RAIL_BAR = simple(r, "rail_bar");
+        RAIL_BAR = new TrackItems.Layable(item("rail_bar"), true);
+        r.accept(RailWorks.id("rail_bar"), RAIL_BAR);
         RAIL_PATTERN = new Item(item("rail_bar_pattern").stacksTo(16));
         r.accept(RailWorks.id("rail_bar_pattern"), RAIL_PATTERN);
         INGOT_PATTERN = new Item(item("ingot_pattern").stacksTo(16));
@@ -204,6 +219,13 @@ public final class ModContent {
         blockItem(r, RAIL_BAR_MOULD, "rail_bar_mould");
         blockItem(r, INGOT_MOULD, "ingot_mould");
         blockItem(r, ROLLER_TABLE, "roller_table");
+        SURVEY_STAKE = new BlockItem(TRACK_NODE, item("survey_stake"));
+        r.accept(RailWorks.id("survey_stake"), SURVEY_STAKE);
+        THEODOLITE = new TrackItems.Theodolite(item("theodolite").stacksTo(1));
+        r.accept(RailWorks.id("theodolite"), THEODOLITE);
+        BUFFER_STOP = new TrackItems.BufferStop(item("buffer_stop").stacksTo(16));
+        r.accept(RailWorks.id("buffer_stop"), BUFFER_STOP);
+        blockItem(r, GROUND_FRAME, "ground_frame");
     }
 
     private static Item simple(BiConsumer<Identifier, Item> r, String name) {
@@ -221,6 +243,8 @@ public final class ModContent {
         r.accept(RailWorks.id("brick_furnace"), BRICK_FURNACE_ENTITY);
         MOULD_ENTITY = new BlockEntityType<>(MouldBlockEntity::new, Set.of(RAIL_BAR_MOULD, INGOT_MOULD));
         r.accept(RailWorks.id("mould"), MOULD_ENTITY);
+        TRACK_NODE_ENTITY = new BlockEntityType<>(TrackNodeBlockEntity::new, Set.of(TRACK_NODE));
+        r.accept(RailWorks.id("track_node"), TRACK_NODE_ENTITY);
     }
 
     public static void registerMenus(BiConsumer<Identifier, MenuType<?>> r) {
@@ -256,6 +280,10 @@ public final class ModContent {
                     out.accept(INGOT_MOULD);
                     out.accept(ROLLER_TABLE);
                     out.accept(RAIL_BAR);
+                    out.accept(SURVEY_STAKE);
+                    out.accept(THEODOLITE);
+                    out.accept(GROUND_FRAME);
+                    out.accept(BUFFER_STOP);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);
