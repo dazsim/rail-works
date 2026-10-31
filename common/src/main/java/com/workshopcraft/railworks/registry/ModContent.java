@@ -1,6 +1,9 @@
 package com.workshopcraft.railworks.registry;
 
 import com.workshopcraft.railworks.RailWorks;
+import com.workshopcraft.railworks.block.BrickFurnaceBlock;
+import com.workshopcraft.railworks.block.BrickFurnaceBlockEntity;
+import com.workshopcraft.railworks.block.BrickFurnacePartBlock;
 import com.workshopcraft.railworks.block.CokeOvenBlock;
 import com.workshopcraft.railworks.block.CokeOvenBlockEntity;
 import com.workshopcraft.railworks.block.CokeOvenBricksBlock;
@@ -8,6 +11,13 @@ import com.workshopcraft.railworks.block.CokeOvenPartBlock;
 import com.workshopcraft.railworks.block.CreosoteBlock;
 import com.workshopcraft.railworks.block.CreosoteVatBlock;
 import com.workshopcraft.railworks.block.CreosoteVatBlockEntity;
+import com.workshopcraft.railworks.block.FireBricksBlock;
+import com.workshopcraft.railworks.block.MoltenSteelBlock;
+import com.workshopcraft.railworks.block.MouldBlock;
+import com.workshopcraft.railworks.block.MouldBlockEntity;
+import com.workshopcraft.railworks.block.RollerTableBlock;
+import com.workshopcraft.railworks.item.LadleItem;
+import com.workshopcraft.railworks.menu.BrickFurnaceMenu;
 import com.workshopcraft.railworks.menu.CokeOvenMenu;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -41,6 +51,8 @@ import java.util.function.Function;
 public final class ModContent {
     public static FlowingFluid CREOSOTE;
     public static FlowingFluid FLOWING_CREOSOTE;
+    public static FlowingFluid MOLTEN_STEEL;
+    public static FlowingFluid FLOWING_MOLTEN_STEEL;
 
     public static Block COKE_OVEN_BRICKS;
     public static Block COKE_OVEN;
@@ -50,24 +62,49 @@ public final class ModContent {
     public static Block TREATED_LOG;
     public static Block TREATED_PLANKS;
     public static Block TREATED_BEAM;
+    public static Block FIRE_BRICKS;
+    public static Block BRICK_FURNACE;
+    public static Block BRICK_FURNACE_PART;
+    public static Block MOLTEN_STEEL_BLOCK;
+    public static Block SET_STEEL;
+    public static Block STEEL_BLOCK;
+    public static Block RAIL_BAR_MOULD;
+    public static Block INGOT_MOULD;
+    public static Block ROLLER_TABLE;
 
     public static Item HAMMER;
     public static Item COKE;
     public static Item CREOSOTE_BUCKET;
     public static Item TIE;
+    public static Item FIRE_CLAY;
+    public static Item FIRE_BRICK;
+    public static Item STEEL_INGOT;
+    public static Item RAIL_BAR;
+    public static Item RAIL_PATTERN;
+    public static Item INGOT_PATTERN;
+    public static Item HAND_LADLE;
+    public static Item MOLTEN_STEEL_BUCKET;
 
     public static BlockEntityType<CokeOvenBlockEntity> COKE_OVEN_ENTITY;
     public static BlockEntityType<CreosoteVatBlockEntity> VAT_ENTITY;
+    public static BlockEntityType<BrickFurnaceBlockEntity> BRICK_FURNACE_ENTITY;
+    public static BlockEntityType<MouldBlockEntity> MOULD_ENTITY;
     public static final MenuType<CokeOvenMenu> COKE_OVEN_MENU = new MenuType<>(CokeOvenMenu::client, FeatureFlags.VANILLA_SET);
+    public static final MenuType<BrickFurnaceMenu> BRICK_FURNACE_MENU = new MenuType<>(BrickFurnaceMenu::client, FeatureFlags.VANILLA_SET);
     public static CreativeModeTab TAB;
 
     private ModContent() {}
 
-    public static void registerFluids(BiConsumer<Identifier, net.minecraft.world.level.material.Fluid> r, FlowingFluid source, FlowingFluid flowing) {
+    public static void registerFluids(BiConsumer<Identifier, net.minecraft.world.level.material.Fluid> r, FlowingFluid source, FlowingFluid flowing,
+                                      FlowingFluid steel, FlowingFluid flowingSteel) {
         CREOSOTE = source;
         FLOWING_CREOSOTE = flowing;
+        MOLTEN_STEEL = steel;
+        FLOWING_MOLTEN_STEEL = flowingSteel;
         r.accept(RailWorks.id("creosote"), source);
         r.accept(RailWorks.id("flowing_creosote"), flowing);
+        r.accept(RailWorks.id("molten_steel"), steel);
+        r.accept(RailWorks.id("flowing_molten_steel"), flowingSteel);
     }
 
     private static BlockBehaviour.Properties block(String name) {
@@ -104,6 +141,28 @@ public final class ModContent {
                 .instrument(NoteBlockInstrument.BASS).strength(2.5F, 3.5F).sound(SoundType.WOOD));
         TREATED_BEAM = block(r, "treated_beam", RotatedPillarBlock::new, block("treated_beam").mapColor(MapColor.COLOR_BROWN)
                 .instrument(NoteBlockInstrument.BASS).strength(2.5F).sound(SoundType.WOOD));
+
+        FIRE_BRICKS = block(r, "fire_bricks", FireBricksBlock::new, block("fire_bricks").mapColor(MapColor.SAND).instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops().strength(2.0F, 6.0F).sound(SoundType.STONE));
+        BRICK_FURNACE_PART = block(r, "brick_furnace_part", BrickFurnacePartBlock::new, block("brick_furnace_part").mapColor(MapColor.SAND)
+                .instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(2.0F, 6.0F).sound(SoundType.STONE)
+                .noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK));
+        BRICK_FURNACE = block(r, "brick_furnace", BrickFurnaceBlock::new, block("brick_furnace").mapColor(MapColor.SAND)
+                .instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(2.0F, 6.0F).sound(SoundType.STONE)
+                .noOcclusion().pushReaction(PushReaction.BLOCK).lightLevel(s -> s.getValue(BrickFurnaceBlock.LIT) ? 13 : 0));
+        MOLTEN_STEEL_BLOCK = block(r, "molten_steel", p -> new MoltenSteelBlock(MOLTEN_STEEL, p), block("molten_steel").mapColor(MapColor.FIRE)
+                .replaceable().noCollision().strength(100.0F).lightLevel(s -> 12).pushReaction(PushReaction.DESTROY)
+                .noLootTable().liquid().sound(SoundType.EMPTY));
+        SET_STEEL = block(r, "set_steel", Block::new, block("set_steel").mapColor(MapColor.METAL).instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops().strength(4.0F, 6.0F).sound(SoundType.METAL));
+        STEEL_BLOCK = block(r, "steel_block", Block::new, block("steel_block").mapColor(MapColor.METAL).instrument(NoteBlockInstrument.IRON_XYLOPHONE)
+                .requiresCorrectToolForDrops().strength(5.0F, 6.0F).sound(SoundType.METAL));
+        RAIL_BAR_MOULD = block(r, "rail_bar_mould", p -> new MouldBlock(MouldBlock.Kind.RAIL, p), block("rail_bar_mould").mapColor(MapColor.METAL)
+                .strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
+        INGOT_MOULD = block(r, "ingot_mould", p -> new MouldBlock(MouldBlock.Kind.INGOT, p), block("ingot_mould").mapColor(MapColor.METAL)
+                .strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
+        ROLLER_TABLE = block(r, "roller_table", RollerTableBlock::new, block("roller_table").mapColor(MapColor.METAL)
+                .strength(3.0F, 6.0F).sound(SoundType.METAL).noOcclusion());
     }
 
     private static Item blockItem(BiConsumer<Identifier, Item> r, Block b, String name) {
@@ -126,6 +185,31 @@ public final class ModContent {
         blockItem(r, TREATED_LOG, "treated_log");
         blockItem(r, TREATED_PLANKS, "treated_planks");
         blockItem(r, TREATED_BEAM, "treated_beam");
+
+        FIRE_CLAY = simple(r, "fire_clay");
+        FIRE_BRICK = simple(r, "fire_brick");
+        STEEL_INGOT = simple(r, "steel_ingot");
+        RAIL_BAR = simple(r, "rail_bar");
+        RAIL_PATTERN = new Item(item("rail_bar_pattern").stacksTo(16));
+        r.accept(RailWorks.id("rail_bar_pattern"), RAIL_PATTERN);
+        INGOT_PATTERN = new Item(item("ingot_pattern").stacksTo(16));
+        r.accept(RailWorks.id("ingot_pattern"), INGOT_PATTERN);
+        HAND_LADLE = new LadleItem(item("hand_ladle").stacksTo(1));
+        r.accept(RailWorks.id("hand_ladle"), HAND_LADLE);
+        MOLTEN_STEEL_BUCKET = new BucketItem(MOLTEN_STEEL, item("molten_steel_bucket").craftRemainder(Items.BUCKET).stacksTo(1));
+        r.accept(RailWorks.id("molten_steel_bucket"), MOLTEN_STEEL_BUCKET);
+        blockItem(r, FIRE_BRICKS, "fire_bricks");
+        blockItem(r, SET_STEEL, "set_steel");
+        blockItem(r, STEEL_BLOCK, "steel_block");
+        blockItem(r, RAIL_BAR_MOULD, "rail_bar_mould");
+        blockItem(r, INGOT_MOULD, "ingot_mould");
+        blockItem(r, ROLLER_TABLE, "roller_table");
+    }
+
+    private static Item simple(BiConsumer<Identifier, Item> r, String name) {
+        Item i = new Item(item(name));
+        r.accept(RailWorks.id(name), i);
+        return i;
     }
 
     public static void registerBlockEntities(BiConsumer<Identifier, BlockEntityType<?>> r) {
@@ -133,10 +217,15 @@ public final class ModContent {
         r.accept(RailWorks.id("coke_oven"), COKE_OVEN_ENTITY);
         VAT_ENTITY = new BlockEntityType<>(CreosoteVatBlockEntity::new, Set.of(CREOSOTE_VAT));
         r.accept(RailWorks.id("creosote_vat"), VAT_ENTITY);
+        BRICK_FURNACE_ENTITY = new BlockEntityType<>(BrickFurnaceBlockEntity::new, Set.of(BRICK_FURNACE));
+        r.accept(RailWorks.id("brick_furnace"), BRICK_FURNACE_ENTITY);
+        MOULD_ENTITY = new BlockEntityType<>(MouldBlockEntity::new, Set.of(RAIL_BAR_MOULD, INGOT_MOULD));
+        r.accept(RailWorks.id("mould"), MOULD_ENTITY);
     }
 
     public static void registerMenus(BiConsumer<Identifier, MenuType<?>> r) {
         r.accept(RailWorks.id("coke_oven"), COKE_OVEN_MENU);
+        r.accept(RailWorks.id("brick_furnace"), BRICK_FURNACE_MENU);
     }
 
     public static void registerCreativeTabs(BiConsumer<Identifier, CreativeModeTab> r) {
@@ -153,6 +242,20 @@ public final class ModContent {
                     out.accept(TREATED_PLANKS);
                     out.accept(TREATED_BEAM);
                     out.accept(TIE);
+                    out.accept(FIRE_CLAY);
+                    out.accept(FIRE_BRICK);
+                    out.accept(FIRE_BRICKS);
+                    out.accept(HAND_LADLE);
+                    out.accept(MOLTEN_STEEL_BUCKET);
+                    out.accept(SET_STEEL);
+                    out.accept(STEEL_INGOT);
+                    out.accept(STEEL_BLOCK);
+                    out.accept(RAIL_PATTERN);
+                    out.accept(INGOT_PATTERN);
+                    out.accept(RAIL_BAR_MOULD);
+                    out.accept(INGOT_MOULD);
+                    out.accept(ROLLER_TABLE);
+                    out.accept(RAIL_BAR);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);
@@ -162,8 +265,8 @@ public final class ModContent {
         return (id, value) -> Registry.register(registry, id, value);
     }
 
-    public static void registerAllDirect(FlowingFluid source, FlowingFluid flowing) {
-        registerFluids(direct(BuiltInRegistries.FLUID), source, flowing);
+    public static void registerAllDirect(FlowingFluid source, FlowingFluid flowing, FlowingFluid steel, FlowingFluid flowingSteel) {
+        registerFluids(direct(BuiltInRegistries.FLUID), source, flowing, steel, flowingSteel);
         registerBlocks(direct(BuiltInRegistries.BLOCK));
         registerItems(direct(BuiltInRegistries.ITEM));
         registerBlockEntities(direct(BuiltInRegistries.BLOCK_ENTITY_TYPE));

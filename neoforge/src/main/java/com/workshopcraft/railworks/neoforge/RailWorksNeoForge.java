@@ -1,7 +1,11 @@
 package com.workshopcraft.railworks.neoforge;
 
 import com.workshopcraft.railworks.RailWorks;
+import com.workshopcraft.railworks.block.BrickFurnaceBlockEntity;
+import com.workshopcraft.railworks.block.BrickFurnacePartBlock;
+import com.workshopcraft.railworks.block.BrickFurnaceStructure;
 import com.workshopcraft.railworks.registry.ModContent;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -20,8 +24,12 @@ public class RailWorksNeoForge {
     }
 
     private static void onRegister(RegisterEvent e) {
-        e.register(NeoForgeRegistries.Keys.FLUID_TYPES, h -> h.register(RailWorks.id("creosote"), NeoCreosote.TYPE));
-        e.register(Registries.FLUID, h -> ModContent.registerFluids(h::register, new NeoCreosote.Source(), new NeoCreosote.Flowing()));
+        e.register(NeoForgeRegistries.Keys.FLUID_TYPES, h -> {
+            h.register(RailWorks.id("creosote"), NeoCreosote.TYPE);
+            h.register(RailWorks.id("molten_steel"), NeoMoltenSteel.TYPE);
+        });
+        e.register(Registries.FLUID, h -> ModContent.registerFluids(h::register, new NeoCreosote.Source(), new NeoCreosote.Flowing(),
+                new NeoMoltenSteel.Source(), new NeoMoltenSteel.Flowing()));
         e.register(Registries.BLOCK, h -> ModContent.registerBlocks(h::register));
         e.register(Registries.ITEM, h -> ModContent.registerItems(h::register));
         e.register(Registries.BLOCK_ENTITY_TYPE, h -> ModContent.registerBlockEntities(h::register));
@@ -31,5 +39,10 @@ public class RailWorksNeoForge {
 
     private static void onCapabilities(RegisterCapabilitiesEvent e) {
         e.registerBlockEntity(Capabilities.Item.BLOCK, ModContent.COKE_OVEN_ENTITY, WorldlyContainerWrapper::new);
+        e.registerBlockEntity(Capabilities.Item.BLOCK, ModContent.BRICK_FURNACE_ENTITY, WorldlyContainerWrapper::new);
+        e.registerBlock(Capabilities.Item.BLOCK, (level, pos, state, be, side) -> {
+            BlockPos door = BrickFurnaceStructure.doorPos(pos, state.getValue(BrickFurnacePartBlock.FACING), state.getValue(BrickFurnacePartBlock.PART));
+            return level.getBlockEntity(door) instanceof BrickFurnaceBlockEntity furnace ? new WorldlyContainerWrapper(furnace, side) : null;
+        }, ModContent.BRICK_FURNACE_PART);
     }
 }
