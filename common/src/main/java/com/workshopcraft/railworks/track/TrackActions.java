@@ -167,7 +167,8 @@ public final class TrackActions {
         TrackGraph.Node n = g.nodeFor(level, pos);
         boolean sneak = player.isShiftKeyDown();
         if (!state.getValue(TrackNodeBlock.STAKE)) {
-            if (sneak) return hammerGround(level, player, hit.getLocation());
+            // a hit at the toe throws the points, as a hit beside it does
+            if (sneak || (n != null && g.pointsPort(n) >= 0)) return hammerGround(level, player, hit.getLocation());
             select(level, player, g, n);
             return InteractionResult.SUCCESS;
         }
