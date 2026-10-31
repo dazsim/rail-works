@@ -99,7 +99,7 @@ public class HandTrolley extends Entity {
     private double clack;
 
     // server only
-    private int lastSync, stopCooldown, squealCooldown, brakeCooldown;
+    private int lastSync, hudHold, stopCooldown, squealCooldown, brakeCooldown;
     private boolean wasRidden, endBraking;
     private final Report report = new Report();
 
@@ -642,7 +642,7 @@ public class HandTrolley extends Entity {
         entityData.set(DATA_BRAKE, brake || endBrake);
         sync(changed);
         if (ridden && tickCount % 20 == 0) level.getChunkSource().addTicketWithRadius(ModContent.TROLLEY_TICKET, ChunkPos.containing(blockPosition()), 3);
-        if (ridden && tickCount % 4 == 0) hud(now);
+        if (ridden && tickCount % 4 == 0 && tickCount > hudHold) hud(now);
         if (!ridden && wasRidden) report.reset(this);
         wasRidden = ridden;
     }
@@ -750,6 +750,7 @@ public class HandTrolley extends Entity {
     }
 
     private void tellRiders(Component c, boolean echo) {
+        if (echo) hudHold = tickCount + 50;
         for (Entity e : getPassengers()) if (e instanceof ServerPlayer sp) sp.sendOverlayMessage(c);
         if (echo && ECHO) LOG.info("[trolley] {}", c.getString());
     }
