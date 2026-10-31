@@ -182,7 +182,7 @@ def tile(src, x0, y0, w, h, f=None):
 
 tile('treated_planks.png', 0, 0, 128, 128)
 tile('steel_block.png', 128, 0, 128, 128)
-tile('cast_steel.png', 0, 128, 128, 128)
+tile('cast_steel.png', 0, 128, 128, 128, lambda p: (p[0] * 52 // 100, p[1] * 52 // 100, p[2] * 54 // 100, 255))
 tile('set_steel.png', 128, 128, 128, 64, lambda p: (p[0] * 45 // 100, p[1] * 45 // 100, p[2] * 48 // 100, 255))
 tile('steel_block.png', 128, 192, 64, 64, lambda p: (min(255, p[0] * 9 // 10 + 40), p[1] * 22 // 100, p[2] * 18 // 100, 255))
 tile('steel_block.png', 192, 192, 64, 64)

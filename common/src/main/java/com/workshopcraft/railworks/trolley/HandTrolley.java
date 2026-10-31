@@ -100,7 +100,7 @@ public class HandTrolley extends Entity {
 
     // server only
     private int lastSync, stopCooldown, squealCooldown, brakeCooldown;
-    private boolean wasRidden;
+    private boolean wasRidden, endBraking;
     private final Report report = new Report();
 
     // client only
@@ -596,7 +596,9 @@ public class HandTrolley extends Entity {
         if (!stop.buffer() && stop.dist() < 60 && u * u / (2 * BRAKE) >= stop.dist() - 0.1) {
             drag += BRAKE;
             endBrake = true;
+            if (!endBraking && Math.abs(u) > 0.3) tellRiders(Component.translatable("message.railworks.trolley.end").withStyle(ChatFormatting.YELLOW), true);
         }
+        endBraking = endBrake;
         double nu = step(u, force, drag);
         double ds = (u + nu) / 2 * DT;
         u = nu;
