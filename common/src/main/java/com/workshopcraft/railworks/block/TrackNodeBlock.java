@@ -86,24 +86,27 @@ public class TrackNodeBlock extends BaseEntityBlock {
     /** Breaking a stake unlinks its sections and drops it, but not while track is laid on them. */
     @Override
     protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
-        if (state.getValue(STAKE) && laid(level, pos)) return 0;
+        if (laid(level, pos)) return 0;
         return super.getDestroyProgress(state, player, level, pos);
     }
 
     @Override
     protected void attack(BlockState state, Level level, BlockPos pos, Player player) {
-        if (level instanceof ServerLevel && state.getValue(STAKE) && laid(level, pos))
+        if (level instanceof ServerLevel && laid(level, pos))
             player.sendOverlayMessage(Component.translatable("railworks.track.take_up_first").withStyle(ChatFormatting.RED));
     }
 
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (level instanceof ServerLevel sl && state.getValue(STAKE)) {
+        if (level instanceof ServerLevel sl) {
             TrackGraph g = TrackGraph.get(sl);
             TrackGraph.Node n = g.nodeAt(pos);
             int c = n == null ? 0 : n.sectionCount();
-            if (n == null || !g.anyLaid(n))
-                player.sendOverlayMessage(c > 0 ? Component.translatable("railworks.track.unlinked", c) : Component.translatable("railworks.track.picked_up"));
+            boolean stake = state.getValue(STAKE);
+            if (n != null && g.anyLaid(n))
+                player.sendOverlayMessage(Component.translatable("railworks.track.take_up_first").withStyle(ChatFormatting.RED));
+            else if (c > 0) player.sendOverlayMessage(Component.translatable(stake ? "railworks.track.unlinked" : "railworks.track.unlinked_end", c));
+            else if (stake) player.sendOverlayMessage(Component.translatable("railworks.track.picked_up"));
         }
         return super.playerWillDestroy(level, pos, state, player);
     }

@@ -129,12 +129,13 @@ public final class TrackGraph extends SavedData {
             return (i + 0.5) * path.length / n;
         }
 
-        public boolean complete() {
-            return ties.cardinality() >= n && rails.cardinality() >= n;
-        }
-
+        /** Nothing laid on it at all. */
         public boolean empty() {
             return ties.isEmpty() && rails.isEmpty();
+        }
+
+        public boolean complete() {
+            return ties.cardinality() >= n && rails.cardinality() >= n;
         }
 
         public long other(long node) {
@@ -441,11 +442,22 @@ public final class TrackGraph extends SavedData {
         setDirty();
     }
 
-    /** The node's block went away: drop everything laid on its sections and tidy up. */
+    /** Blocks of nodes that were broken while track was laid on them, put back on the next tick. */
+    private final java.util.Set<BlockPos> restore = new java.util.HashSet<>();
+
+    /**
+     * The node's block went away. Laid ties and rails are never removed this way: if any section at the node has
+     * anything laid, the node stays in the graph exactly as it was and its block comes back on the next tick.
+     * Otherwise the stake and buffer drop and the node's empty sections are unlinked.
+     */
     public void nodeRemoved(ServerLevel level, BlockPos pos) {
         if (removing) return;
         Node n = nodeAt(pos);
         if (n == null) return;
+        if (anyLaid(n)) {
+            restore.add(n.pos);
+            return;
+        }
         removing = true;
         try {
             forget(n);
@@ -455,8 +467,6 @@ public final class TrackGraph extends SavedData {
             for (long id : List.copyOf(n.segs)) {
                 Segment s = segments.get(id);
                 if (s == null) continue;
-                drop(level, x, y, z, ModContent.TIE, s.ties.cardinality());
-                drop(level, x, y, z, ModContent.RAIL_BAR, s.rails.cardinality() + s.extra.cardinality());
                 detach(s);
                 Node o = nodes.get(s.other(n.id));
                 if (o == null) continue;
@@ -468,6 +478,20 @@ public final class TrackGraph extends SavedData {
             }
         } finally {
             removing = false;
+        }
+    }
+
+    /** Put back the blocks of nodes broken while track was laid on them. */
+    public void restoreBroken(ServerLevel level) {
+        if (restore.isEmpty()) return;
+        for (BlockPos pos : List.copyOf(restore)) {
+            restore.remove(pos);
+            Node n = nodeAt(pos);
+            if (n == null || !level.isLoaded(pos)) continue;
+            BlockState st = level.getBlockState(pos);
+            if (!st.is(ModContent.TRACK_NODE) && (st.isAir() || st.canBeReplaced()))
+                level.setBlock(pos, ModContent.TRACK_NODE.defaultBlockState().setValue(com.workshopcraft.railworks.block.TrackNodeBlock.STAKE, n.stake), 3);
+            changedAround(level, n);
         }
     }
 
@@ -552,20 +576,36 @@ public final class TrackGraph extends SavedData {
         changed(level, nodes.get(s.b));
     }
 
-    /** Nodes whose stakes can come up now that every section at them is live. */
+    /**
+     * Nodes whose stakes can come up now that a section at them went live: every other section at the stake is
+     * live too, or has nothing laid on it at all. The empty ones are stray links and get dropped by {@link #dropEmpty}.
+     */
     public List<Node> stakesToReturn(Segment s) {
         List<Node> out = new ArrayList<>();
         for (long id : new long[]{s.a, s.b}) {
             Node n = nodes.get(id);
             if (n == null || !n.stake) continue;
-            boolean all = true;
+            boolean ok = true;
             for (long sid : n.segs) {
                 Segment o = segments.get(sid);
-                if (o != null && !o.live) all = false;
+                if (o != null && !o.live && !o.empty()) ok = false;
             }
-            if (all) out.add(n);
+            if (ok) out.add(n);
         }
         return out;
+    }
+
+    /** Drop the empty sections at a stake that is coming up; returns how many went. */
+    public int dropEmpty(ServerLevel level, Node n) {
+        int c = 0;
+        for (long sid : List.copyOf(n.segs)) {
+            Segment o = segments.get(sid);
+            if (o != null && !o.live && o.empty()) {
+                removeSegment(level, o);
+                c++;
+            }
+        }
+        return c;
     }
 
     /** Re-check what stands in the way of a section's clearance envelope. */

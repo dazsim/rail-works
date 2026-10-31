@@ -40,6 +40,7 @@ public final class TrackSync {
 
     public static void tick(ServerLevel level) {
         TrackActions.tickWarnings(level);
+        TrackGraph.get(level).restoreBroken(level);
         if (level.getGameTime() % PERIOD != 0) return;
         TrackGraph g = TrackGraph.get(level);
         int view = level.getServer().getPlayerList().getViewDistance();

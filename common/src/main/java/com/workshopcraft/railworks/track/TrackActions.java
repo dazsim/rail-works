@@ -226,12 +226,12 @@ public final class TrackActions {
         level.playSound(null, n.pos, SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 0.6F, 1.0F);
         if (a == null) {
             SELECTED.put(player.getUUID(), n.pos);
-            say(player, Component.translatable("railworks.track.selected"));
+            say(player, Component.translatable("railworks.track.selected").append(sections(g, n)));
             return;
         }
         if (a == n) {
             SELECTED.remove(player.getUUID());
-            say(player, Component.translatable("railworks.track.cleared"));
+            say(player, Component.translatable("railworks.track.cleared").append(sections(g, n)));
             return;
         }
         TrackGraph.LinkResult r = g.link(level, a, n);
@@ -254,6 +254,7 @@ public final class TrackActions {
         boolean sneak = player.isShiftKeyDown();
         if (!sneak) {
             TrackGraph.Node toe = nearestNode(g, at, 3.5, true, false);
+            if (toe == null) toe = nearestNode(g, player.position(), HAMMER_REACH, true, false);
             if (toe != null) {
                 throwPoints(level, g, toe);
                 player.getCooldowns().addCooldown(player.getMainHandItem(), 8);
@@ -261,7 +262,10 @@ public final class TrackActions {
                 return InteractionResult.SUCCESS;
             }
             TrackGraph.Spot s = g.nearestSegment(at.x, at.y, at.z, 4);
-            if (s == null) return InteractionResult.PASS;
+            if (s == null) {
+                say(player, whyNoPoints(g, player.position(), HAMMER_REACH, false));
+                return InteractionResult.PASS;
+            }
             g.refresh(level, s.seg());
             g.changed(level, g.node(s.seg().a));
             g.changed(level, g.node(s.seg().b));
@@ -282,7 +286,10 @@ public final class TrackActions {
             rail = false;
             s = g.nearestLaid(at.x, at.y, at.z, 3, false);
         }
-        if (s == null) return InteractionResult.PASS;
+        if (s == null) {
+            say(player, Component.translatable("railworks.track.nothing_to_take"));
+            return InteractionResult.PASS;
+        }
         (rail ? s.seg().rails : s.seg().ties).clear(s.index());
         int back = 1;
         if (rail && s.seg().extra.get(s.index())) {
@@ -316,6 +323,98 @@ public final class TrackActions {
             }
         }
         return best;
+    }
+
+    /** How far from a set of points' toe the player can stand and still throw them with the hammer. */
+    public static final double HAMMER_REACH = 6;
+
+    /** The sections at a node and how far each is laid, for the hammer readout. */
+    static MutableComponent sections(TrackGraph g, TrackGraph.Node n) {
+        MutableComponent c = Component.literal(". ");
+        if (n.segs.isEmpty()) return c.append(Component.translatable("railworks.track.sec_none"));
+        c.append(Component.translatable("railworks.track.sec_count", n.segs.size()));
+        boolean first = true;
+        for (long id : n.segs) {
+            TrackGraph.Segment s = g.segment(id);
+            if (s == null) continue;
+            c.append(first ? " " : ", ");
+            first = false;
+            TrackGraph.Node o = g.node(s.other(n.id));
+            String to = o == null ? "?" : bearing(Math.atan2(o.z() - n.z(), o.x() - n.x()));
+            int len = (int) Math.round(s.path.length);
+            if (s.live) c.append(Component.translatable("railworks.track.sec_live", len, to).withStyle(ChatFormatting.GREEN));
+            else if (s.empty()) c.append(Component.translatable("railworks.track.sec_empty", len, to).withStyle(ChatFormatting.GOLD));
+            else c.append(Component.translatable("railworks.track.sec_part", len, to, s.ties.cardinality(), s.n, s.rails.cardinality(), s.n));
+        }
+        return c;
+    }
+
+    /** Compass bearing of a heading, 0 north and 90 east, as a whole number of degrees. */
+    static String bearing(double h) {
+        double b = Math.toDegrees(Math.atan2(Math.cos(h), -Math.sin(h)));
+        return String.valueOf((int) Math.round((b % 360 + 360) % 360));
+    }
+
+    /** Explain why there are no points to work near a spot, so the frame and the hammer always say something. */
+    public static MutableComponent whyNoPoints(TrackGraph g, Vec3 at, double reach, boolean frame) {
+        TrackGraph.Node join = null, side = null, far = null;
+        double jd = reach, sd = reach, fd = 64;
+        for (TrackGraph.Node n : g.nodes()) {
+            if (Math.abs(n.y() - at.y) >= 4 || n.segs.isEmpty()) continue;
+            double d = Math.hypot(n.x() - at.x, n.z() - at.z);
+            if (g.pointsPort(n) >= 0) {
+                if (d < fd) {
+                    fd = d;
+                    far = n;
+                }
+                continue;
+            }
+            if (d > reach) continue;
+            if (n.segs.size() >= 2 && d < jd && bends(g, n)) {
+                jd = d;
+                join = n;
+            }
+            if (d < sd && besideAnother(g, n)) {
+                sd = d;
+                side = n;
+            }
+        }
+        if (join != null)
+            return Component.translatable("railworks.track.not_points", join.pos.getX(), join.pos.getY(), join.pos.getZ()).withStyle(ChatFormatting.RED);
+        if (side != null)
+            return Component.translatable("railworks.track.two_stakes", side.pos.getX(), side.pos.getY(), side.pos.getZ()).withStyle(ChatFormatting.RED);
+        if (far != null)
+            return Component.translatable(frame ? "railworks.track.frame_far" : "railworks.track.points_far", (int) Math.round(fd),
+                    far.pos.getX(), far.pos.getY(), far.pos.getZ(), (int) reach).withStyle(ChatFormatting.RED);
+        return Component.translatable(frame ? "railworks.track.no_points" : "railworks.track.nothing_here").withStyle(ChatFormatting.RED);
+    }
+
+    /** Two sections leave the node on opposite sides but not in a straight line, so it looks like a split. */
+    private static boolean bends(TrackGraph g, TrackGraph.Node n) {
+        java.util.List<Double> out = new java.util.ArrayList<>();
+        for (long id : n.segs) {
+            TrackGraph.Segment s = g.segment(id);
+            if (s != null) out.add(TrackGraph.outward(s, n.id));
+        }
+        for (int i = 0; i < out.size(); i++)
+            for (int j = i + 1; j < out.size(); j++)
+                if (Math.cos(out.get(i) - out.get(j)) > Math.cos(Math.toRadians(170))) return true;
+        return false;
+    }
+
+    /** Another node with track sits right beside this one without a section between them. */
+    private static boolean besideAnother(TrackGraph g, TrackGraph.Node n) {
+        for (TrackGraph.Node m : g.nodes()) {
+            if (m == n || m.segs.isEmpty() || Math.abs(m.y() - n.y()) >= 2) continue;
+            if (Math.hypot(m.x() - n.x(), m.z() - n.z()) > 3) continue;
+            boolean linked = false;
+            for (long id : n.segs) {
+                TrackGraph.Segment s = g.segment(id);
+                if (s != null && s.other(n.id) == m.id) linked = true;
+            }
+            if (!linked) return true;
+        }
+        return false;
     }
 
     public static void throwPoints(ServerLevel level, TrackGraph g, TrackGraph.Node toe) {
@@ -353,7 +452,7 @@ public final class TrackActions {
         ItemStack stack = player.getItemInHand(hand);
         TrackGraph g = TrackGraph.get(level);
         Vec3 at = reachPoint(player);
-        int laid = 0;
+        int laid = 0, dropped = 0;
         TrackGraph.Segment last = null;
         while (laid < 2 && !stack.isEmpty()) {
             TrackGraph.Spot s = g.nearestFree(at.x, at.y, at.z, 3.0, rails);
@@ -386,6 +485,7 @@ public final class TrackActions {
             g.laid(level, s.seg());
             if (s.seg().live) {
                 for (TrackGraph.Node n : g.stakesToReturn(s.seg())) {
+                    dropped += g.dropEmpty(level, n);
                     n.stake = false;
                     BlockState st = level.getBlockState(n.pos);
                     if (st.is(ModContent.TRACK_NODE)) level.setBlock(n.pos, st.setValue(TrackNodeBlock.STAKE, false), 3);
@@ -397,7 +497,9 @@ public final class TrackActions {
         }
         if (laid > 0) {
             player.swing(hand, true);
-            say(player, progress(g, last));
+            MutableComponent msg = progress(g, last);
+            if (dropped > 0) msg.append(Component.translatable("railworks.track.dropped_strays", dropped).withStyle(ChatFormatting.GOLD));
+            say(player, msg);
             return InteractionResult.SUCCESS;
         }
         TrackGraph.Spot near = g.nearestSegment(at.x, at.y, at.z, 4);

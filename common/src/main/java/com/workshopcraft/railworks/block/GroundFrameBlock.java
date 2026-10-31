@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
@@ -103,7 +104,7 @@ public class GroundFrameBlock extends HorizontalDirectionalBlock {
         TrackGraph.Node toe = TrackActions.nearestPoints(level, pos);
         level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6F, 0.8F);
         if (toe == null) {
-            player.sendOverlayMessage(Component.translatable("railworks.track.no_points").withStyle(ChatFormatting.RED));
+            player.sendOverlayMessage(TrackActions.whyNoPoints(TrackGraph.get(level), Vec3.atCenterOf(pos), REACH, true));
             return;
         }
         TrackActions.throwPoints(level, TrackGraph.get(level), toe);
