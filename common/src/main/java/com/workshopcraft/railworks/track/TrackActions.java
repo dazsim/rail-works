@@ -91,12 +91,23 @@ public final class TrackActions {
         return c.withStyle(p.fails() ? ChatFormatting.RED : p.steep() ? ChatFormatting.GOLD : ChatFormatting.WHITE);
     }
 
-    private static MutableComponent progress(TrackGraph g, TrackGraph.Segment s) {
+    private static MutableComponent progress(TrackGraph g, TrackGraph.Segment s, Player player) {
         MutableComponent c = describe(s.path);
+        if (s.locked) c.append(Component.translatable("railworks.track.locked_tag").withStyle(ChatFormatting.AQUA));
         if (s.live) c.append(Component.translatable("railworks.track.live").withStyle(ChatFormatting.GREEN));
         if (s.live && (openEnd(g.node(s.a)) || openEnd(g.node(s.b))))
             c.append(Component.translatable("railworks.track.continue_hint").withStyle(ChatFormatting.GRAY));
         else c.append(Component.translatable("railworks.track.progress", s.ties.cardinality(), s.n, s.rails.cardinality(), s.n));
+        if (!s.live) {
+            Vec3 m = nearestMissing(s, player.position());
+            if (m != null) {
+                double dx = m.x - player.getX(), dz = m.z - player.getZ();
+                int d = (int) Math.round(Math.hypot(dx, dz));
+                boolean tie = s.ties.cardinality() < s.n && !s.ties.isEmpty();
+                c.append(Component.translatable(tie ? "railworks.track.missing_tie" : "railworks.track.missing_rail", d,
+                        Component.translatable("railworks.compass." + compass(dx, dz))).withStyle(ChatFormatting.YELLOW));
+            }
+        }
         if (!s.live && !s.blocked().isEmpty())
             c.append(Component.translatable("railworks.track.blocked", s.blocked().size()).withStyle(ChatFormatting.RED));
         if (!s.live && s.unsupportedFree() > 0) {
@@ -107,6 +118,35 @@ public final class TrackActions {
                     (int) Math.floor(p.x), (int) Math.floor(p.y - 0.3), (int) Math.floor(p.z)).withStyle(ChatFormatting.RED));
         }
         return c;
+    }
+
+    /**
+     * The nearest gap in a partly laid section: a missing tie if ties are partly down, else a missing rail if rails
+     * are partly down. Null when the section is untouched, finished or only one kind is wholly missing.
+     */
+    static @Nullable Vec3 nearestMissing(TrackGraph.Segment s, Vec3 from) {
+        BitSet have;
+        if (!s.ties.isEmpty() && s.ties.cardinality() < s.n) have = s.ties;
+        else if (!s.rails.isEmpty() && s.rails.cardinality() < s.n) have = s.rails;
+        else return null;
+        Vec3 best = null;
+        double bd = Double.MAX_VALUE;
+        for (int i = have.nextClearBit(0); i < s.n; i = have.nextClearBit(i + 1)) {
+            Vec3 p = spot(new TrackGraph.Spot(s, i, 0));
+            double d = p.distanceToSqr(from);
+            if (d < bd) {
+                bd = d;
+                best = p;
+            }
+        }
+        return best;
+    }
+
+    /** One of eight compass points for a horizontal offset, as a lang key suffix. */
+    static String compass(double dx, double dz) {
+        double b = Math.toDegrees(Math.atan2(dx, -dz));
+        int i = (int) Math.floorMod(Math.round(b / 45.0), 8);
+        return new String[]{"n", "ne", "e", "se", "s", "sw", "w", "nw"}[i];
     }
 
     private static void say(Player p, Component c) {
@@ -149,6 +189,10 @@ public final class TrackActions {
             ok = g.adjust(level, n, d, 0);
             what = Component.translatable("railworks.track.height", (n.lift >= 0 ? "+" : "") + n.lift + "/8");
         } else {
+            if (g.lockedAt(n)) {
+                say(player, Component.translatable("railworks.track.locked_turn").withStyle(ChatFormatting.RED));
+                return InteractionResult.SUCCESS;
+            }
             boolean right = hitsRight(player, pos, at);
             ok = g.adjust(level, n, 0, right ? TURN : -TURN);
             double bearing = Math.toDegrees(Math.atan2(Math.cos(n.heading), -Math.sin(n.heading)));
@@ -248,7 +292,7 @@ public final class TrackActions {
         for (long id : n.segs) {
             TrackGraph.Segment s = g.segment(id);
             if (s != null && s.other(n.id) == a.id) {
-                say(player, Component.translatable("railworks.track.linked").append(progress(g, s)));
+                say(player, Component.translatable("railworks.track.linked").append(progress(g, s, player)));
                 break;
             }
         }
@@ -269,7 +313,7 @@ public final class TrackActions {
                     g.refresh(level, near.seg());
                     g.changed(level, g.node(near.seg().a));
                     g.changed(level, g.node(near.seg().b));
-                    msg.append(". ").append(progress(g, near.seg()));
+                    msg.append(". ").append(progress(g, near.seg(), player));
                 }
                 say(player, msg);
                 return InteractionResult.SUCCESS;
@@ -282,7 +326,7 @@ public final class TrackActions {
             g.refresh(level, s.seg());
             g.changed(level, g.node(s.seg().a));
             g.changed(level, g.node(s.seg().b));
-            say(player, progress(g, s.seg()));
+            say(player, progress(g, s.seg(), player));
             return InteractionResult.SUCCESS;
         }
         TrackGraph.Node buf = nearestNode(g, at, 3, false, true);
@@ -300,8 +344,18 @@ public final class TrackActions {
             s = g.nearestLaid(at.x, at.y, at.z, 3, false);
         }
         if (s == null) {
-            say(player, Component.translatable("railworks.track.nothing_to_take"));
-            return InteractionResult.PASS;
+            TrackGraph.Spot line = g.nearestSegment(at.x, at.y, at.z, 3);
+            if (line == null) {
+                say(player, Component.translatable("railworks.track.nothing_to_take"));
+                return InteractionResult.PASS;
+            }
+            TrackGraph.LockResult r = g.toggleLock(level, line.seg());
+            boolean good = r == TrackGraph.LockResult.LOCKED || r == TrackGraph.LockResult.UNLOCKED;
+            level.playSound(null, at.x, at.y, at.z, good ? SoundEvents.CHAIN_PLACE : SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 0.6F, good ? 1.4F : 0.8F);
+            MutableComponent msg = Component.translatable("railworks.track.lock." + r.name().toLowerCase(java.util.Locale.ROOT));
+            if (good) say(player, msg.withStyle(ChatFormatting.AQUA).append(". ").append(progress(g, line.seg(), player)));
+            else say(player, msg.withStyle(ChatFormatting.RED));
+            return InteractionResult.SUCCESS;
         }
         (rail ? s.seg().rails : s.seg().ties).clear(s.index());
         int back = 1;
@@ -313,7 +367,7 @@ public final class TrackActions {
         give(player, new ItemStack(rail ? ModContent.RAIL_BAR : ModContent.TIE, back));
         Vec3 p = spot(s);
         level.playSound(null, p.x, p.y, p.z, rail ? SoundEvents.CHAIN_BREAK : SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 0.7F, 1.1F);
-        say(player, progress(g, s.seg()));
+        say(player, progress(g, s.seg(), player));
         return InteractionResult.SUCCESS;
     }
 
@@ -510,7 +564,7 @@ public final class TrackActions {
         }
         if (laid > 0) {
             player.swing(hand, true);
-            MutableComponent msg = progress(g, last);
+            MutableComponent msg = progress(g, last, player);
             if (dropped > 0) msg.append(Component.translatable("railworks.track.dropped_strays", dropped).withStyle(ChatFormatting.GOLD));
             say(player, msg);
             return InteractionResult.SUCCESS;
@@ -519,7 +573,7 @@ public final class TrackActions {
         if (near != null) {
             if (near.seg().path.fails()) say(player, Component.translatable("railworks.track.fails").withStyle(ChatFormatting.RED));
             else if (rails && near.seg().ties.cardinality() < near.seg().n) say(player, Component.translatable("railworks.track.ties_first"));
-            else say(player, progress(g, near.seg()));
+            else say(player, progress(g, near.seg(), player));
         }
         return InteractionResult.PASS;
     }

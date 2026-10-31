@@ -20,7 +20,7 @@ public final class TrackView {
         public double y;
         public int n;
         public BitSet ties, rails, unsupported;
-        public boolean live, toeAtB, own;
+        public boolean live, toeAtB, own, locked;
         public long aPos, bPos;
         public long[] blocked;
         public final double[] skip = new double[2], frog = new double[2];
@@ -58,6 +58,7 @@ public final class TrackView {
         s.ties = BitSet.valueOf(c.getLongArray("ties").orElse(new long[0]));
         s.rails = BitSet.valueOf(c.getLongArray("rails").orElse(new long[0]));
         s.live = c.getBooleanOr("live", false);
+        s.locked = c.getBooleanOr("locked", false);
         s.toeAtB = c.getBooleanOr("toe", false);
         s.blocked = c.getLongArray("blocked").orElse(new long[0]);
         s.unsupported = BitSet.valueOf(c.getLongArray("unsupported").orElse(new long[0]));

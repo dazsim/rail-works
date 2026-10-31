@@ -77,6 +77,8 @@ public final class TrackGraph extends SavedData {
         public int n;
         public BitSet ties = new BitSet(), rails = new BitSet();
         public boolean live;
+        /** Held as a straight between its two stakes, for station platforms. */
+        public boolean locked;
         public BitSet extra = new BitSet();
         List<BlockPos> blocked = List.of();
         BitSet unsupported = new BitSet();
@@ -328,6 +330,63 @@ public final class TrackGraph extends SavedData {
             if (s != null && !s.empty()) return true;
         }
         return false;
+    }
+
+    public enum LockResult { LOCKED, UNLOCKED, LAID, TURN_LOCKED, NO_FIT }
+
+    /** True if any section at the node is locked straight. */
+    public boolean lockedAt(Node n) {
+        for (long id : n.segs) {
+            Segment s = segments.get(id);
+            if (s != null && s.locked) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Lock a section as a straight between its two stakes, or unlock it. Both ends turn to face along the line and
+     * every section at them re-plans to meet it. Refused if that would move anything laid, or turn a stake that
+     * another locked section holds.
+     */
+    public LockResult toggleLock(ServerLevel level, Segment s) {
+        if (s.locked) {
+            s.locked = false;
+            s.rev++;
+            changedAround(level, nodes.get(s.a));
+            return LockResult.UNLOCKED;
+        }
+        Node A = nodes.get(s.a), B = nodes.get(s.b);
+        if (A == null || B == null) return LockResult.NO_FIT;
+        double h = Math.atan2(B.z() - A.z(), B.x() - A.x());
+        double dA = turnTo(A.heading, h), dB = turnTo(B.heading, h);
+        boolean moveA = Math.abs(dA) > 1e-4, moveB = Math.abs(dB) > 1e-4;
+        boolean bent = s.curved();
+        if (moveA || moveB || bent) {
+            for (Node n : new Node[]{A, B}) {
+                if (anyLaid(n)) return LockResult.LAID;
+                for (long id : n.segs) {
+                    Segment o = segments.get(id);
+                    if (o != null && o != s && o.locked && ((n == A && moveA) || (n == B && moveB))) return LockResult.TURN_LOCKED;
+                }
+            }
+            if (moveA && !adjust(level, A, 0, dA)) return LockResult.NO_FIT;
+            if (moveB && !adjust(level, B, 0, turnTo(B.heading, h))) {
+                if (moveA) adjust(level, A, 0, -dA);
+                return LockResult.NO_FIT;
+            }
+            if (s.curved() && !adjust(level, A, 0, 0)) return LockResult.NO_FIT;
+        }
+        s.locked = true;
+        s.rev++;
+        changedAround(level, A);
+        changedAround(level, B);
+        return LockResult.LOCKED;
+    }
+
+    /** The smallest turn from a heading to the line h, either way along it. */
+    private static double turnTo(double heading, double h) {
+        double d = Math.IEEEremainder(h - heading, Math.PI);
+        return d;
     }
 
     /** Raise or turn a node and re-solve its sections. False if a section no longer fits. */
@@ -784,6 +843,7 @@ public final class TrackGraph extends SavedData {
         t.putLongArray("ties", s.ties.toLongArray());
         t.putLongArray("rails", s.rails.toLongArray());
         t.putBoolean("live", s.live);
+        if (s.locked) t.putBoolean("locked", true);
         t.putBoolean("toe", s.b == viewer && s.a != viewer);
         t.putBoolean("own", s.a == viewer);
         Node na = nodes.get(s.a), nb = nodes.get(s.b);
@@ -879,6 +939,7 @@ public final class TrackGraph extends SavedData {
             c.putLongArray("ties", s.ties.toLongArray());
             c.putLongArray("rails", s.rails.toLongArray());
             if (!s.extra.isEmpty()) c.putLongArray("extra", s.extra.toLongArray());
+            if (s.locked) c.putBoolean("locked", true);
             sl.add(c);
         }
         t.put("segs", sl);
@@ -911,6 +972,7 @@ public final class TrackGraph extends SavedData {
             s.ties = BitSet.valueOf(c.getLongArray("ties").orElse(new long[0]));
             s.rails = BitSet.valueOf(c.getLongArray("rails").orElse(new long[0]));
             s.extra = BitSet.valueOf(c.getLongArray("extra").orElse(new long[0]));
+            s.locked = c.getBooleanOr("locked", false);
             s.live = s.complete();
             g.segments.put(s.id, s);
             a.segs.add(s.id);

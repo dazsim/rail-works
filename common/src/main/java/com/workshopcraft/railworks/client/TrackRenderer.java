@@ -43,7 +43,7 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
     static final double[][] RAIL = {{0.04, 0.05, 0.11}, {0.09, 0.08, 0.05}, {0.17, 0.07, 0.13}};
     static final int WHITE = 0xFFFFFFFF, CHALK = 0xE8FFFFFF, CHALK_RED = 0xE8FF3A30, EDGE = 0x90FFFFFF, EDGE_RED = 0x90FF5040,
             GHOST = 0x7898CCFF, GHOST_RED = 0x78FF6050, GHOST_RAIL = 0xD0B8DCFF, GHOST_RAIL_RED = 0xD0FF7060, BLOCKED = 0x55FF2020,
-            BUFFER_RED = 0xFFB02020, LAMP = 0xFFFF3020, END = 0xF0FFC830, END_DARK = 0xD0201A10, END_SOFT = 0x60FFD040;
+            BUFFER_RED = 0xFFB02020, CHALK_LOCK = 0xE84AA8FF, MISSING_TIE = 0xE0FF8A1E, MISSING_RAIL = 0xE0FFE030, LAMP = 0xFFFF3020, END = 0xF0FFC830, END_DARK = 0xD0201A10, END_SOFT = 0x60FFD040;
     static final double VIEW = 192, DETAIL = 40, GLASS = 128, FROG_IN = 1.4, FROG_OUT = 1.6;
 
     public static class State extends BlockEntityRenderState {
@@ -348,6 +348,33 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
             return c;
         }
 
+        /**
+         * Posts on the gaps of a partly laid section: an orange post on each missing tie while ties are partly down,
+         * then a yellow post on each side of each missing rail once rails are partly down.
+         */
+        void missing(TrackView.Seg seg) {
+            int ties = seg.ties.cardinality(), rails = seg.rails.cardinality();
+            boolean tieGaps = ties > 0 && ties < seg.n, railGaps = rails > 0 && rails < seg.n;
+            if (!tieGaps && !railGaps) return;
+            for (int i = 0; i < seg.n; i++) {
+                double s = seg.tieS(i);
+                double[] p = seg.path.pose(s);
+                double y = seg.height(s);
+                if (tieGaps && !seg.ties.get(i)) {
+                    part(p[0], p[1]);
+                    box(cur.glass, white, MISSING_TIE, p[0], y + 0.6, p[1], p[2], 0, 0.14, 1.2, 0.14, true);
+                    box(cur.glass, white, MISSING_TIE, p[0], y + 1.25, p[1], p[2], 0, 0.3, 0.1, 0.3, true);
+                } else if (!tieGaps && railGaps && !seg.rails.get(i)) {
+                    part(p[0], p[1]);
+                    for (int side = -1; side <= 1; side += 2) {
+                        double off = side * GAUGE / 2;
+                        double cx = p[0] - Math.sin(p[2]) * off, cz = p[1] + Math.cos(p[2]) * off;
+                        box(cur.glass, white, MISSING_RAIL, cx, y + 0.75, cz, p[2], 0, 0.1, 1.0, 0.1, true);
+                    }
+                }
+            }
+        }
+
         void section(TrackView.Seg seg) {
             TrackPath path = seg.path;
             double L = path.length, step = L / seg.n;
@@ -392,7 +419,8 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
                 }
             }
             if (seg.live) return;
-            int chalk = fails ? CHALK_RED : CHALK, edge = fails ? EDGE_RED : EDGE;
+            missing(seg);
+            int chalk = fails ? CHALK_RED : seg.locked ? CHALK_LOCK : CHALK, edge = fails ? EDGE_RED : EDGE;
             for (double d = 0; d < L; d += 1.0) {
                 double[] p = path.pose(d);
                 part(p[0], p[1]);

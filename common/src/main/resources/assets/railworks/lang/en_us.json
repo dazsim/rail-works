@@ -115,5 +115,22 @@
   "railworks.track.frame_far": "No points within %5$s blocks. The nearest toe is %1$s blocks away at %2$s %3$s %4$s",
   "railworks.track.points_far": "No points in reach. The nearest toe is %1$s blocks away at %2$s %3$s %4$s, stand within %5$s",
   "railworks.track.nothing_here": "Nothing here for the hammer. Hit a stake, a section or a set of points",
-  "railworks.track.reselected": "Already linked, so this stake is selected now. Hit the next one to branch from here"
+  "railworks.track.reselected": "Already linked, so this stake is selected now. Hit the next one to branch from here",
+  "railworks.track.locked_tag": ", locked straight",
+  "railworks.track.locked_turn": "This stake ends a locked straight. Sneak and hammer the chalk line to unlock it first",
+  "railworks.track.lock.locked": "Locked straight",
+  "railworks.track.lock.unlocked": "Unlocked, the section can bend again",
+  "railworks.track.lock.laid": "Can't lock: track is laid at one of its stakes and locking would move it",
+  "railworks.track.lock.turn_locked": "Can't lock: a stake at its end is held by another locked straight",
+  "railworks.track.lock.no_fit": "Can't lock: the sections at its stakes would not fit a straight here",
+  "railworks.track.missing_tie": ". Nearest missing tie %s blocks %s",
+  "railworks.track.missing_rail": ". Nearest missing rail %s blocks %s",
+  "railworks.compass.n": "north",
+  "railworks.compass.ne": "north-east",
+  "railworks.compass.e": "east",
+  "railworks.compass.se": "south-east",
+  "railworks.compass.s": "south",
+  "railworks.compass.sw": "south-west",
+  "railworks.compass.w": "west",
+  "railworks.compass.nw": "north-west"
 }
