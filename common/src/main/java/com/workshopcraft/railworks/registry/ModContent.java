@@ -21,6 +21,8 @@ import com.workshopcraft.railworks.block.TrackNodeBlock;
 import com.workshopcraft.railworks.block.TrackNodeBlockEntity;
 import com.workshopcraft.railworks.item.LadleItem;
 import com.workshopcraft.railworks.item.TrackItems;
+import com.workshopcraft.railworks.item.TrolleyItem;
+import com.workshopcraft.railworks.trolley.HandTrolley;
 import com.workshopcraft.railworks.menu.BrickFurnaceMenu;
 import com.workshopcraft.railworks.menu.CokeOvenMenu;
 import net.minecraft.core.Registry;
@@ -29,6 +31,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.TicketType;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -93,6 +98,18 @@ public final class ModContent {
     public static Item SURVEY_STAKE;
     public static Item THEODOLITE;
     public static Item BUFFER_STOP;
+    public static Item WHEEL_PATTERN;
+    public static Item AXLE_PATTERN;
+    public static Item WHEEL;
+    public static Item AXLE;
+    public static Item WHEELSET;
+    public static Item TROLLEY_FRAME;
+    public static Item TROLLEY_PUMP;
+    public static Item TROLLEY_BRAKE;
+    public static Item HAND_TROLLEY;
+
+    public static EntityType<HandTrolley> HAND_TROLLEY_ENTITY;
+    public static final TicketType TROLLEY_TICKET = new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
 
     public static BlockEntityType<CokeOvenBlockEntity> COKE_OVEN_ENTITY;
     public static BlockEntityType<CreosoteVatBlockEntity> VAT_ENTITY;
@@ -226,6 +243,33 @@ public final class ModContent {
         BUFFER_STOP = new TrackItems.BufferStop(item("buffer_stop").stacksTo(16));
         r.accept(RailWorks.id("buffer_stop"), BUFFER_STOP);
         blockItem(r, GROUND_FRAME, "ground_frame");
+        WHEEL_PATTERN = new Item(item("wheel_pattern").stacksTo(16));
+        r.accept(RailWorks.id("wheel_pattern"), WHEEL_PATTERN);
+        AXLE_PATTERN = new Item(item("axle_pattern").stacksTo(16));
+        r.accept(RailWorks.id("axle_pattern"), AXLE_PATTERN);
+        WHEEL = simple(r, "wheel");
+        AXLE = simple(r, "axle");
+        WHEELSET = new Item(item("wheelset").stacksTo(16));
+        r.accept(RailWorks.id("wheelset"), WHEELSET);
+        TROLLEY_FRAME = new TrolleyItem(item("trolley_frame").stacksTo(1), false);
+        r.accept(RailWorks.id("trolley_frame"), TROLLEY_FRAME);
+        TROLLEY_PUMP = new Item(item("trolley_pump").stacksTo(1));
+        r.accept(RailWorks.id("trolley_pump"), TROLLEY_PUMP);
+        TROLLEY_BRAKE = new Item(item("trolley_brake").stacksTo(1));
+        r.accept(RailWorks.id("trolley_brake"), TROLLEY_BRAKE);
+        HAND_TROLLEY = new TrolleyItem(item("hand_trolley").stacksTo(1), true);
+        r.accept(RailWorks.id("hand_trolley"), HAND_TROLLEY);
+    }
+
+    public static void registerEntities(BiConsumer<Identifier, EntityType<?>> r) {
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, RailWorks.id("hand_trolley"));
+        HAND_TROLLEY_ENTITY = EntityType.Builder.<HandTrolley>of(HandTrolley::new, MobCategory.MISC).noLootTable()
+                .sized(2.0F, 1.0F).clientTrackingRange(10).updateInterval(3).build(key);
+        r.accept(key.identifier(), HAND_TROLLEY_ENTITY);
+    }
+
+    public static void registerTicketTypes(BiConsumer<Identifier, TicketType> r) {
+        r.accept(RailWorks.id("hand_trolley"), TROLLEY_TICKET);
     }
 
     private static Item simple(BiConsumer<Identifier, Item> r, String name) {
@@ -284,6 +328,15 @@ public final class ModContent {
                     out.accept(THEODOLITE);
                     out.accept(GROUND_FRAME);
                     out.accept(BUFFER_STOP);
+                    out.accept(WHEEL_PATTERN);
+                    out.accept(AXLE_PATTERN);
+                    out.accept(WHEEL);
+                    out.accept(AXLE);
+                    out.accept(WHEELSET);
+                    out.accept(TROLLEY_FRAME);
+                    out.accept(TROLLEY_PUMP);
+                    out.accept(TROLLEY_BRAKE);
+                    out.accept(HAND_TROLLEY);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);
@@ -298,6 +351,8 @@ public final class ModContent {
         registerBlocks(direct(BuiltInRegistries.BLOCK));
         registerItems(direct(BuiltInRegistries.ITEM));
         registerBlockEntities(direct(BuiltInRegistries.BLOCK_ENTITY_TYPE));
+        registerEntities(direct(BuiltInRegistries.ENTITY_TYPE));
+        registerTicketTypes(direct(BuiltInRegistries.TICKET_TYPE));
         registerMenus(direct(BuiltInRegistries.MENU));
         registerCreativeTabs(direct(BuiltInRegistries.CREATIVE_MODE_TAB));
     }

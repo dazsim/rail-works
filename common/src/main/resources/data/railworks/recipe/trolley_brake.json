@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "railworks:steel_ingot",
+    "minecraft:lever"
+  ],
+  "result": {
+    "id": "railworks:trolley_brake"
+  }
+}

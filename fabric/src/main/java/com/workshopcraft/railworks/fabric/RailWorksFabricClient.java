@@ -13,6 +13,9 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.entity.EntityRenderers;
+import com.workshopcraft.railworks.client.TrolleyClient;
+import com.workshopcraft.railworks.client.TrolleyRenderer;
 
 public class RailWorksFabricClient implements ClientModInitializer {
     @Override
@@ -22,6 +25,8 @@ public class RailWorksFabricClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(TrackSyncPayload.TYPE, (p, ctx) -> ClientTrack.receive(p.tag()));
         LevelRenderEvents.COLLECT_SUBMITS.register(ctx -> ClientTrack.submit(ctx.submitNodeCollector(), ctx.levelState()));
         BlockEntityRenderers.register(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new);
+        EntityRenderers.register(ModContent.HAND_TROLLEY_ENTITY, TrolleyRenderer::new);
+        TrolleyClient.init();
         FluidRenderingRegistry.register(ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE, RailWorksClient.CREOSOTE_MODEL);
         FluidRenderingRegistry.register(ModContent.MOLTEN_STEEL, ModContent.FLOWING_MOLTEN_STEEL, RailWorksClient.MOLTEN_STEEL_MODEL);
     }

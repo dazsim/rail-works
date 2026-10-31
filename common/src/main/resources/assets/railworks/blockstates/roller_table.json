@@ -1,11 +1,78 @@
 {
-  "variants": {
-    "axis=z": {
-      "model": "railworks:block/roller_table"
+  "multipart": [
+    {
+      "when": {
+        "axis": "z"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table"
+      }
     },
-    "axis=x": {
-      "model": "railworks:block/roller_table",
-      "y": 90
+    {
+      "when": {
+        "axis": "z",
+        "press": "1|2|3"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_axle"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "2|3"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_wheel_a"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "3"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_wheel_b"
+      }
+    },
+    {
+      "when": {
+        "axis": "x"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "1|2|3"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_axle",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "2|3"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_wheel_a",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "3"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_wheel_b",
+        "y": 90
+      }
     }
-  }
+  ]
 }

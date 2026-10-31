@@ -44,6 +44,8 @@ public class RailWorksNeoForge {
         e.register(Registries.ITEM, h -> ModContent.registerItems(h::register));
         e.register(Registries.BLOCK_ENTITY_TYPE, h -> ModContent.registerBlockEntities(h::register));
         e.register(Registries.MENU, h -> ModContent.registerMenus(h::register));
+        e.register(Registries.ENTITY_TYPE, h -> ModContent.registerEntities(h::register));
+        e.register(Registries.TICKET_TYPE, h -> ModContent.registerTicketTypes(h::register));
         e.register(Registries.CREATIVE_MODE_TAB, h -> ModContent.registerCreativeTabs(h::register));
     }
 

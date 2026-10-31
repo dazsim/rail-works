@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:treated_planks",
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    "PPP",
+    "PPP",
+    "BBB"
+  ],
+  "result": {
+    "id": "railworks:trolley_frame"
+  }
+}

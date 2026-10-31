@@ -3,7 +3,8 @@
   "package": "com.workshopcraft.railworks.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "FogRendererMixin"
+    "FogRendererMixin",
+    "HumanoidMobRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

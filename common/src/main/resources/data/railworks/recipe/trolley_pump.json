@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "railworks:steel_ingot",
+    "R": "railworks:rail_bar",
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    "IRI",
+    " B "
+  ],
+  "result": {
+    "id": "railworks:trolley_pump"
+  }
+}

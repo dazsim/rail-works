@@ -132,6 +132,12 @@ public final class ClientTrack {
         return l != null;
     }
 
+    public static TrackView.@Nullable Seg seg(long id) {
+        if (!sameLevel()) return null;
+        Entry e = SEGS.get(id);
+        return e == null ? null : e.seg;
+    }
+
     /** A sync packet from the server; called on the client thread. */
     public static void receive(CompoundTag t) {
         if (!sameLevel()) return;

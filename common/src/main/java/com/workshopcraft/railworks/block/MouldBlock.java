@@ -47,27 +47,32 @@ public class MouldBlock extends BaseEntityBlock {
     public static final BooleanProperty TAIL = BooleanProperty.create("tail");
 
     public enum Kind {
-        RAIL(BrickFurnaceBlockEntity.INGOT, true, () -> ModContent.RAIL_PATTERN, () -> new ItemStack(ModContent.RAIL_BAR)),
-        INGOT(4 * BrickFurnaceBlockEntity.INGOT, false, () -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4));
+        RAIL(BrickFurnaceBlockEntity.INGOT, true, () -> ModContent.RAIL_PATTERN, () -> new ItemStack(ModContent.RAIL_BAR),
+                () -> ModContent.AXLE_PATTERN, () -> new ItemStack(ModContent.AXLE)),
+        INGOT(4 * BrickFurnaceBlockEntity.INGOT, false, () -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4),
+                () -> ModContent.WHEEL_PATTERN, () -> new ItemStack(ModContent.WHEEL, 2));
 
         public final int need;
         public final boolean longBox;
-        private final Supplier<Item> pattern;
-        private final Supplier<ItemStack> result;
+        private final Supplier<Item> pattern, altPattern;
+        private final Supplier<ItemStack> result, altResult;
 
-        Kind(int need, boolean longBox, Supplier<Item> pattern, Supplier<ItemStack> result) {
+        Kind(int need, boolean longBox, Supplier<Item> pattern, Supplier<ItemStack> result, Supplier<Item> altPattern, Supplier<ItemStack> altResult) {
             this.need = need;
             this.longBox = longBox;
             this.pattern = pattern;
             this.result = result;
+            this.altPattern = altPattern;
+            this.altResult = altResult;
         }
 
-        public Item pattern() {
-            return pattern.get();
+        /** alt is the second pattern a box takes: wheels in the ingot box, an axle in the rail bar box. */
+        public Item pattern(boolean alt) {
+            return (alt ? altPattern : pattern).get();
         }
 
-        public ItemStack result() {
-            return result.get();
+        public ItemStack result(boolean alt) {
+            return (alt ? altResult : result).get();
         }
     }
 

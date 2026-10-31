@@ -30,6 +30,7 @@ public class MouldBlockEntity extends BlockEntity {
 
     private int amount;
     private int timer;
+    private boolean alt;
 
     public MouldBlockEntity(BlockPos pos, BlockState state) {
         super(ModContent.MOULD_ENTITY, pos, state);
@@ -89,8 +90,9 @@ public class MouldBlockEntity extends BlockEntity {
         MouldBlock.Kind kind = block().kind;
         MouldStage stage = stage();
         boolean client = level.isClientSide();
-        if (stage == MouldStage.EMPTY && stack.is(kind.pattern())) {
+        if (stage == MouldStage.EMPTY && (stack.is(kind.pattern(false)) || stack.is(kind.pattern(true)))) {
             if (!client) {
+                alt = stack.is(kind.pattern(true));
                 stack.consume(1, player);
                 setStage(MouldStage.PATTERN);
                 level.playSound(null, worldPosition, SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -100,7 +102,7 @@ public class MouldBlockEntity extends BlockEntity {
         if (stage == MouldStage.PATTERN && stack.is(ModTags.MOULD_SAND)) {
             if (!client) {
                 stack.consume(1, player);
-                ItemStack pattern = new ItemStack(kind.pattern());
+                ItemStack pattern = new ItemStack(kind.pattern(alt));
                 if (!player.getInventory().add(pattern)) player.drop(pattern, false);
                 amount = 0;
                 setStage(MouldStage.READY);
@@ -120,7 +122,7 @@ public class MouldBlockEntity extends BlockEntity {
             if (stage == MouldStage.CAST) {
                 if (!client) {
                     BlockPos at = worldPosition.above();
-                    Block.popResource(level, at, kind.result());
+                    Block.popResource(level, at, kind.result(alt));
                     amount = 0;
                     setStage(MouldStage.EMPTY);
                     level.playSound(null, worldPosition, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 0.4F, 1.6F);
@@ -151,6 +153,7 @@ public class MouldBlockEntity extends BlockEntity {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         BlockState tailState = longBox ? level.getBlockState(tail) : null;
         int a = amount, t = timer;
+        boolean al = alt;
         moving = true;
         try {
             int quiet = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
@@ -166,6 +169,7 @@ public class MouldBlockEntity extends BlockEntity {
         if (level.getBlockEntity(newMain) instanceof MouldBlockEntity be) {
             be.amount = a;
             be.timer = t;
+            be.alt = al;
             be.setChanged();
         }
         level.playSound(null, newMain, SoundEvents.MINECART_INSIDE, SoundSource.BLOCKS, 0.15F, 1.6F);
@@ -174,7 +178,8 @@ public class MouldBlockEntity extends BlockEntity {
 
     private boolean free(BlockPos p, BlockPos main, BlockPos tail) {
         if (p.equals(main) || p.equals(tail)) return true;
-        return level.getBlockState(p).canBeReplaced() && level.getBlockState(p.below()).is(ModContent.ROLLER_TABLE);
+        BlockState below = level.getBlockState(p.below());
+        return level.getBlockState(p).canBeReplaced() && below.is(ModContent.ROLLER_TABLE) && below.getValue(RollerTableBlock.PRESS) == 0;
     }
 
     @Override
@@ -183,8 +188,8 @@ public class MouldBlockEntity extends BlockEntity {
         if (moving || level == null) return;
         MouldBlock.Kind kind = ((MouldBlock) state.getBlock()).kind;
         MouldStage stage = state.getValue(MouldBlock.STAGE);
-        if (stage == MouldStage.PATTERN) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(kind.pattern()));
-        if (stage == MouldStage.CAST) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), kind.result());
+        if (stage == MouldStage.PATTERN) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(kind.pattern(alt)));
+        if (stage == MouldStage.CAST) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), kind.result(alt));
     }
 
     @Override
@@ -192,6 +197,7 @@ public class MouldBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         amount = input.getIntOr("amount", 0);
         timer = input.getIntOr("timer", 0);
+        alt = input.getBooleanOr("alt", false);
     }
 
     @Override
@@ -199,5 +205,6 @@ public class MouldBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         output.putInt("amount", amount);
         output.putInt("timer", timer);
+        output.putBoolean("alt", alt);
     }
 }

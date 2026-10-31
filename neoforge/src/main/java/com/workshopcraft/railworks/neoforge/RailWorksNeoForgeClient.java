@@ -38,7 +38,11 @@ public class RailWorksNeoForgeClient {
             e.registerPipeline(ClientTrack.GLASS);
         });
         NeoForge.EVENT_BUS.addListener((SubmitCustomGeometryEvent e) -> ClientTrack.submit(e.getSubmitNodeCollector(), e.getLevelRenderState()));
-        modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> e.registerBlockEntityRenderer(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new));
+        modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> {
+            e.registerBlockEntityRenderer(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new);
+            e.registerEntityRenderer(ModContent.HAND_TROLLEY_ENTITY, com.workshopcraft.railworks.client.TrolleyRenderer::new);
+        });
+        com.workshopcraft.railworks.client.TrolleyClient.init();
         modBus.addListener((RegisterFluidModelsEvent e) -> {
             e.register(RailWorksClient.CREOSOTE_MODEL, ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE);
             e.register(RailWorksClient.MOLTEN_STEEL_MODEL, ModContent.MOLTEN_STEEL, ModContent.FLOWING_MOLTEN_STEEL);
