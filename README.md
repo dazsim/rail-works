@@ -28,17 +28,19 @@ Track is surveyed with stakes, checked, then laid one tie and one rail at a time
 
 **Survey stakes.** Craft 4 sticks and white dye into 8 stakes. Place a stake on the ground and it faces the way you are looking. Hit one stake with the hammer, then hit another up to 96 blocks away to link them. The section is planned as an arc and a straight, or an S curve when both ends face set ways. The hammer adjusts a stake: hit the top face to link, the upper side to raise it 1/8 block (sneak to lower), and the lower side to turn it 2 degrees left or right. Sneak and hit the top to unlink its sections, or to pick up a stake with nothing linked. A selection is cleared after a minute or by hitting the same stake again.
 
-**Checks.** Linking shows the length, the grade as 1 in N and the radius. Radius under 30 or a grade steeper than 1 in 20 shows in red, and steeper than 1 in 40 is marked steep. The Theodolite shows the same reading for any stake you sight on. A linked section shows a chalk centre line, ghost ties and the clearance edges (6 blocks wide on straights, 7 on curves, 6.5 high). Blocks in the way are counted in the reading, but they do not stop you laying.
+**Checks.** Linking shows the length, the grade as 1 in N and the radius. Radius under 30 or a grade steeper than 1 in 20 shows in red, and steeper than 1 in 40 is marked steep. The Theodolite shows the same reading for any stake you sight on. A linked section shows a chalk centre line, ghost ties and the clearance edges (6 blocks wide on straights, 7 on curves, 6.5 high). Blocks in the way are counted in the reading, but they do not stop you laying. Every tie needs solid ground under it. A tie over air will not go down, its ghost turns red and the reading counts the ties over air in red. Any solid block will do.
 
 **Laying.** Hold ties and walk along the chalk line holding use; ties go down ahead of you. Then do the same with rail bars. When every tie and rail is down the section goes live, the stakes come back to you and a small hidden node stays at each end. Hammer a section to see its progress. Sneak and hit near laid track with the hammer to take it up, rails first, then ties, and you get each piece back. Breaking a hidden node drops everything laid on its sections.
 
-**Points.** Link a second section from a stake that already has one and that end becomes a set of points. Throw them by hitting near the toe with the hammer, by pulling a Ground Frame placed within 12 blocks of the toe, or by powering the Ground Frame with redstone (powered sets the second route).
+**Continuing track.** Live track ends are hidden, so while you hold a stake or the hammer each open end shows a yellow post with arrows pointing the way new track would go. Use a stake on that post to turn the end back into a stake, or just place a stake right next to it and it goes on the end for you (sneak to place a separate stake instead). Then link it to a new stake with the hammer as usual.
+
+**Points.** Link a second section from a stake that already has one and that end becomes a set of points. Throw them by hitting near the toe with the hammer, by pulling a Ground Frame placed within 12 blocks of the toe, or by powering the Ground Frame with redstone (powered sets the second route). The rail at the crossing (frog) on each route takes 1 extra rail bar.
 
 **Buffer stop.** Use a Buffer Stop near the open end of a live section to fit a GWR style buffer. Sneak and hammer it to take it off.
 
 **Recipes.** Stakes: 4 sticks and white dye make 8. Theodolite: iron, spyglass and iron over stick, compass and stick, over a stick. Ground Frame: a lever over iron, treated beam and iron. Buffer Stop: treated beam, lantern, treated beam over rail bar, red dye, rail bar over steel ingot, treated beam, steel ingot.
 
-**Known issues.** Crossings and check rails on points cost nothing extra and are hard to see. A section only draws while the chunk with its first node is loaded. Track draws without frustum culling on Fabric, so a long line in view costs some frame rate. Ties can be laid over air. Stakes do not drop in creative. Ghost rails are faint, and the moving point blades are hard to see. If both ends of a section are points, only one set of blades is drawn.
+**Known issues.** A section with both end nodes outside the loaded area does not draw, even if its middle is in view. A long line in view still costs some frame rate on slow machines.
 
 ## Development
 
