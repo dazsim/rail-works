@@ -6,13 +6,6 @@
       "conditions": [
         {
           "condition": "minecraft:survives_explosion"
-        },
-        {
-          "block": "railworks:coke_oven_bricks",
-          "condition": "minecraft:block_state_property",
-          "properties": {
-            "formed": "false"
-          }
         }
       ],
       "entries": [

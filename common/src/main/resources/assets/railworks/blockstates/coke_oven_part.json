@@ -1,0 +1,394 @@
+{
+  "variants": {
+    "facing=north,part=0": {
+      "model": "railworks:block/coke_oven/part_0"
+    },
+    "facing=north,part=1": {
+      "model": "railworks:block/coke_oven/part_1"
+    },
+    "facing=north,part=2": {
+      "model": "railworks:block/coke_oven/part_2"
+    },
+    "facing=north,part=3": {
+      "model": "railworks:block/coke_oven/part_3"
+    },
+    "facing=north,part=4": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=north,part=5": {
+      "model": "railworks:block/coke_oven/part_5"
+    },
+    "facing=north,part=6": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=north,part=7": {
+      "model": "railworks:block/coke_oven/part_7"
+    },
+    "facing=north,part=8": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=north,part=9": {
+      "model": "railworks:block/coke_oven/part_9"
+    },
+    "facing=north,part=10": {
+      "model": "railworks:block/coke_oven/part_10"
+    },
+    "facing=north,part=11": {
+      "model": "railworks:block/coke_oven/part_11"
+    },
+    "facing=north,part=12": {
+      "model": "railworks:block/coke_oven/part_12"
+    },
+    "facing=north,part=13": {
+      "model": "railworks:block/coke_oven/part_13"
+    },
+    "facing=north,part=14": {
+      "model": "railworks:block/coke_oven/part_14"
+    },
+    "facing=north,part=15": {
+      "model": "railworks:block/coke_oven/part_15"
+    },
+    "facing=north,part=16": {
+      "model": "railworks:block/coke_oven/part_16"
+    },
+    "facing=north,part=17": {
+      "model": "railworks:block/coke_oven/part_17"
+    },
+    "facing=north,part=18": {
+      "model": "railworks:block/coke_oven/part_18"
+    },
+    "facing=north,part=19": {
+      "model": "railworks:block/coke_oven/part_19"
+    },
+    "facing=north,part=20": {
+      "model": "railworks:block/coke_oven/part_20"
+    },
+    "facing=north,part=21": {
+      "model": "railworks:block/coke_oven/part_21"
+    },
+    "facing=north,part=22": {
+      "model": "railworks:block/coke_oven/part_22"
+    },
+    "facing=north,part=23": {
+      "model": "railworks:block/coke_oven/part_23"
+    },
+    "facing=north,part=24": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=north,part=25": {
+      "model": "railworks:block/coke_oven/part_25"
+    },
+    "facing=north,part=26": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=east,part=0": {
+      "model": "railworks:block/coke_oven/part_0",
+      "y": 90
+    },
+    "facing=east,part=1": {
+      "model": "railworks:block/coke_oven/part_1",
+      "y": 90
+    },
+    "facing=east,part=2": {
+      "model": "railworks:block/coke_oven/part_2",
+      "y": 90
+    },
+    "facing=east,part=3": {
+      "model": "railworks:block/coke_oven/part_3",
+      "y": 90
+    },
+    "facing=east,part=4": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=east,part=5": {
+      "model": "railworks:block/coke_oven/part_5",
+      "y": 90
+    },
+    "facing=east,part=6": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=east,part=7": {
+      "model": "railworks:block/coke_oven/part_7",
+      "y": 90
+    },
+    "facing=east,part=8": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=east,part=9": {
+      "model": "railworks:block/coke_oven/part_9",
+      "y": 90
+    },
+    "facing=east,part=10": {
+      "model": "railworks:block/coke_oven/part_10",
+      "y": 90
+    },
+    "facing=east,part=11": {
+      "model": "railworks:block/coke_oven/part_11",
+      "y": 90
+    },
+    "facing=east,part=12": {
+      "model": "railworks:block/coke_oven/part_12",
+      "y": 90
+    },
+    "facing=east,part=13": {
+      "model": "railworks:block/coke_oven/part_13",
+      "y": 90
+    },
+    "facing=east,part=14": {
+      "model": "railworks:block/coke_oven/part_14",
+      "y": 90
+    },
+    "facing=east,part=15": {
+      "model": "railworks:block/coke_oven/part_15",
+      "y": 90
+    },
+    "facing=east,part=16": {
+      "model": "railworks:block/coke_oven/part_16",
+      "y": 90
+    },
+    "facing=east,part=17": {
+      "model": "railworks:block/coke_oven/part_17",
+      "y": 90
+    },
+    "facing=east,part=18": {
+      "model": "railworks:block/coke_oven/part_18",
+      "y": 90
+    },
+    "facing=east,part=19": {
+      "model": "railworks:block/coke_oven/part_19",
+      "y": 90
+    },
+    "facing=east,part=20": {
+      "model": "railworks:block/coke_oven/part_20",
+      "y": 90
+    },
+    "facing=east,part=21": {
+      "model": "railworks:block/coke_oven/part_21",
+      "y": 90
+    },
+    "facing=east,part=22": {
+      "model": "railworks:block/coke_oven/part_22",
+      "y": 90
+    },
+    "facing=east,part=23": {
+      "model": "railworks:block/coke_oven/part_23",
+      "y": 90
+    },
+    "facing=east,part=24": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=east,part=25": {
+      "model": "railworks:block/coke_oven/part_25",
+      "y": 90
+    },
+    "facing=east,part=26": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=south,part=0": {
+      "model": "railworks:block/coke_oven/part_0",
+      "y": 180
+    },
+    "facing=south,part=1": {
+      "model": "railworks:block/coke_oven/part_1",
+      "y": 180
+    },
+    "facing=south,part=2": {
+      "model": "railworks:block/coke_oven/part_2",
+      "y": 180
+    },
+    "facing=south,part=3": {
+      "model": "railworks:block/coke_oven/part_3",
+      "y": 180
+    },
+    "facing=south,part=4": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=south,part=5": {
+      "model": "railworks:block/coke_oven/part_5",
+      "y": 180
+    },
+    "facing=south,part=6": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=south,part=7": {
+      "model": "railworks:block/coke_oven/part_7",
+      "y": 180
+    },
+    "facing=south,part=8": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=south,part=9": {
+      "model": "railworks:block/coke_oven/part_9",
+      "y": 180
+    },
+    "facing=south,part=10": {
+      "model": "railworks:block/coke_oven/part_10",
+      "y": 180
+    },
+    "facing=south,part=11": {
+      "model": "railworks:block/coke_oven/part_11",
+      "y": 180
+    },
+    "facing=south,part=12": {
+      "model": "railworks:block/coke_oven/part_12",
+      "y": 180
+    },
+    "facing=south,part=13": {
+      "model": "railworks:block/coke_oven/part_13",
+      "y": 180
+    },
+    "facing=south,part=14": {
+      "model": "railworks:block/coke_oven/part_14",
+      "y": 180
+    },
+    "facing=south,part=15": {
+      "model": "railworks:block/coke_oven/part_15",
+      "y": 180
+    },
+    "facing=south,part=16": {
+      "model": "railworks:block/coke_oven/part_16",
+      "y": 180
+    },
+    "facing=south,part=17": {
+      "model": "railworks:block/coke_oven/part_17",
+      "y": 180
+    },
+    "facing=south,part=18": {
+      "model": "railworks:block/coke_oven/part_18",
+      "y": 180
+    },
+    "facing=south,part=19": {
+      "model": "railworks:block/coke_oven/part_19",
+      "y": 180
+    },
+    "facing=south,part=20": {
+      "model": "railworks:block/coke_oven/part_20",
+      "y": 180
+    },
+    "facing=south,part=21": {
+      "model": "railworks:block/coke_oven/part_21",
+      "y": 180
+    },
+    "facing=south,part=22": {
+      "model": "railworks:block/coke_oven/part_22",
+      "y": 180
+    },
+    "facing=south,part=23": {
+      "model": "railworks:block/coke_oven/part_23",
+      "y": 180
+    },
+    "facing=south,part=24": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=south,part=25": {
+      "model": "railworks:block/coke_oven/part_25",
+      "y": 180
+    },
+    "facing=south,part=26": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=west,part=0": {
+      "model": "railworks:block/coke_oven/part_0",
+      "y": 270
+    },
+    "facing=west,part=1": {
+      "model": "railworks:block/coke_oven/part_1",
+      "y": 270
+    },
+    "facing=west,part=2": {
+      "model": "railworks:block/coke_oven/part_2",
+      "y": 270
+    },
+    "facing=west,part=3": {
+      "model": "railworks:block/coke_oven/part_3",
+      "y": 270
+    },
+    "facing=west,part=4": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=west,part=5": {
+      "model": "railworks:block/coke_oven/part_5",
+      "y": 270
+    },
+    "facing=west,part=6": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=west,part=7": {
+      "model": "railworks:block/coke_oven/part_7",
+      "y": 270
+    },
+    "facing=west,part=8": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=west,part=9": {
+      "model": "railworks:block/coke_oven/part_9",
+      "y": 270
+    },
+    "facing=west,part=10": {
+      "model": "railworks:block/coke_oven/part_10",
+      "y": 270
+    },
+    "facing=west,part=11": {
+      "model": "railworks:block/coke_oven/part_11",
+      "y": 270
+    },
+    "facing=west,part=12": {
+      "model": "railworks:block/coke_oven/part_12",
+      "y": 270
+    },
+    "facing=west,part=13": {
+      "model": "railworks:block/coke_oven/part_13",
+      "y": 270
+    },
+    "facing=west,part=14": {
+      "model": "railworks:block/coke_oven/part_14",
+      "y": 270
+    },
+    "facing=west,part=15": {
+      "model": "railworks:block/coke_oven/part_15",
+      "y": 270
+    },
+    "facing=west,part=16": {
+      "model": "railworks:block/coke_oven/part_16",
+      "y": 270
+    },
+    "facing=west,part=17": {
+      "model": "railworks:block/coke_oven/part_17",
+      "y": 270
+    },
+    "facing=west,part=18": {
+      "model": "railworks:block/coke_oven/part_18",
+      "y": 270
+    },
+    "facing=west,part=19": {
+      "model": "railworks:block/coke_oven/part_19",
+      "y": 270
+    },
+    "facing=west,part=20": {
+      "model": "railworks:block/coke_oven/part_20",
+      "y": 270
+    },
+    "facing=west,part=21": {
+      "model": "railworks:block/coke_oven/part_21",
+      "y": 270
+    },
+    "facing=west,part=22": {
+      "model": "railworks:block/coke_oven/part_22",
+      "y": 270
+    },
+    "facing=west,part=23": {
+      "model": "railworks:block/coke_oven/part_23",
+      "y": 270
+    },
+    "facing=west,part=24": {
+      "model": "railworks:block/coke_oven_bricks"
+    },
+    "facing=west,part=25": {
+      "model": "railworks:block/coke_oven/part_25",
+      "y": 270
+    },
+    "facing=west,part=26": {
+      "model": "railworks:block/coke_oven_bricks"
+    }
+  }
+}

@@ -58,24 +58,34 @@ public final class CokeOvenStructure {
         return out;
     }
 
-    /** True when every part except the door is a brick that is free (formed == false) or already formed (formed == true). */
+    /** True when every part except the door is a loose brick (formed == false) or a formed part (formed == true). */
     public static boolean bricksPresent(Level level, BlockPos door, Direction facing, boolean formed) {
         for (int part : parts()) {
             if (part == DOOR_PART) continue;
             BlockState s = level.getBlockState(partPos(door, facing, part));
-            if (!s.is(ModContent.COKE_OVEN_BRICKS) || s.getValue(CokeOvenBricksBlock.FORMED) != formed) return false;
+            if (!s.is(formed ? ModContent.COKE_OVEN_PART : ModContent.COKE_OVEN_BRICKS)) return false;
         }
         return true;
     }
 
     public static void setFormed(Level level, BlockPos door, Direction facing, boolean formed) {
+        boolean was = dismantling;
+        dismantling = true;
+        try {
+            setParts(level, door, facing, formed);
+        } finally {
+            dismantling = was;
+        }
+    }
+
+    private static void setParts(Level level, BlockPos door, Direction facing, boolean formed) {
         for (int part : parts()) {
             if (part == DOOR_PART) continue;
             BlockPos p = partPos(door, facing, part);
             BlockState s = level.getBlockState(p);
-            if (!s.is(ModContent.COKE_OVEN_BRICKS)) continue;
+            if (!s.is(formed ? ModContent.COKE_OVEN_BRICKS : ModContent.COKE_OVEN_PART)) continue;
             BlockState next = formed
-                    ? s.setValue(CokeOvenBricksBlock.FORMED, true).setValue(CokeOvenBricksBlock.PART, part).setValue(CokeOvenBricksBlock.FACING, facing)
+                    ? ModContent.COKE_OVEN_PART.defaultBlockState().setValue(CokeOvenPartBlock.PART, part).setValue(CokeOvenPartBlock.FACING, facing)
                     : ModContent.COKE_OVEN_BRICKS.defaultBlockState();
             if (next != s) level.setBlock(p, next, 3);
         }
@@ -108,7 +118,7 @@ public final class CokeOvenStructure {
                 if (p.equals(removed)) continue;
                 BlockState s = level.getBlockState(p);
                 boolean ours = part == DOOR_PART ? s.is(ModContent.COKE_OVEN)
-                        : s.is(ModContent.COKE_OVEN_BRICKS) && s.getValue(CokeOvenBricksBlock.FORMED);
+                        : s.is(ModContent.COKE_OVEN_PART);
                 if (ours) level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
             }
             if (drop) Block.popResource(level, centre(door, facing), new ItemStack(ModContent.COKE_OVEN_BRICKS, SIZE));

@@ -4,6 +4,7 @@ import com.workshopcraft.railworks.RailWorks;
 import com.workshopcraft.railworks.block.CokeOvenBlock;
 import com.workshopcraft.railworks.block.CokeOvenBlockEntity;
 import com.workshopcraft.railworks.block.CokeOvenBricksBlock;
+import com.workshopcraft.railworks.block.CokeOvenPartBlock;
 import com.workshopcraft.railworks.block.CreosoteBlock;
 import com.workshopcraft.railworks.block.CreosoteVatBlock;
 import com.workshopcraft.railworks.block.CreosoteVatBlockEntity;
@@ -43,6 +44,7 @@ public final class ModContent {
 
     public static Block COKE_OVEN_BRICKS;
     public static Block COKE_OVEN;
+    public static Block COKE_OVEN_PART;
     public static Block CREOSOTE_BLOCK;
     public static Block CREOSOTE_VAT;
     public static Block TREATED_LOG;
@@ -86,9 +88,12 @@ public final class ModContent {
         BlockBehaviour.Properties bricks = block("coke_oven_bricks").mapColor(MapColor.COLOR_BROWN).instrument(NoteBlockInstrument.BASEDRUM)
                 .requiresCorrectToolForDrops().strength(2.0F, 6.0F).sound(SoundType.STONE);
         COKE_OVEN_BRICKS = block(r, "coke_oven_bricks", CokeOvenBricksBlock::new, bricks);
+        COKE_OVEN_PART = block(r, "coke_oven_part", CokeOvenPartBlock::new, block("coke_oven_part").mapColor(MapColor.COLOR_BROWN)
+                .instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(2.0F, 6.0F).sound(SoundType.STONE)
+                .noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK));
         COKE_OVEN = block(r, "coke_oven", CokeOvenBlock::new, block("coke_oven").mapColor(MapColor.COLOR_BROWN)
                 .instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(2.0F, 6.0F).sound(SoundType.STONE)
-                .lightLevel(s -> s.getValue(CokeOvenBlock.LIT) ? 13 : 0));
+                .pushReaction(PushReaction.BLOCK).lightLevel(s -> s.getValue(CokeOvenBlock.LIT) ? 13 : 0));
         CREOSOTE_BLOCK = block(r, "creosote", p -> new CreosoteBlock(CREOSOTE, p), block("creosote").mapColor(MapColor.TERRACOTTA_BLACK)
                 .replaceable().noCollision().strength(100.0F).pushReaction(PushReaction.DESTROY).noLootTable().liquid().sound(SoundType.EMPTY));
         CREOSOTE_VAT = block(r, "creosote_vat", CreosoteVatBlock::new, block("creosote_vat").mapColor(MapColor.COLOR_BROWN)
