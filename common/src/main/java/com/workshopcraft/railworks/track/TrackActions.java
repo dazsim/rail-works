@@ -334,6 +334,7 @@ public final class TrackActions {
             say(player, progress(g, s.seg(), player));
             return InteractionResult.SUCCESS;
         }
+        if (com.workshopcraft.railworks.trolley.HandTrolley.hammerNear(level, player, at)) return InteractionResult.SUCCESS;
         TrackGraph.Node buf = nearestNode(g, at, 3, false, true);
         if (buf != null) {
             buf.buffer = false;
@@ -529,6 +530,15 @@ public final class TrackActions {
         while (laid < 2 && !stack.isEmpty()) {
             TrackGraph.Spot s = g.nearestFree(at.x, at.y, at.z, 3.0, rails);
             if (s == null) break;
+            BlockPos in = rails ? null : g.buried(level, s.seg(), s.index());
+            if (in != null) {
+                g.refresh(level, s.seg());
+                g.changed(level, g.node(s.seg().a));
+                g.changed(level, g.node(s.seg().b));
+                say(player, Component.translatable("railworks.track.buried", level.getBlockState(in).getBlock().getName(), in.getX(), in.getY(), in.getZ())
+                        .withStyle(ChatFormatting.RED));
+                return laid > 0 ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+            }
             if (!rails && !g.supported(level, s.seg(), s.index())) {
                 s.seg().unsupported.set(s.index());
                 g.changed(level, g.node(s.seg().a));

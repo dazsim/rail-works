@@ -708,14 +708,14 @@ public final class TrackGraph extends SavedData {
             double[] p = s.path.pose(t);
             double y = s.baseY + s.path.height(t), nx = -Math.sin(p[2]), nz = Math.cos(p[2]);
             for (double w = -half + 0.5; w < half; w += 1)
-                for (double dy = 0.3; dy < 6.5; dy += 1) {
+                for (double dy : ENVELOPE) {
                     m.set(Math.floor(p[0] + nx * w), Math.floor(y + dy), Math.floor(p[1] + nz * w));
                     if (seen.contains(m) || !level.isLoaded(m)) continue;
                     BlockPos im = m.immutable();
-                    seen.add(im);
-                    BlockState st = level.getBlockState(im);
-                    if (st.isAir() || st.is(ModContent.TRACK_NODE) || st.is(ModContent.GROUND_FRAME)) continue;
-                    if (!st.getCollisionShape(level, im).isEmpty()) out.add(im);
+                    if (above(level, im, y + 0.03)) {
+                        seen.add(im);
+                        out.add(im);
+                    }
                 }
         }
         s.blocked = out;
@@ -724,6 +724,30 @@ public final class TrackGraph extends SavedData {
         s.unsupported = un;
         s.checked = true;
         s.rev++;
+    }
+
+    // from just above the tie bottom, so ground standing above the bed counts as in the way
+    private static final double[] ENVELOPE = {0.03, 0.3, 1.3, 2.3, 3.3, 4.3, 5.3, 6.3};
+
+    /** True if the block at pos is solid somewhere above height y. */
+    private static boolean above(ServerLevel level, BlockPos pos, double y) {
+        BlockState st = level.getBlockState(pos);
+        if (st.isAir() || st.is(ModContent.TRACK_NODE) || st.is(ModContent.GROUND_FRAME)) return false;
+        var shape = st.getCollisionShape(level, pos);
+        return !shape.isEmpty() && shape.max(net.minecraft.core.Direction.Axis.Y) + pos.getY() > y;
+    }
+
+    /** The first block a tie would sit inside, or null. */
+    public @Nullable BlockPos buried(ServerLevel level, Segment s, int i) {
+        double t = s.tieS(i);
+        double[] p = s.path.pose(t);
+        double y = s.baseY + s.path.height(t), nx = -Math.sin(p[2]), nz = Math.cos(p[2]);
+        for (double w : new double[]{0, -0.75, 0.75, -1.4, 1.4})
+            for (double dy : new double[]{0.03, 0.3, 0.6}) {
+                BlockPos b = BlockPos.containing(p[0] + nx * w, y + dy, p[1] + nz * w);
+                if (level.isLoaded(b) && above(level, b, y + 0.03)) return b;
+            }
+        return null;
     }
 
     /** A tie needs something solid under its middle, or under both rails. */
@@ -739,7 +763,8 @@ public final class TrackGraph extends SavedData {
     private static final double TIE_GAUGE = 1.5;
 
     private static boolean solidUnder(ServerLevel level, double x, double y, double z) {
-        for (double dy : new double[]{0.05, 0.3}) {
+        // ground up to a block below is packed with ballast
+        for (double dy : new double[]{0.05, 0.3, 0.55, 0.8, 1.0}) {
             BlockPos p = BlockPos.containing(x, y - dy, z);
             if (!level.isLoaded(p)) return true;
             BlockState st = level.getBlockState(p);

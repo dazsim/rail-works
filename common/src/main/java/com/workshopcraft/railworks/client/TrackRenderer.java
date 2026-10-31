@@ -148,7 +148,8 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
         final TextureAtlasSprite wood = sprite(RailWorks.id("block/treated_beam")), steel = sprite(RailWorks.id("block/steel_block")),
                 cast = sprite(RailWorks.id("block/set_steel")), white = sprite(Identifier.withDefaultNamespace("block/white_concrete")),
                 stakeWood = sprite(Identifier.withDefaultNamespace("block/stripped_spruce_log")),
-                red = sprite(Identifier.withDefaultNamespace("block/red_concrete")), black = sprite(Identifier.withDefaultNamespace("block/black_concrete"));
+                red = sprite(Identifier.withDefaultNamespace("block/red_concrete")), black = sprite(Identifier.withDefaultNamespace("block/black_concrete")),
+                gravel = sprite(Identifier.withDefaultNamespace("block/gravel"));
 
         Builder(Level level, BlockPos origin, @Nullable TrackNodeBlockEntity be) {
             this.be = be;
@@ -312,6 +313,28 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
             box(b, sp, color, cx, seg.height(s) + lu / 2, cz, p[2], ph, TIE_W, lu, halfL1 - halfL0, false);
         }
 
+        /** Ballast packed under a tie down to the ground where the grade leaves a gap. */
+        void ballast(TrackView.Seg seg, double s, double step) {
+            double[] p = seg.path.pose(s);
+            double y = seg.height(s), g = Double.NEGATIVE_INFINITY;
+            for (double w : new double[]{0, -1, 1}) g = Math.max(g, ground(p[0] - Math.sin(p[2]) * w, y, p[1] + Math.cos(p[2]) * w));
+            if (y - g < 0.06 || y - g > 1.05) return;
+            box(cur.solid, gravel, WHITE, p[0], (y + g) / 2 - 0.02, p[1], p[2], Math.atan(seg.path.gradeAt(s)), step + 0.04, y - g + 0.04, TIE_L + 0.4, false);
+        }
+
+        /** Top of the ground up to a block below y, or minus infinity. */
+        double ground(double x, double y, double z) {
+            for (double dy : new double[]{0.02, 0.5, 1.02}) {
+                BlockPos b = BlockPos.containing(x, y - dy, z);
+                if (!level.isLoaded(b)) return Double.NEGATIVE_INFINITY;
+                BlockState st = level.getBlockState(b);
+                if (st.isAir()) continue;
+                var shape = st.getCollisionShape(level, b);
+                if (!shape.isEmpty()) return b.getY() + shape.max(net.minecraft.core.Direction.Axis.Y);
+            }
+            return Double.NEGATIVE_INFINITY;
+        }
+
         void chairs(TrackView.Seg seg, double s, int sides) {
             double[] p = seg.path.pose(s);
             double ph = Math.atan(seg.path.gradeAt(s)), y = seg.height(s) + TIE_H;
@@ -387,6 +410,7 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
                 boolean tie = seg.ties.get(i), rail = seg.rails.get(i);
                 if (tie && !inSkip(seg, s)) {
                     tie(seg, s, -TIE_L / 2, TIE_L / 2, wood, WHITE, cur.solid, TIE_H);
+                    ballast(seg, s, step);
                     if (rail) chairs(seg, s, 0);
                 } else if (!tie && !seg.live) {
                     boolean bad = fails || seg.unsupported.get(i);

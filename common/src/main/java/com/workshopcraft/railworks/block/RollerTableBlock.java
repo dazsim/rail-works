@@ -74,6 +74,10 @@ public class RollerTableBlock extends Block {
             }
             return InteractionResult.SUCCESS;
         }
+        if (stack.is(ModTags.HAMMERS) && press == 0) {
+            if (!level.isClientSide()) player.sendOverlayMessage(Component.translatable("message.railworks.press.axle"));
+            return InteractionResult.SUCCESS;
+        }
         if (stack.is(ModTags.HAMMERS) && press > 0) {
             if (!level.isClientSide()) {
                 if (press < 3) {
