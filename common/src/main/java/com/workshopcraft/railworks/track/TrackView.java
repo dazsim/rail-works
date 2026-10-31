@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-/** The client's copy of one node and the sections it draws. */
+/** The client's copy of one node and the sections that meet at it. */
 public final class TrackView {
     public double heading, out;
     public int lift, route;
@@ -19,12 +19,13 @@ public final class TrackView {
         public TrackPath path;
         public double y;
         public int n;
-        public BitSet ties, rails;
-        public boolean live, toeAtB;
+        public BitSet ties, rails, unsupported;
+        public boolean live, toeAtB, own;
+        public long aPos, bPos;
         public long[] blocked;
-        public double skipA, skipB;
-        public int bladeEnd, bladeSide;
-        public boolean closed;
+        public final double[] skip = new double[2], frog = new double[2];
+        public final int[] side = new int[2];
+        public final boolean[] blade = new boolean[2], closed = new boolean[2];
 
         public double tieS(int i) {
             return (i + 0.5) * path.length / n;
@@ -59,11 +60,18 @@ public final class TrackView {
         s.live = c.getBooleanOr("live", false);
         s.toeAtB = c.getBooleanOr("toe", false);
         s.blocked = c.getLongArray("blocked").orElse(new long[0]);
-        s.skipA = c.getDoubleOr("skipA", 0);
-        s.skipB = c.getDoubleOr("skipB", 0);
-        s.bladeEnd = c.getIntOr("bladeEnd", -1);
-        s.bladeSide = c.getIntOr("bladeSide", 1);
-        s.closed = c.getBooleanOr("closed", false);
+        s.unsupported = BitSet.valueOf(c.getLongArray("unsupported").orElse(new long[0]));
+        s.own = c.getBooleanOr("own", true);
+        s.aPos = c.getLongOr("apos", 0);
+        s.bPos = c.getLongOr("bpos", 0);
+        for (int e = 0; e < 2; e++) {
+            String k = e == 0 ? "A" : "B";
+            s.skip[e] = c.getDoubleOr("skip" + k, 0);
+            s.frog[e] = c.getDoubleOr("frog" + k, -1);
+            s.side[e] = c.getIntOr("side" + k, 1);
+            s.blade[e] = c.getBooleanOr("blade" + k, false);
+            s.closed[e] = c.getBooleanOr("closed" + k, false);
+        }
         return s;
     }
 }

@@ -7,8 +7,6 @@ import com.workshopcraft.railworks.track.TrackActions;
 import com.workshopcraft.railworks.track.TrackGraph;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,7 +32,7 @@ public class TrackNodeBlock extends BaseEntityBlock {
     public static final MapCodec<TrackNodeBlock> CODEC = simpleCodec(TrackNodeBlock::new);
     public static final BooleanProperty STAKE = BooleanProperty.create("stake");
     private static final VoxelShape POST = Block.box(6.5, 0, 6.5, 9.5, 14, 9.5);
-    private static final VoxelShape NUB = Block.box(5, 0, 5, 11, 3, 11);
+    private static final VoxelShape NUB = Block.box(4, 0, 4, 12, 4, 12);
 
     public TrackNodeBlock(Properties properties) {
         super(properties);
@@ -75,6 +73,7 @@ public class TrackNodeBlock extends BaseEntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
         if (!(level instanceof ServerLevel sl)) return;
+        if (by instanceof Player p && TrackActions.joinNearEnd(sl, p, pos)) return;
         TrackGraph g = TrackGraph.get(sl);
         TrackGraph.Node n = g.addNode(pos, by == null ? 0 : TrackActions.headingFromYaw(by.getYRot()));
         n.stake = true;
@@ -89,13 +88,8 @@ public class TrackNodeBlock extends BaseEntityBlock {
         }
         if (stack.is(ModContent.SURVEY_STAKE) && !state.getValue(STAKE)) {
             if (level instanceof ServerLevel sl) {
-                TrackGraph g = TrackGraph.get(sl);
-                TrackGraph.Node n = g.nodeFor(sl, pos);
-                n.stake = true;
-                level.setBlock(pos, state.setValue(STAKE, true), 3);
-                g.changed(sl, n);
+                TrackActions.restake(sl, player, pos, state);
                 stack.consume(1, player);
-                level.playSound(null, pos, SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1, 1);
             }
             return InteractionResult.SUCCESS;
         }

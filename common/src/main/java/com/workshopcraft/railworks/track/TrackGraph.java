@@ -73,11 +73,14 @@ public final class TrackGraph extends SavedData {
         public int n;
         public BitSet ties = new BitSet(), rails = new BitSet();
         public boolean live;
+        public BitSet extra = new BitSet();
         List<BlockPos> blocked = List.of();
+        BitSet unsupported = new BitSet();
         boolean checked;
-        double skipA, skipB;
-        int bladeEnd = -1, bladeSide;
-        boolean bladeClosed;
+        // per end (0 at a, 1 at b) when that end is the toe of points
+        final double[] skip = new double[2], frog = {-1, -1};
+        final int[] side = new int[2];
+        final boolean[] blade = new boolean[2], closed = new boolean[2];
 
         Segment(long id) {
             this.id = id;
@@ -89,6 +92,9 @@ public final class TrackGraph extends SavedData {
             n = Math.max(1, (int) Math.round(p.length));
             ties = new BitSet();
             rails = new BitSet();
+            extra = new BitSet();
+            unsupported = new BitSet();
+            checked = false;
             live = false;
         }
 
@@ -114,6 +120,12 @@ public final class TrackGraph extends SavedData {
 
         public List<BlockPos> blocked() {
             return blocked;
+        }
+
+        public int unsupportedFree() {
+            BitSet b = (BitSet) unsupported.clone();
+            b.andNot(ties);
+            return b.cardinality();
         }
     }
 
@@ -270,8 +282,8 @@ public final class TrackGraph extends SavedData {
             return LinkResult.PORT_FULL;
         }
         refresh(level, s);
-        changed(level, A);
-        changed(level, B);
+        changedAround(level, A);
+        changedAround(level, B);
         return LinkResult.OK;
     }
 
@@ -333,13 +345,8 @@ public final class TrackGraph extends SavedData {
             }
             return false;
         }
-        changed(level, n);
-        for (long id : n.segs) {
-            Segment s = segments.get(id);
-            refresh(level, s);
-            Node o = nodes.get(s.other(n.id));
-            if (o != null) changed(level, o);
-        }
+        for (long id : n.segs) refresh(level, segments.get(id));
+        changedAround(level, n);
         return true;
     }
 
@@ -377,7 +384,7 @@ public final class TrackGraph extends SavedData {
                 c++;
             }
         }
-        if (c > 0) changed(level, n);
+        if (c > 0) changedAround(level, n);
         return c;
     }
 
@@ -390,7 +397,7 @@ public final class TrackGraph extends SavedData {
             if (o.segs.isEmpty() && !o.stake) removeNodeBlock(level, o);
             else {
                 if (o.segs.size() != 1) o.buffer = false;
-                changed(level, o);
+                changedAround(level, o);
             }
         }
     }
@@ -422,14 +429,14 @@ public final class TrackGraph extends SavedData {
                 Segment s = segments.get(id);
                 if (s == null) continue;
                 drop(level, x, y, z, ModContent.TIE, s.ties.cardinality());
-                drop(level, x, y, z, ModContent.RAIL_BAR, s.rails.cardinality());
+                drop(level, x, y, z, ModContent.RAIL_BAR, s.rails.cardinality() + s.extra.cardinality());
                 detach(s);
                 Node o = nodes.get(s.other(n.id));
                 if (o == null) continue;
                 if (o.segs.isEmpty() && !o.stake) removeNodeBlock(level, o);
                 else {
                     if (o.segs.size() != 1) o.buffer = false;
-                    changed(level, o);
+                    changedAround(level, o);
                 }
             }
         } finally {
@@ -555,7 +562,67 @@ public final class TrackGraph extends SavedData {
                 }
         }
         s.blocked = out;
+        BitSet un = new BitSet();
+        for (int i = 0; i < s.n; i++) if (!supported(level, s, i)) un.set(i);
+        s.unsupported = un;
         s.checked = true;
+    }
+
+    /** A tie needs something solid under its middle, or under both rails. */
+    public boolean supported(ServerLevel level, Segment s, int i) {
+        double t = s.tieS(i);
+        double[] p = s.path.pose(t);
+        double y = s.baseY + s.path.height(t), nx = -Math.sin(p[2]), nz = Math.cos(p[2]);
+        if (solidUnder(level, p[0], y, p[1])) return true;
+        double h = TIE_GAUGE / 2;
+        return solidUnder(level, p[0] + nx * h, y, p[1] + nz * h) && solidUnder(level, p[0] - nx * h, y, p[1] - nz * h);
+    }
+
+    private static final double TIE_GAUGE = 1.5;
+
+    private static boolean solidUnder(ServerLevel level, double x, double y, double z) {
+        for (double dy : new double[]{0.05, 0.3}) {
+            BlockPos p = BlockPos.containing(x, y - dy, z);
+            if (!level.isLoaded(p)) return true;
+            BlockState st = level.getBlockState(p);
+            if (st.isAir() || st.is(ModContent.TRACK_NODE)) continue;
+            var shape = st.getCollisionShape(level, p);
+            if (shape.isEmpty()) continue;
+            double ly = y - dy - p.getY();
+            if (shape.max(net.minecraft.core.Direction.Axis.Y) >= ly - 1e-3 && shape.min(net.minecraft.core.Direction.Axis.Y) <= ly + 1e-3) return true;
+        }
+        return false;
+    }
+
+    /** Extra rail bars a rail block costs: the crossing and its check rail sit on one block of each leg. */
+    public int extraBars(Segment s, int i) {
+        annotate(s);
+        int c = 0;
+        for (int e = 0; e < 2; e++) {
+            if (!s.blade[e] || s.frog[e] < 0) continue;
+            double at = e == 0 ? s.frog[e] : s.path.length - s.frog[e];
+            int fi = (int) Math.min(s.n - 1, Math.max(0, Math.floor(at * s.n / s.path.length)));
+            if (fi == i) c++;
+        }
+        return Math.min(1, c);
+    }
+
+    /** Resync a node, its neighbours, and the far ends of any points next to it, whose drawing may have changed. */
+    public void changedAround(ServerLevel level, @Nullable Node n) {
+        if (n == null) return;
+        java.util.Set<Node> out = new java.util.LinkedHashSet<>();
+        out.add(n);
+        for (long id : n.segs) {
+            Segment s = segments.get(id);
+            Node o = s == null ? null : nodes.get(s.other(n.id));
+            if (o == null || !out.add(o) || pointsPort(o) < 0) continue;
+            for (long id2 : o.segs) {
+                Segment s2 = segments.get(id2);
+                Node o2 = s2 == null ? null : nodes.get(s2.other(o.id));
+                if (o2 != null) out.add(o2);
+            }
+        }
+        for (Node m : out) changed(level, m);
     }
 
     public void changed(ServerLevel level, @Nullable Node n) {
@@ -589,7 +656,7 @@ public final class TrackGraph extends SavedData {
         ListTag st = new ListTag();
         for (long id : n.segs) {
             Segment s = segments.get(id);
-            if (s == null || s.a != n.id) continue;
+            if (s == null) continue;
             annotate(s);
             st.add(segTag(level, s, n.id));
         }
@@ -608,20 +675,32 @@ public final class TrackGraph extends SavedData {
         t.putLongArray("rails", s.rails.toLongArray());
         t.putBoolean("live", s.live);
         t.putBoolean("toe", s.b == viewer && s.a != viewer);
+        t.putBoolean("own", s.a == viewer);
+        Node na = nodes.get(s.a), nb = nodes.get(s.b);
+        if (na != null) t.putLong("apos", na.pos.asLong());
+        if (nb != null) t.putLong("bpos", nb.pos.asLong());
+        t.putLongArray("unsupported", s.unsupported.toLongArray());
         long[] bl = new long[s.blocked.size()];
         for (int i = 0; i < bl.length; i++) bl[i] = s.blocked.get(i).asLong();
         t.putLongArray("blocked", bl);
-        t.putDouble("skipA", s.skipA);
-        t.putDouble("skipB", s.skipB);
-        t.putInt("bladeEnd", s.bladeEnd);
-        t.putInt("bladeSide", s.bladeSide);
-        t.putBoolean("closed", s.bladeClosed);
+        for (int e = 0; e < 2; e++) {
+            String k = e == 0 ? "A" : "B";
+            t.putDouble("skip" + k, s.skip[e]);
+            t.putDouble("frog" + k, s.frog[e]);
+            t.putInt("side" + k, s.side[e]);
+            t.putBoolean("blade" + k, s.blade[e]);
+            t.putBoolean("closed" + k, s.closed[e]);
+        }
         return t;
     }
 
     private void annotate(Segment s) {
-        s.skipA = s.skipB = 0;
-        s.bladeEnd = -1;
+        for (int e = 0; e < 2; e++) {
+            s.skip[e] = 0;
+            s.frog[e] = -1;
+            s.side[e] = 0;
+            s.blade[e] = s.closed[e] = false;
+        }
         for (long end : new long[]{s.a, s.b}) {
             Node e = nodes.get(end);
             if (e == null) continue;
@@ -632,10 +711,14 @@ public final class TrackGraph extends SavedData {
 
     /** Long-timber zone and switch blades for the two legs at a toe. */
     private void computePoints(Node toe, List<Segment> legs) {
-        double zone = 0;
+        double zone = 0, prevSep = 0;
+        double frog = -1;
         for (double d = 0.25; d < 24; d += 0.25) {
             double[] p0 = at(legs.get(0), toe.id, d), p1 = at(legs.get(1), toe.id, d);
-            if (Math.hypot(p0[0] - p1[0], p0[1] - p1[1]) > 3.2) break;
+            double sep = Math.hypot(p0[0] - p1[0], p0[1] - p1[1]);
+            if (frog < 0 && sep >= TIE_GAUGE) frog = d - 0.25 + 0.25 * Math.min(1, Math.max(0, (TIE_GAUGE - prevSep) / Math.max(1e-6, sep - prevSep)));
+            prevSep = sep;
+            if (sep > 3.2) break;
             zone = d;
         }
         for (int i = 0; i < 2; i++) {
@@ -644,11 +727,12 @@ public final class TrackGraph extends SavedData {
             double sp = atA ? Math.min(4, s.path.length) : Math.max(0, s.path.length - 4);
             double[] p = s.path.pose(sp), q = at(o, toe.id, Math.min(4, o.path.length));
             double side = (q[0] - p[0]) * -Math.sin(p[2]) + (q[1] - p[1]) * Math.cos(p[2]);
-            s.bladeEnd = atA ? 0 : 1;
-            s.bladeSide = side >= 0 ? 1 : -1;
-            s.bladeClosed = toe.route == i;
-            if (atA) s.skipA = Math.min(zone, s.path.length);
-            else s.skipB = Math.min(zone, s.path.length);
+            int e = atA ? 0 : 1;
+            s.blade[e] = true;
+            s.side[e] = side >= 0 ? 1 : -1;
+            s.closed[e] = toe.route == i;
+            s.skip[e] = Math.min(zone, s.path.length);
+            s.frog[e] = frog > 0 && frog < s.path.length - 1 ? frog : -1;
         }
     }
 
@@ -684,6 +768,7 @@ public final class TrackGraph extends SavedData {
             c.putDouble("y", s.baseY);
             c.putLongArray("ties", s.ties.toLongArray());
             c.putLongArray("rails", s.rails.toLongArray());
+            if (!s.extra.isEmpty()) c.putLongArray("extra", s.extra.toLongArray());
             sl.add(c);
         }
         t.put("segs", sl);
@@ -715,6 +800,7 @@ public final class TrackGraph extends SavedData {
             s.setPath(TrackPath.load(c.getCompoundOrEmpty("path")), c.getDoubleOr("y", 0));
             s.ties = BitSet.valueOf(c.getLongArray("ties").orElse(new long[0]));
             s.rails = BitSet.valueOf(c.getLongArray("rails").orElse(new long[0]));
+            s.extra = BitSet.valueOf(c.getLongArray("extra").orElse(new long[0]));
             s.live = s.complete();
             g.segments.put(s.id, s);
             a.segs.add(s.id);

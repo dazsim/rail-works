@@ -8,17 +8,39 @@ import net.minecraft.world.phys.AABB;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/** Baked quads for one track node, in block-local coordinates, replayed every frame. */
+/** Baked quads for one track node, in block-local coordinates, split into 16-block parts so each can be culled. */
 final class TrackMesh {
     static final int STRIDE = 10;
 
-    final Buf solid = new Buf(), glass = new Buf();
+    /** solid is always drawn, detail (chairs, rail webs and feet) only up close, glass is the survey overlay, marker only with a track tool in hand. */
+    static final class Part {
+        final Buf solid = new Buf(), detail = new Buf(), glass = new Buf(), marker = new Buf();
+        AABB bounds;
+    }
+
+    final Map<Long, Part> parts = new HashMap<>();
+    final List<Part> list = new ArrayList<>();
     int version;
     long built;
+    long[] watch = new long[0];
+    boolean[] watched = new boolean[0];
     static final AABB EVERYWHERE = new AABB(-3.0E7, -2048, -3.0E7, 3.0E7, 2048, 3.0E7);
     AABB bounds = EVERYWHERE;
+
+    Part part(double wx, double wz) {
+        long k = ((long) Math.floor(wx / 16) << 32) ^ ((long) Math.floor(wz / 16) & 0xFFFFFFFFL);
+        return parts.computeIfAbsent(k, x -> {
+            Part p = new Part();
+            list.add(p);
+            return p;
+        });
+    }
 
     static final class Buf {
         float[] d = new float[STRIDE * 256];
@@ -81,9 +103,25 @@ final class TrackMesh {
     }
 
     void finish(double ox, double oy, double oz) {
-        double minX = Math.min(solid.minX, glass.minX), minY = Math.min(solid.minY, glass.minY), minZ = Math.min(solid.minZ, glass.minZ);
-        double maxX = Math.max(solid.maxX, glass.maxX), maxY = Math.max(solid.maxY, glass.maxY), maxZ = Math.max(solid.maxZ, glass.maxZ);
-        bounds = minX > maxX ? new AABB(ox, oy, oz, ox + 1, oy + 1, oz + 1)
-                : new AABB(ox + minX, oy + minY, oz + minZ, ox + maxX, oy + maxY, oz + maxZ).inflate(0.5);
+        AABB all = null;
+        for (Part p : list) {
+            double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, minZ = Double.MAX_VALUE;
+            double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE, maxZ = -Double.MAX_VALUE;
+            for (Buf b : new Buf[]{p.solid, p.detail, p.glass, p.marker}) {
+                minX = Math.min(minX, b.minX);
+                minY = Math.min(minY, b.minY);
+                minZ = Math.min(minZ, b.minZ);
+                maxX = Math.max(maxX, b.maxX);
+                maxY = Math.max(maxY, b.maxY);
+                maxZ = Math.max(maxZ, b.maxZ);
+            }
+            if (minX > maxX) {
+                p.bounds = new AABB(ox, oy, oz, ox + 1, oy + 1, oz + 1);
+                continue;
+            }
+            p.bounds = new AABB(ox + minX, oy + minY, oz + minZ, ox + maxX, oy + maxY, oz + maxZ).inflate(0.5);
+            all = all == null ? p.bounds : all.minmax(p.bounds);
+        }
+        bounds = all == null ? new AABB(ox, oy, oz, ox + 1, oy + 1, oz + 1) : all;
     }
 }

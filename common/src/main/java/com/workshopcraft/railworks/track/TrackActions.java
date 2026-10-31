@@ -64,12 +64,16 @@ public final class TrackActions {
         return c.withStyle(p.fails() ? ChatFormatting.RED : p.steep() ? ChatFormatting.GOLD : ChatFormatting.WHITE);
     }
 
-    private static MutableComponent progress(TrackGraph.Segment s) {
+    private static MutableComponent progress(TrackGraph g, TrackGraph.Segment s) {
         MutableComponent c = describe(s.path);
         if (s.live) c.append(Component.translatable("railworks.track.live").withStyle(ChatFormatting.GREEN));
+        if (s.live && (openEnd(g.node(s.a)) || openEnd(g.node(s.b))))
+            c.append(Component.translatable("railworks.track.continue_hint").withStyle(ChatFormatting.GRAY));
         else c.append(Component.translatable("railworks.track.progress", s.ties.cardinality(), s.n, s.rails.cardinality(), s.n));
         if (!s.live && !s.blocked().isEmpty())
             c.append(Component.translatable("railworks.track.blocked", s.blocked().size()).withStyle(ChatFormatting.RED));
+        if (!s.live && s.unsupportedFree() > 0)
+            c.append(Component.translatable("railworks.track.over_air", s.unsupportedFree()).withStyle(ChatFormatting.RED));
         return c;
     }
 
@@ -137,6 +141,43 @@ public final class TrackActions {
         return InteractionResult.SUCCESS;
     }
 
+    /** A hidden node with one section and no buffer: track can be continued from here. */
+    public static boolean openEnd(TrackGraph.@Nullable Node n) {
+        return n != null && !n.stake && !n.buffer && n.segs.size() == 1;
+    }
+
+    /** Turn a track end back into a stake so the hammer can link a new section from it. */
+    public static void restake(ServerLevel level, Player player, BlockPos pos, BlockState state) {
+        TrackGraph g = TrackGraph.get(level);
+        TrackGraph.Node n = g.nodeFor(level, pos);
+        n.stake = true;
+        level.setBlock(pos, state.setValue(TrackNodeBlock.STAKE, true), 3);
+        g.changed(level, n);
+        level.playSound(null, pos, SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 1, 1);
+        say(player, Component.translatable("railworks.track.end_staked"));
+    }
+
+    /** A stake placed right by an open track end goes on the end instead, unless the player sneaks. */
+    public static boolean joinNearEnd(ServerLevel level, Player player, BlockPos placed) {
+        if (player.isShiftKeyDown()) return false;
+        TrackGraph g = TrackGraph.get(level);
+        BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
+        for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) continue;
+                    m.setWithOffset(placed, dx, dy, dz);
+                    TrackGraph.Node n = g.nodeAt(m);
+                    if (!openEnd(n)) continue;
+                    BlockState st = level.getBlockState(n.pos);
+                    if (!st.is(ModContent.TRACK_NODE)) continue;
+                    level.removeBlock(placed, false);
+                    restake(level, player, n.pos, st);
+                    return true;
+                }
+        return false;
+    }
+
     private static void select(ServerLevel level, Player player, TrackGraph g, TrackGraph.Node n) {
         BlockPos sel = SELECTED.get(player.getUUID());
         long now = level.getGameTime();
@@ -164,7 +205,7 @@ public final class TrackActions {
         for (long id : n.segs) {
             TrackGraph.Segment s = g.segment(id);
             if (s != null && s.other(n.id) == a.id) {
-                say(player, Component.translatable("railworks.track.linked").append(progress(s)));
+                say(player, Component.translatable("railworks.track.linked").append(progress(g, s)));
                 break;
             }
         }
@@ -185,7 +226,8 @@ public final class TrackActions {
             if (s == null) return InteractionResult.PASS;
             g.refresh(level, s.seg());
             g.changed(level, g.node(s.seg().a));
-            say(player, progress(s.seg()));
+            g.changed(level, g.node(s.seg().b));
+            say(player, progress(g, s.seg()));
             return InteractionResult.SUCCESS;
         }
         TrackGraph.Node buf = nearestNode(g, at, 3, false, true);
@@ -204,11 +246,16 @@ public final class TrackActions {
         }
         if (s == null) return InteractionResult.PASS;
         (rail ? s.seg().rails : s.seg().ties).clear(s.index());
+        int back = 1;
+        if (rail && s.seg().extra.get(s.index())) {
+            s.seg().extra.clear(s.index());
+            back++;
+        }
         g.laid(level, s.seg());
-        give(player, new ItemStack(rail ? ModContent.RAIL_BAR : ModContent.TIE));
+        give(player, new ItemStack(rail ? ModContent.RAIL_BAR : ModContent.TIE, back));
         Vec3 p = spot(s);
         level.playSound(null, p.x, p.y, p.z, rail ? SoundEvents.CHAIN_BREAK : SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 0.7F, 1.1F);
-        say(player, progress(s.seg()));
+        say(player, progress(g, s.seg()));
         return InteractionResult.SUCCESS;
     }
 
@@ -273,8 +320,24 @@ public final class TrackActions {
         while (laid < 2 && !stack.isEmpty()) {
             TrackGraph.Spot s = g.nearestFree(at.x, at.y, at.z, 3.0, rails);
             if (s == null) break;
+            if (!rails && !g.supported(level, s.seg(), s.index())) {
+                s.seg().unsupported.set(s.index());
+                g.changed(level, g.node(s.seg().a));
+                g.changed(level, g.node(s.seg().b));
+                Vec3 p = spot(s);
+                say(player, Component.translatable("railworks.track.unsupported", (int) Math.floor(p.x), (int) Math.floor(p.y - 0.3), (int) Math.floor(p.z))
+                        .withStyle(ChatFormatting.RED));
+                return laid > 0 ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+            }
+            int extra = rails ? g.extraBars(s.seg(), s.index()) : 0;
+            if (extra > 0 && stack.getCount() < 1 + extra && !player.hasInfiniteMaterials()) {
+                say(player, Component.translatable("railworks.track.crossing_bars", 1 + extra).withStyle(ChatFormatting.RED));
+                return laid > 0 ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+            }
+            s.seg().unsupported.clear(s.index());
             (rails ? s.seg().rails : s.seg().ties).set(s.index());
-            stack.consume(1, player);
+            if (extra > 0) s.seg().extra.set(s.index());
+            stack.consume(1 + extra, player);
             laid++;
             last = s.seg();
             Vec3 p = spot(s);
@@ -294,14 +357,14 @@ public final class TrackActions {
         }
         if (laid > 0) {
             player.swing(hand, true);
-            say(player, progress(last));
+            say(player, progress(g, last));
             return InteractionResult.SUCCESS;
         }
         TrackGraph.Spot near = g.nearestSegment(at.x, at.y, at.z, 4);
         if (near != null) {
             if (near.seg().path.fails()) say(player, Component.translatable("railworks.track.fails").withStyle(ChatFormatting.RED));
             else if (rails && near.seg().ties.cardinality() < near.seg().n) say(player, Component.translatable("railworks.track.ties_first"));
-            else say(player, progress(near.seg()));
+            else say(player, progress(g, near.seg()));
         }
         return InteractionResult.PASS;
     }
