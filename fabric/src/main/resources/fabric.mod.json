@@ -10,6 +10,9 @@
     "license": "${license}",
     "environment": "*",
     "accessWidener": "railworks.accesswidener",
+    "mixins": [
+        "railworks.mixins.json"
+    ],
     "entrypoints": {
         "main": [
             "com.workshopcraft.railworks.fabric.RailWorksFabric"

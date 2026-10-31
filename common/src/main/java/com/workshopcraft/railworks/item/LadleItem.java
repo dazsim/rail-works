@@ -1,5 +1,6 @@
 package com.workshopcraft.railworks.item;
 
+import com.workshopcraft.railworks.block.BrickFurnaceBlockEntity;
 import com.workshopcraft.railworks.registry.ModContent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -22,16 +23,16 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.function.Consumer;
 
-/** Hand ladle: carries up to 1000 mB of molten steel from the furnace to a mould. */
+/** Hand ladle: carries one bucket (9 ingots) of molten steel from the furnace to a mould. */
 public class LadleItem extends Item {
-    public static final int CAPACITY = 1000;
+    public static final int CAPACITY = BrickFurnaceBlockEntity.BUCKET;
 
     public LadleItem(Properties properties) {
         super(properties);
     }
 
     public static int amount(ItemStack stack) {
-        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getIntOr("steel", 0);
+        return Math.min(stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getIntOr("steel", 0), CAPACITY);
     }
 
     public static void setAmount(ItemStack stack, int amount) {
@@ -63,7 +64,7 @@ public class LadleItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> builder, TooltipFlag flag) {
-        builder.accept(Component.translatable("item.railworks.hand_ladle.amount", amount(stack), CAPACITY).withStyle(ChatFormatting.GRAY));
+        builder.accept(Component.translatable("item.railworks.hand_ladle.amount", BrickFurnaceBlockEntity.ingots(amount(stack)), BrickFurnaceBlockEntity.ingots(CAPACITY)).withStyle(ChatFormatting.GRAY));
     }
 
     /** A full ladle tipped out on the ground makes one block of molten steel. */

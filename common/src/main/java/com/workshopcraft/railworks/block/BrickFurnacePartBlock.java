@@ -1,6 +1,7 @@
 package com.workshopcraft.railworks.block;
 
 import com.workshopcraft.railworks.registry.ModContent;
+import com.workshopcraft.railworks.registry.ModTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -72,7 +73,20 @@ public class BrickFurnacePartBlock extends Block implements WorldlyContainerHold
         BlockPos door = door(pos, state);
         BlockState d = level.getBlockState(door);
         if (!(d.getBlock() instanceof BrickFurnaceBlock furnace)) return InteractionResult.PASS;
-        if (state.getValue(PART) == BrickFurnaceStructure.TAP_PART && furnace.toggleTap(stack, level, door, player, hand)) return InteractionResult.SUCCESS;
+        boolean tap = state.getValue(PART) == BrickFurnaceStructure.TAP_PART;
+        if (spoutFace(state, hit)) {
+            MouldBlockEntity mould = BrickFurnaceBlockEntity.mouldUnderTap(level, door, state.getValue(FACING));
+            boolean onPlate = tap && hit.getLocation().y - pos.getY() >= 0.5;
+            boolean hammer = stack.is(ModTags.HAMMERS);
+            if (mould != null && !(hammer && onPlate)) {
+                InteractionResult r = mould.useItem(stack, player, hand);
+                if (r.consumesAction()) return r;
+            }
+            if (tap && furnace.toggleTap(stack, level, door, player, hand)) return InteractionResult.SUCCESS;
+            InteractionResult r = furnace.useItemOn(stack, d, level, door, player, hand, hit);
+            return r.consumesAction() ? r : InteractionResult.PASS;
+        }
+        if (tap && furnace.toggleTap(stack, level, door, player, hand)) return InteractionResult.SUCCESS;
         return furnace.useItemOn(stack, d, level, door, player, hand, hit);
     }
 
@@ -80,8 +94,18 @@ public class BrickFurnacePartBlock extends Block implements WorldlyContainerHold
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         BlockPos door = door(pos, state);
         BlockState d = level.getBlockState(door);
-        if (d.getBlock() instanceof BrickFurnaceBlock furnace) return furnace.useWithoutItem(d, level, door, player, hit);
-        return InteractionResult.PASS;
+        if (!(d.getBlock() instanceof BrickFurnaceBlock furnace)) return InteractionResult.PASS;
+        if (spoutFace(state, hit)) {
+            MouldBlockEntity mould = BrickFurnaceBlockEntity.mouldUnderTap(level, door, state.getValue(FACING));
+            return mould == null ? InteractionResult.PASS : mould.push(player);
+        }
+        return furnace.useWithoutItem(d, level, door, player, hit);
+    }
+
+    /** Clicks on the lower two rows of the tap side are meant for the mould below the spout. */
+    private static boolean spoutFace(BlockState state, BlockHitResult hit) {
+        int part = state.getValue(PART);
+        return part % 3 == 0 && part / 3 % 5 <= 1 && hit.getDirection() == BrickFurnaceStructure.tapSide(state.getValue(FACING));
     }
 
     @Override

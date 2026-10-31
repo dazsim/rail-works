@@ -47,8 +47,8 @@ public class MouldBlock extends BaseEntityBlock {
     public static final BooleanProperty TAIL = BooleanProperty.create("tail");
 
     public enum Kind {
-        RAIL(100, true, () -> ModContent.RAIL_PATTERN, () -> new ItemStack(ModContent.RAIL_BAR)),
-        INGOT(400, false, () -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4));
+        RAIL(BrickFurnaceBlockEntity.INGOT, true, () -> ModContent.RAIL_PATTERN, () -> new ItemStack(ModContent.RAIL_BAR)),
+        INGOT(4 * BrickFurnaceBlockEntity.INGOT, false, () -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4));
 
         public final int need;
         public final boolean longBox;
@@ -198,6 +198,12 @@ public class MouldBlock extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        int kindIndex = !kind.longBox ? 0 : state.getValue(TAIL) ? 2 : 1;
+        return SHAPES.get(state.getValue(FACING))[kindIndex * 2 + 1];
+    }
+
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         int kindIndex = !kind.longBox ? 0 : state.getValue(TAIL) ? 2 : 1;
         return SHAPES.get(state.getValue(FACING))[kindIndex * 2 + (state.getValue(STAGE).closed() ? 1 : 0)];
     }

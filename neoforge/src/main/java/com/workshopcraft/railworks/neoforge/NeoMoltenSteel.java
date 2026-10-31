@@ -9,7 +9,7 @@ import net.neoforged.neoforge.fluids.FluidType;
 final class NeoMoltenSteel {
     static final FluidType TYPE = new FluidType(FluidType.Properties.create()
             .descriptionId("block.railworks.molten_steel")
-            .lightLevel(12)
+            .lightLevel(15)
             .density(3000)
             .viscosity(6000)
             .temperature(1700)

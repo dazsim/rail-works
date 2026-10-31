@@ -28,10 +28,43 @@ def remap(src, stops, mask=None, stretch=True):
             px[x, y] = ramp(stops, (lum(p) - lo) / max(1e-6, hi - lo)) + (p[3],)
     return im
 
-STEEL_HOT = [(0, (96, 22, 6)), (0.35, (168, 52, 12)), (0.7, (226, 104, 28)), (1, (255, 168, 72))]
-for kind in ('still', 'flow'):
-    remap(VAN + 'block/lava_%s.png' % kind, STEEL_HOT).save(OUT + 'block/molten_steel_%s.png' % kind)
-    shutil.copy(VAN + 'block/lava_%s.png.mcmeta' % kind, OUT + 'block/molten_steel_%s.png.mcmeta' % kind)
+STEEL_HOT = [(0, (196, 84, 18)), (0.4, (255, 168, 48)), (0.75, (255, 226, 120)), (1, (255, 250, 218))]
+
+def lattice(seed, n):
+    r = random.Random(seed)
+    return [[[r.random() for _ in range(n[2])] for _ in range(n[1])] for _ in range(n[0])]
+
+def vnoise(g, x, y, t):
+    nx, ny, nt = len(g), len(g[0]), len(g[0][0])
+    def s(v): return v * v * (3 - 2 * v)
+    x0, y0, t0 = int(x // 1), int(y // 1), int(t // 1)
+    fx, fy, ft = s(x - x0), s(y - y0), s(t - t0)
+    out = 0.0
+    for dx, wx in ((0, 1 - fx), (1, fx)):
+        for dy, wy in ((0, 1 - fy), (1, fy)):
+            for dt, wt in ((0, 1 - ft), (1, ft)):
+                out += wx * wy * wt * g[(x0 + dx) % nx][(y0 + dy) % ny][(t0 + dt) % nt]
+    return out
+
+def molten(size, frames, cells, path, stretch, scroll):
+    cy = max(1, cells // stretch)
+    a, b = lattice(41, (cells, cy, 8)), lattice(42, (cells * 2, cy * 2, 8))
+    im = Image.new('RGBA', (size, size * frames))
+    for f in range(frames):
+        t = f / frames * 8
+        for y in range(size):
+            for x in range(size):
+                yy = (y - f * scroll) % size
+                u, v = x / size * cells, yy / size * cy
+                h = 0.65 * vnoise(a, u, v, t) + 0.35 * vnoise(b, u * 2, v * 2, t)
+                vein = abs(h - 0.5) * 2
+                c = ramp(STEEL_HOT, 0.45 + 0.55 * min(1, vein / 0.45))
+                im.putpixel((x, f * size + y), c + (255,))
+    im.save(path)
+    json.dump({'animation': {'frametime': 2 if scroll else 3}}, open(path + '.mcmeta', 'w'), indent=2)
+
+molten(16, 32, 2, OUT + 'block/molten_steel_still.png', 1, 0)
+molten(32, 32, 4, OUT + 'block/molten_steel_flow.png', 2, 1)
 
 cool = remap(VAN + 'block/lava_still.png', [(0, (52, 14, 8)), (0.6, (120, 30, 12)), (1, (176, 58, 22))])
 cool.crop((0, 0, 16, 16)).save(OUT + 'block/cooling_steel.png')
@@ -98,9 +131,9 @@ def ladle(full):
             dx, dy = x - 4.5, (y - 9.5) * 1.3
             if dx * dx + dy * dy <= 13:
                 rim = dx * dx + dy * dy > 8 or y >= 11
-                px[(x, y)] = (hi if y <= 8 else mid) if rim else ((255, 150, 50) if full else (30, 30, 34))
+                px[(x, y)] = (hi if y <= 8 else mid) if rim else ((255, 196, 80) if full else (30, 30, 34))
     if full:
-        for (x, y) in [(3, 8), (5, 9), (4, 9)]: px[(x, y)] = (255, 214, 120)
+        for (x, y) in [(3, 8), (5, 9), (4, 9)]: px[(x, y)] = (255, 246, 206)
     return draw(px)
 ladle(False).save(OUT + 'item/hand_ladle.png')
 ladle(True).save(OUT + 'item/hand_ladle_full.png')

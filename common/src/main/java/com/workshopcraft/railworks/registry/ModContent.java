@@ -151,7 +151,7 @@ public final class ModContent {
                 .instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(2.0F, 6.0F).sound(SoundType.STONE)
                 .noOcclusion().pushReaction(PushReaction.BLOCK).lightLevel(s -> s.getValue(BrickFurnaceBlock.LIT) ? 13 : 0));
         MOLTEN_STEEL_BLOCK = block(r, "molten_steel", p -> new MoltenSteelBlock(MOLTEN_STEEL, p), block("molten_steel").mapColor(MapColor.FIRE)
-                .replaceable().noCollision().strength(100.0F).lightLevel(s -> 12).pushReaction(PushReaction.DESTROY)
+                .replaceable().noCollision().strength(100.0F).lightLevel(s -> 15).pushReaction(PushReaction.DESTROY)
                 .noLootTable().liquid().sound(SoundType.EMPTY));
         SET_STEEL = block(r, "set_steel", Block::new, block("set_steel").mapColor(MapColor.METAL).instrument(NoteBlockInstrument.BASEDRUM)
                 .requiresCorrectToolForDrops().strength(4.0F, 6.0F).sound(SoundType.METAL));

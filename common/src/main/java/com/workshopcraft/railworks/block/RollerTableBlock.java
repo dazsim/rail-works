@@ -2,7 +2,13 @@ package com.workshopcraft.railworks.block;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Rotation;
@@ -38,6 +44,25 @@ public class RollerTableBlock extends Block {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return state.getValue(AXIS) == Direction.Axis.Z ? SHAPE_X : SHAPE;
+    }
+
+    @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                          InteractionHand hand, BlockHitResult hit) {
+        BlockState above = level.getBlockState(pos.above());
+        if (above.getBlock() instanceof MouldBlock && level.getBlockEntity(MouldBlock.mainPos(pos.above(), above)) instanceof MouldBlockEntity be) {
+            return be.useItem(stack, player, hand);
+        }
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        BlockState above = level.getBlockState(pos.above());
+        if (above.getBlock() instanceof MouldBlock && level.getBlockEntity(MouldBlock.mainPos(pos.above(), above)) instanceof MouldBlockEntity be) {
+            return be.push(player);
+        }
+        return InteractionResult.PASS;
     }
 
     @Override

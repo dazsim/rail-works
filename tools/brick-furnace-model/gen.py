@@ -10,7 +10,7 @@ RES = REPO + '/common/src/main/resources/assets/railworks'
 JAVA = REPO + '/common/src/main/java/com/workshopcraft/railworks/block/BrickFurnaceShapes.java'
 TEX = RES + '/textures/block'
 
-AIR, BRICK, FRONT, IRON, HOT, HIDDEN, SPY, MELT, COALS = range(9)
+AIR, BRICK, FRONT, IRON, HOT, HIDDEN, SPY, MELT, COALS, GATE = range(10)
 C = 10
 vox = {}
 def put(x, y, z, m): vox[(x, y, z)] = m
@@ -63,6 +63,8 @@ for x in range(-10, -1):
 TAP_HOT = HOLE + [(x, chan_floor(x) + 1, z) for x in range(-10, -1) for z in range(TZ[0] + 1, TZ[1] - 1)]
 def stream(bottom): return [(x, y, z) for x in (-10, -9) for z in (23, 24) for y in range(bottom, 28)]
 STREAM = {2: stream(26), 3: stream(9)}
+# sluice gate in front of the hole: down when closed, lifted when open
+def gate(open_): return [(-2, y, z) for z in range(21, 27) for y in (range(34, 38) if open_ else range(29, 34))]
 
 PARTS = [(x, y, z) for z in range(3) for y in range(5) for x in range(3) if not (x == 1 and z == 1)]
 CTRL = (1, 0, 0)
@@ -81,6 +83,7 @@ def texkey(m, d, x, y, z, lit):
     if m == HOT: return 'hot'
     if d == 'north' and m in (FRONT, IRON, BRICK) and 16 <= x < 32 and y < 32 and z <= 2:
         return 'facade_%d' % (y // 16)
+    if m == GATE or m == IRON and x < 0: return 'gate'
     if m == IRON: return 'iron'
     return 'brick'
 
@@ -88,10 +91,11 @@ def solid_for_cull(x, y, z, extra):
     if (x, y, z) in extra: return True
     return get(x, y, z) != AIR
 
-def faces(lit, extra):
+def faces(lit, extra, gates=()):
     out = {}
     allv = dict(vox)
     for p in extra: allv[p] = HOT
+    for p in gates: allv[p] = GATE
     for (x, y, z), m in allv.items():
         if m in (AIR, HIDDEN): continue
         for d, (dx, dy, dz) in DIRS.items():
@@ -126,9 +130,9 @@ def uv(d, a0, b0, a1, b1, ca, cb):
             'west': [a0, 16 - b1, a1, 16 - b0], 'east': [16 - a1, 16 - b1, 16 - a0, 16 - b0],
             'up': [a0, b0, a1, b1], 'down': [a0, 16 - b1, a1, 16 - b0]}[d]
 
-def build_models(lit, extra=()):
+def build_models(lit, extra=(), gates=()):
     models = {}
-    for (o, d, plane, t, ca, cb), cells in sorted(faces(lit, set(extra)).items()):
+    for (o, d, plane, t, ca, cb), cells in sorted(faces(lit, set(extra), gates).items()):
         ox, oy, oz = (c * 16 for c in o)
         for a0, b0, a1, b1 in greedy(cells):
             if d in ('north', 'south'): f, to = [a0 - ox, b0 - oy, plane - oz], [a1 - ox, b1 - oy, plane - oz]
@@ -166,7 +170,7 @@ def shaft(level, lit):
     return [{'from': [0, y, 16], 'to': [16, y, 32], 'faces': {'up': {'uv': [0, 0, 16, 16], 'texture': '#' + t}}, 'light_emission': 15}]
 
 TEXNAMES = {'brick': 'fire_bricks', 'iron': 'coke_oven_iron', 'hot': 'molten_steel_still', 'coals': 'coke_oven_firebox_lit',
-            'dark': 'coke_oven_flue', 'facade_0': 'brick_furnace_facade_0', 'facade_1': 'brick_furnace_facade_1'}
+            'dark': 'coke_oven_flue', 'gate': 'steel_block', 'facade_0': 'brick_furnace_facade_0', 'facade_1': 'brick_furnace_facade_1'}
 def write_model(name, elements):
     used = sorted({e['faces'][d]['texture'][1:] for e in elements for d in e['faces']})
     tex = {'particle': 'railworks:block/fire_bricks'}
@@ -188,7 +192,7 @@ for p in PARTS:
     total += write_model('part_%d' % pidx(p), base.get(p, []))
 for tap in range(4):
     extra = TAP_HOT + STREAM.get(tap, []) if tap else []
-    m = build_models(False, extra)
+    m = build_models(False, extra, gate(tap > 0))
     total += write_model('tap_%d' % tap, m.get(TAP, []))
 for l in (False, True):
     src = lit if l else base

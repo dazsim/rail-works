@@ -30,7 +30,7 @@ public class FireBricksBlock extends Block {
         Direction face = hit.getDirection();
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (face.getAxis().isVertical() || !BrickFurnaceStructure.bricksPresent(level, pos, face, false)) {
-            player.sendOverlayMessage(Component.translatable("message.railworks.brick_furnace.incomplete"));
+            for (int i = 0; i < 3; i++) player.sendSystemMessage(Component.translatable("message.railworks.brick_furnace.incomplete." + i));
             return InteractionResult.SUCCESS;
         }
         BrickFurnaceStructure.setFormed(level, pos, face, true);

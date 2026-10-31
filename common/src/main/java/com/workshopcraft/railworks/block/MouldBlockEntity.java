@@ -55,7 +55,7 @@ public class MouldBlockEntity extends BlockEntity {
         setChanged();
     }
 
-    /** Takes up to max mB of steel, returning how much it took. */
+    /** Takes up to max units of steel, returning how much it took. */
     public int fill(int max) {
         MouldStage stage = stage();
         if (stage != MouldStage.READY && stage != MouldStage.FILLING) return 0;

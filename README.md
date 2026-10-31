@@ -12,11 +12,11 @@ Build a 3x3x3 of Coke Oven Bricks, leave out the 4 top corner blocks (23 bricks 
 
 Craft clay with sand to make fire clay, smelt it into fire bricks and craft 4 fire bricks into a Fire Bricks block. Build a 3x3 shaft 5 blocks tall with a hollow middle (40 blocks), then hit the bottom middle block of one side with a hammer. It forms a Brick Furnace with an iron door on that side and a tap on the side to the right of the door.
 
-Put iron ingots or raw iron and coal coke in the furnace. 8 iron and 4 coke make 800 mB of molten steel in about a minute. The furnace holds 4000 mB. Hit the tap with a hammer, or give the furnace a redstone signal, to open it. Molten steel runs out at 100 mB a second.
+Put iron ingots or raw iron and coal coke in the furnace. Molten steel is measured in ingots, and a bucket of it is 9 ingots, the same as a block. 8 iron and 4 coke make 8 ingots of molten steel in about a minute. The furnace holds 36 ingots (4 buckets). Hit the tap with a hammer, or give the furnace a redstone signal, to open it. Molten steel runs out at 1 ingot a second.
 
-Moulds sit under the tap. Put a pattern in a mould, then a block of sand; the pattern comes back and the sand is used up. A rail bar mould takes 100 mB and makes one rail bar. An ingot mould takes 400 mB and makes 4 steel ingots. A full mould cools in 20 seconds; hit it with a hammer to knock out the cast. Moulds on roller tables can be pushed along by hand.
+Moulds sit under the tap. Put a pattern in a mould, then a block of sand; the pattern comes back and the sand is used up. A rail bar mould takes 1 ingot of steel and makes one rail bar. An ingot mould takes 4 ingots and makes 4 steel ingots. A full mould cools in 20 seconds; hit it with a hammer to knock out the cast. Moulds on roller tables can be pushed along by hand. Clicking the tap side of the furnace or the roller table under a mould works on the mould.
 
-If nothing catches the steel, it pours out onto the ground as a block of molten steel once 1000 mB has run out. It burns like lava, spreads 2 blocks and sets into Set Steel after 30 seconds, or straight away if water touches it. Mine Set Steel with an iron pickaxe and craft it into 10 steel ingots. You can also fill a bucket (1000 mB) or a hand ladle (up to 1000 mB) from the furnace door and pour the ladle into a mould.
+The tap only pours when there is a mould under the spout to catch it, so nothing spills between moulds. Molten steel poured from a bucket glows white hot, burns like lava, spreads 2 blocks and sets into Set Steel after 30 seconds, or straight away if water touches it. Mine Set Steel with an iron pickaxe and craft it into 9 steel ingots. You can also fill a bucket (9 ingots) or a hand ladle (up to 9 ingots) from the furnace door and pour the ladle into a mould.
 
 Breaking any part of a formed furnace gives back all 40 Fire Bricks and the iron and coke inside. Any molten steel in it is lost. Pistons cannot move a formed furnace.
 

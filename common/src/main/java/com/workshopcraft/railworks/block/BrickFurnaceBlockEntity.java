@@ -25,17 +25,25 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
-/** 8 iron + 4 coke melt into 800 mB in 60 s. The tap pours 100 mB/s into a mould, or spills onto the ground. */
+/**
+ * Steel is counted in hundredths of an ingot; a bucket or block is 9 ingots.
+ * 8 iron + 4 coke melt into 8 ingots in 60 s. The tap pours 1 ingot/s into a mould and holds the steel when nothing is there to catch it.
+ */
 public class BrickFurnaceBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
     public static final int IRON_IN = 0, FUEL_IN = 1;
-    public static final int BUCKET = 1000;
+    public static final int INGOT = 100;
+    public static final int BUCKET = 9 * INGOT;
     public static final int CAPACITY = 4 * BUCKET;
     public static final int IRON_PER_BATCH = 8;
     public static final int FUEL_PER_BATCH = 4;
-    public static final int STEEL_PER_BATCH = 800;
+    public static final int STEEL_PER_BATCH = 8 * INGOT;
     public static final int BATCH_TICKS = 1200;
     public static final int TAP_RATE = 5;
     private static final int MAX_FALL = 6;
+    public static String ingots(int amount) {
+        return amount % INGOT == 0 ? Integer.toString(amount / INGOT) : String.format(java.util.Locale.ROOT, "%.1f", amount / (float) INGOT);
+    }
+
     private static final int[] SLOTS = {IRON_IN, FUEL_IN};
 
     private NonNullList<ItemStack> items = NonNullList.withSize(2, ItemStack.EMPTY);
@@ -44,7 +52,6 @@ public class BrickFurnaceBlockEntity extends BaseContainerBlockEntity implements
     private int progress;
     private int tank;
     private boolean tapOpen;
-    private int spill;
 
     private final ContainerData data = new ContainerData() {
         @Override
@@ -132,48 +139,34 @@ public class BrickFurnaceBlockEntity extends BaseContainerBlockEntity implements
         boolean changed = false;
         if (open) {
             shown = 1;
-            BlockPos out = tap.relative(BrickFurnaceStructure.tapSide(facing));
-            for (int d = 0; d <= MAX_FALL && tank > 0; d++) {
-                BlockPos p = out.below(d);
-                BlockState s = level.getBlockState(p);
-                if (s.getBlock() instanceof MouldBlock && level.getBlockEntity(MouldBlock.mainPos(p, s)) instanceof MouldBlockEntity mould) {
-                    int moved = mould.fill(Math.min(TAP_RATE, tank));
-                    if (moved > 0) {
-                        tank -= moved;
-                        shown = d == 0 ? 2 : 3;
-                        changed = true;
-                    }
-                    break;
-                }
-                if (s.getFluidState().is(ModTags.MOLTEN_STEEL)) break;
-                boolean clear = s.canBeReplaced() && s.getFluidState().isEmpty() || s.getFluidState().is(net.minecraft.tags.FluidTags.WATER);
-                boolean landing = !clear || d == MAX_FALL;
-                if (!landing) continue;
-                BlockPos at = clear ? p : p.above();
-                if (at.equals(out.above()) || !level.getBlockState(at).canBeReplaced()) break;
-                if (spill + tank < BUCKET) break;
-                int moved = Math.min(TAP_RATE, tank);
+            MouldBlockEntity mould = tank > 0 ? mouldUnderTap(level, door, facing) : null;
+            int moved = mould == null ? 0 : mould.fill(Math.min(TAP_RATE, tank));
+            if (moved > 0) {
                 tank -= moved;
-                spill += moved;
-                shown = at.equals(out) ? 2 : 3;
-                if (spill >= BUCKET) {
-                    spill -= BUCKET;
-                    level.setBlockAndUpdate(at, ModContent.MOLTEN_STEEL_BLOCK.defaultBlockState());
-                }
+                shown = mould.getBlockPos().getY() == tap.getY() ? 2 : 3;
                 changed = true;
-                break;
             }
-        }
-        if (shown < 2 && spill > 0) {
-            tank += spill;
-            spill = 0;
-            changed = true;
         }
         BlockState ts = level.getBlockState(tap);
         if (ts.is(ModContent.BRICK_FURNACE_PART) && ts.getValue(BrickFurnacePartBlock.TAP) != shown) {
             level.setBlock(tap, ts.setValue(BrickFurnacePartBlock.TAP, shown), 2);
         }
         return changed;
+    }
+
+    /** The first mould straight below the spout, through air or water. */
+    public static @Nullable MouldBlockEntity mouldUnderTap(net.minecraft.world.level.Level level, BlockPos door, Direction facing) {
+        BlockPos out = BrickFurnaceStructure.tapPos(door, facing).relative(BrickFurnaceStructure.tapSide(facing));
+        for (int d = 0; d <= MAX_FALL; d++) {
+            BlockPos p = out.below(d);
+            BlockState s = level.getBlockState(p);
+            if (s.getBlock() instanceof MouldBlock) {
+                return level.getBlockEntity(MouldBlock.mainPos(p, s)) instanceof MouldBlockEntity mould ? mould : null;
+            }
+            boolean clear = s.canBeReplaced() && s.getFluidState().isEmpty() || s.getFluidState().is(net.minecraft.tags.FluidTags.WATER);
+            if (!clear) return null;
+        }
+        return null;
     }
 
     private void pullDroppedItems(ServerLevel level, BlockPos door, Direction facing) {
@@ -248,9 +241,8 @@ public class BrickFurnaceBlockEntity extends BaseContainerBlockEntity implements
         batch = NonNullList.withSize(2, ItemStack.EMPTY);
         batch.set(IRON_IN, input.read("batch_iron", ItemStack.CODEC).orElse(ItemStack.EMPTY));
         batch.set(FUEL_IN, input.read("batch_fuel", ItemStack.CODEC).orElse(ItemStack.EMPTY));
-        tank = input.getIntOr("tank", 0);
         tapOpen = input.getBooleanOr("tap_open", false);
-        spill = input.getIntOr("spill", 0);
+        tank = Math.min(CAPACITY, input.getIntOr("tank", 0) + input.getIntOr("spill", 0));
     }
 
     @Override
@@ -263,7 +255,6 @@ public class BrickFurnaceBlockEntity extends BaseContainerBlockEntity implements
         if (!batch.get(FUEL_IN).isEmpty()) output.store("batch_fuel", ItemStack.CODEC, batch.get(FUEL_IN));
         output.putInt("tank", tank);
         output.putBoolean("tap_open", tapOpen);
-        output.putInt("spill", spill);
     }
 
     @Override

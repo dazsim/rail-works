@@ -30,7 +30,7 @@ public class CokeOvenBricksBlock extends Block {
         Direction face = hit.getDirection();
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (face.getAxis().isVertical() || !CokeOvenStructure.bricksPresent(level, pos, face, false)) {
-            player.sendOverlayMessage(Component.translatable("message.railworks.coke_oven.incomplete"));
+            for (int i = 0; i < 4; i++) player.sendSystemMessage(Component.translatable("message.railworks.coke_oven.incomplete." + i));
             return InteractionResult.SUCCESS;
         }
         CokeOvenStructure.setFormed(level, pos, face, true);

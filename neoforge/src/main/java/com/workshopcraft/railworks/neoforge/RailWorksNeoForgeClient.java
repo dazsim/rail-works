@@ -10,6 +10,12 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.fog.FogData;
+import net.minecraft.client.renderer.fog.environment.FogEnvironment;
+import com.workshopcraft.railworks.client.MoltenSteelFog;
 
 @Mod(value = RailWorks.MOD_ID, dist = Dist.CLIENT)
 public class RailWorksNeoForgeClient {
@@ -22,5 +28,11 @@ public class RailWorksNeoForgeClient {
             e.register(RailWorksClient.CREOSOTE_MODEL, ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE);
             e.register(RailWorksClient.MOLTEN_STEEL_MODEL, ModContent.MOLTEN_STEEL, ModContent.FLOWING_MOLTEN_STEEL);
         });
+        modBus.addListener((RegisterClientExtensionsEvent e) -> e.registerFluidType(new IClientFluidTypeExtensions() {
+            @Override
+            public void modifyFogRender(Camera camera, FogEnvironment environment, float renderDistance, float partialTick, FogData fog) {
+                MoltenSteelFog.apply(camera, fog);
+            }
+        }, NeoMoltenSteel.TYPE));
     }
 }

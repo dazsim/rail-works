@@ -35,12 +35,12 @@ public class BrickFurnaceScreen extends AbstractContainerScreen<BrickFurnaceMenu
         int h = Mth.ceil((float) menu.tank() / BrickFurnaceBlockEntity.CAPACITY * TANK_H);
         if (h > 0) {
             int bottom = y + TANK_Y + TANK_H;
-            graphics.fill(x + TANK_X, bottom - h, x + TANK_X + TANK_W, bottom, 0xFFC8460E);
+            graphics.fill(x + TANK_X, bottom - h, x + TANK_X + TANK_W, bottom, 0xFFF29A2C);
             for (int row = bottom - h + 3; row < bottom; row += 4) {
                 int off = (row * 7) % 11;
-                graphics.fill(x + TANK_X + 2 + off, row, x + TANK_X + 9 + off, row + 1, 0xFFF08A2A);
+                graphics.fill(x + TANK_X + 2 + off, row, x + TANK_X + 9 + off, row + 1, 0xFFFFD870);
             }
-            graphics.fill(x + TANK_X, bottom - h, x + TANK_X + TANK_W, bottom - h + 1, 0xFFFFD27A);
+            graphics.fill(x + TANK_X, bottom - h, x + TANK_X + TANK_W, bottom - h + 1, 0xFFFFF4CC);
         }
         for (int i = 1; i < 4; i++) {
             int ty = y + TANK_Y + TANK_H - TANK_H * i / 4;
@@ -54,7 +54,7 @@ public class BrickFurnaceScreen extends AbstractContainerScreen<BrickFurnaceMenu
         int rx = mouseX - leftPos;
         int ry = mouseY - topPos;
         if (rx >= TANK_X && rx < TANK_X + TANK_W && ry >= TANK_Y && ry < TANK_Y + TANK_H) {
-            graphics.setTooltipForNextFrame(font, Component.translatable("gui.railworks.steel_tank", menu.tank(), BrickFurnaceBlockEntity.CAPACITY), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, Component.translatable("gui.railworks.steel_tank", BrickFurnaceBlockEntity.ingots(menu.tank()), BrickFurnaceBlockEntity.ingots(BrickFurnaceBlockEntity.CAPACITY)), mouseX, mouseY);
         }
     }
 }
