@@ -40,7 +40,7 @@ Track is surveyed with stakes, checked, then laid one tie and one rail at a time
 
 **Recipes.** Stakes: 4 sticks and white dye make 8. Theodolite: iron, spyglass and iron over stick, compass and stick, over a stick. Ground Frame: a lever over iron, treated beam and iron. Buffer Stop: treated beam, lantern, treated beam over rail bar, red dye, rail bar over steel ingot, treated beam, steel ingot.
 
-**Known issues.** Far sections are drawn in a simpler form, so ties and chairs thin out with distance. A very long line in view still costs frame rate on slow machines.
+**Known issues.** Past 40 blocks track is drawn without chairs and rail webs, and past 192 blocks it is not drawn at all. A very long line in view still costs frame rate on slow machines.
 
 ## Development
 
