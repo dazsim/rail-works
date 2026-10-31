@@ -47,33 +47,47 @@ public class MouldBlock extends BaseEntityBlock {
     public static final BooleanProperty TAIL = BooleanProperty.create("tail");
 
     public enum Kind {
-        RAIL(BrickFurnaceBlockEntity.INGOT, true, () -> ModContent.RAIL_PATTERN, () -> new ItemStack(ModContent.RAIL_BAR),
-                () -> ModContent.AXLE_PATTERN, () -> new ItemStack(ModContent.AXLE)),
-        INGOT(4 * BrickFurnaceBlockEntity.INGOT, false, () -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4),
-                () -> ModContent.WHEEL_PATTERN, () -> new ItemStack(ModContent.WHEEL, 4));
+        RAIL(BrickFurnaceBlockEntity.INGOT, true,
+                cast(() -> ModContent.RAIL_PATTERN, () -> new ItemStack(ModContent.RAIL_BAR)),
+                cast(() -> ModContent.AXLE_PATTERN, () -> new ItemStack(ModContent.AXLE)),
+                cast(() -> ModContent.CARRIAGE_AXLE_PATTERN, () -> new ItemStack(ModContent.ROUGH_CARRIAGE_AXLE)),
+                cast(() -> ModContent.PLATE_PATTERN, () -> new ItemStack(ModContent.STEEL_PLATE)),
+                cast(() -> ModContent.SPRING_PATTERN, () -> new ItemStack(ModContent.BOGIE_SPRING))),
+        INGOT(4 * BrickFurnaceBlockEntity.INGOT, false,
+                cast(() -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4)),
+                cast(() -> ModContent.WHEEL_PATTERN, () -> new ItemStack(ModContent.WHEEL, 4)),
+                cast(() -> ModContent.CARRIAGE_WHEEL_PATTERN, () -> new ItemStack(ModContent.ROUGH_CARRIAGE_WHEEL, 2)),
+                cast(() -> ModContent.AXLE_BOX_PATTERN, () -> new ItemStack(ModContent.ROUGH_AXLE_BOX, 4)));
 
         public final int need;
         public final boolean longBox;
-        private final Supplier<Item> pattern, altPattern;
-        private final Supplier<ItemStack> result, altResult;
+        private final Cast[] casts;
 
-        Kind(int need, boolean longBox, Supplier<Item> pattern, Supplier<ItemStack> result, Supplier<Item> altPattern, Supplier<ItemStack> altResult) {
+        Kind(int need, boolean longBox, Cast... casts) {
             this.need = need;
             this.longBox = longBox;
-            this.pattern = pattern;
-            this.result = result;
-            this.altPattern = altPattern;
-            this.altResult = altResult;
+            this.casts = casts;
         }
 
-        /** alt is the second pattern a box takes: wheels in the ingot box, an axle in the rail bar box. */
-        public Item pattern(boolean alt) {
-            return (alt ? altPattern : pattern).get();
+        /** Index 0 is the box's own pattern; the rest were added later and keep their order for old saves. */
+        public Item pattern(int i) {
+            return casts[Math.floorMod(i, casts.length)].pattern.get();
         }
 
-        public ItemStack result(boolean alt) {
-            return (alt ? altResult : result).get();
+        public ItemStack result(int i) {
+            return casts[Math.floorMod(i, casts.length)].result.get();
         }
+
+        public int indexOf(ItemStack stack) {
+            for (int i = 0; i < casts.length; i++) if (stack.is(casts[i].pattern.get())) return i;
+            return -1;
+        }
+    }
+
+    private record Cast(Supplier<Item> pattern, Supplier<ItemStack> result) {}
+
+    private static Cast cast(Supplier<Item> pattern, Supplier<ItemStack> result) {
+        return new Cast(pattern, result);
     }
 
     private static final Map<Direction, VoxelShape[]> SHAPES = new EnumMap<>(Direction.class);

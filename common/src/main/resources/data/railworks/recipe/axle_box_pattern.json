@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:treated_planks"
+  },
+  "pattern": [
+    "P P",
+    "P P"
+  ],
+  "result": {
+    "id": "railworks:axle_box_pattern"
+  }
+}

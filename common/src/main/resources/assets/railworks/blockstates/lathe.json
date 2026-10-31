@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "facing=north,part=0": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=north,part=1": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=north,part=2": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=east,part=0": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=east,part=1": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=east,part=2": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=south,part=0": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=south,part=1": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=south,part=2": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=west,part=0": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=west,part=1": {
+      "model": "railworks:block/lathe"
+    },
+    "facing=west,part=2": {
+      "model": "railworks:block/lathe"
+    }
+  }
+}

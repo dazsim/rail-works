@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import com.workshopcraft.railworks.client.CokeOvenScreen;
 import com.workshopcraft.railworks.client.RailWorksClient;
+import com.workshopcraft.railworks.client.MachineRenderer;
 import com.workshopcraft.railworks.client.TrackRenderer;
 import com.workshopcraft.railworks.registry.ModContent;
 import net.fabricmc.api.ClientModInitializer;
@@ -25,6 +26,7 @@ public class RailWorksFabricClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(TrackSyncPayload.TYPE, (p, ctx) -> ClientTrack.receive(p.tag()));
         LevelRenderEvents.COLLECT_SUBMITS.register(ctx -> ClientTrack.submit(ctx.submitNodeCollector(), ctx.levelState()));
         BlockEntityRenderers.register(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new);
+        BlockEntityRenderers.register(ModContent.MACHINE_ENTITY, MachineRenderer::new);
         EntityRenderers.register(ModContent.HAND_TROLLEY_ENTITY, TrolleyRenderer::new);
         TrolleyClient.init();
         FluidRenderingRegistry.register(ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE, RailWorksClient.CREOSOTE_MODEL);

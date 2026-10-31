@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "railworks:lathe",
+          "properties": {
+            "part": "1"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "railworks:lathe"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "railworks:blocks/lathe"
+}

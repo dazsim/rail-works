@@ -10,6 +10,8 @@
     "railworks:steel_block",
     "railworks:rail_bar_mould",
     "railworks:ingot_mould",
-    "railworks:roller_table"
+    "railworks:roller_table",
+    "railworks:lathe",
+    "railworks:pillar_drill"
   ]
 }

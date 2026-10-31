@@ -4,6 +4,7 @@ import com.workshopcraft.railworks.RailWorks;
 import com.workshopcraft.railworks.client.BrickFurnaceScreen;
 import com.workshopcraft.railworks.client.CokeOvenScreen;
 import com.workshopcraft.railworks.client.RailWorksClient;
+import com.workshopcraft.railworks.client.MachineRenderer;
 import com.workshopcraft.railworks.client.TrackRenderer;
 import com.workshopcraft.railworks.registry.ModContent;
 import com.workshopcraft.railworks.client.ClientTrack;
@@ -40,6 +41,7 @@ public class RailWorksNeoForgeClient {
         NeoForge.EVENT_BUS.addListener((SubmitCustomGeometryEvent e) -> ClientTrack.submit(e.getSubmitNodeCollector(), e.getLevelRenderState()));
         modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> {
             e.registerBlockEntityRenderer(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new);
+            e.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY, MachineRenderer::new);
             e.registerEntityRenderer(ModContent.HAND_TROLLEY_ENTITY, com.workshopcraft.railworks.client.TrolleyRenderer::new);
         });
         com.workshopcraft.railworks.client.TrolleyClient.init();

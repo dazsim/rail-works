@@ -13,6 +13,8 @@ import com.workshopcraft.railworks.block.CreosoteVatBlock;
 import com.workshopcraft.railworks.block.CreosoteVatBlockEntity;
 import com.workshopcraft.railworks.block.FireBricksBlock;
 import com.workshopcraft.railworks.block.MoltenSteelBlock;
+import com.workshopcraft.railworks.block.MachineBlock;
+import com.workshopcraft.railworks.block.MachineBlockEntity;
 import com.workshopcraft.railworks.block.MouldBlock;
 import com.workshopcraft.railworks.block.MouldBlockEntity;
 import com.workshopcraft.railworks.block.RollerTableBlock;
@@ -82,6 +84,8 @@ public final class ModContent {
     public static Block ROLLER_TABLE;
     public static Block TRACK_NODE;
     public static Block GROUND_FRAME;
+    public static Block LATHE;
+    public static Block PILLAR_DRILL;
 
     public static Item HAMMER;
     public static Item COKE;
@@ -107,6 +111,20 @@ public final class ModContent {
     public static Item TROLLEY_PUMP;
     public static Item TROLLEY_BRAKE;
     public static Item HAND_TROLLEY;
+    public static Item CARRIAGE_WHEEL_PATTERN;
+    public static Item CARRIAGE_AXLE_PATTERN;
+    public static Item PLATE_PATTERN;
+    public static Item AXLE_BOX_PATTERN;
+    public static Item SPRING_PATTERN;
+    public static Item ROUGH_CARRIAGE_WHEEL;
+    public static Item CARRIAGE_WHEEL;
+    public static Item ROUGH_CARRIAGE_AXLE;
+    public static Item CARRIAGE_AXLE;
+    public static Item STEEL_PLATE;
+    public static Item DRILLED_PLATE;
+    public static Item ROUGH_AXLE_BOX;
+    public static Item AXLE_BOX;
+    public static Item BOGIE_SPRING;
 
     public static EntityType<HandTrolley> HAND_TROLLEY_ENTITY;
     public static final TicketType TROLLEY_TICKET = new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
@@ -116,6 +134,7 @@ public final class ModContent {
     public static BlockEntityType<BrickFurnaceBlockEntity> BRICK_FURNACE_ENTITY;
     public static BlockEntityType<MouldBlockEntity> MOULD_ENTITY;
     public static BlockEntityType<TrackNodeBlockEntity> TRACK_NODE_ENTITY;
+    public static BlockEntityType<MachineBlockEntity> MACHINE_ENTITY;
     public static final MenuType<CokeOvenMenu> COKE_OVEN_MENU = new MenuType<>(CokeOvenMenu::client, FeatureFlags.VANILLA_SET);
     public static final MenuType<BrickFurnaceMenu> BRICK_FURNACE_MENU = new MenuType<>(BrickFurnaceMenu::client, FeatureFlags.VANILLA_SET);
     public static CreativeModeTab TAB;
@@ -194,6 +213,10 @@ public final class ModContent {
                 .sound(SoundType.WOOD).noOcclusion().noLootTable().dynamicShape().pushReaction(PushReaction.BLOCK));
         GROUND_FRAME = block(r, "ground_frame", GroundFrameBlock::new, block("ground_frame").mapColor(MapColor.WOOD)
                 .instrument(NoteBlockInstrument.BASS).strength(1.5F).sound(SoundType.WOOD).noOcclusion());
+        LATHE = block(r, "lathe", p -> new MachineBlock(MachineBlock.Kind.LATHE, p), block("lathe").mapColor(MapColor.METAL)
+                .strength(3.5F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
+        PILLAR_DRILL = block(r, "pillar_drill", p -> new MachineBlock(MachineBlock.Kind.DRILL, p), block("pillar_drill").mapColor(MapColor.METAL)
+                .strength(3.5F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     }
 
     private static Item blockItem(BiConsumer<Identifier, Item> r, Block b, String name) {
@@ -259,6 +282,22 @@ public final class ModContent {
         r.accept(RailWorks.id("trolley_brake"), TROLLEY_BRAKE);
         HAND_TROLLEY = new TrolleyItem(item("hand_trolley").stacksTo(1), true);
         r.accept(RailWorks.id("hand_trolley"), HAND_TROLLEY);
+        CARRIAGE_WHEEL_PATTERN = pattern(r, "carriage_wheel_pattern");
+        CARRIAGE_AXLE_PATTERN = pattern(r, "carriage_axle_pattern");
+        PLATE_PATTERN = pattern(r, "plate_pattern");
+        AXLE_BOX_PATTERN = pattern(r, "axle_box_pattern");
+        SPRING_PATTERN = pattern(r, "spring_pattern");
+        ROUGH_CARRIAGE_WHEEL = simple(r, "rough_carriage_wheel");
+        CARRIAGE_WHEEL = simple(r, "carriage_wheel");
+        ROUGH_CARRIAGE_AXLE = simple(r, "rough_carriage_axle");
+        CARRIAGE_AXLE = simple(r, "carriage_axle");
+        STEEL_PLATE = simple(r, "steel_plate");
+        DRILLED_PLATE = simple(r, "drilled_plate");
+        ROUGH_AXLE_BOX = simple(r, "rough_axle_box");
+        AXLE_BOX = simple(r, "axle_box");
+        BOGIE_SPRING = simple(r, "bogie_spring");
+        blockItem(r, LATHE, "lathe");
+        blockItem(r, PILLAR_DRILL, "pillar_drill");
     }
 
     public static void registerEntities(BiConsumer<Identifier, EntityType<?>> r) {
@@ -270,6 +309,12 @@ public final class ModContent {
 
     public static void registerTicketTypes(BiConsumer<Identifier, TicketType> r) {
         r.accept(RailWorks.id("hand_trolley"), TROLLEY_TICKET);
+    }
+
+    private static Item pattern(BiConsumer<Identifier, Item> r, String name) {
+        Item i = new Item(item(name).stacksTo(16));
+        r.accept(RailWorks.id(name), i);
+        return i;
     }
 
     private static Item simple(BiConsumer<Identifier, Item> r, String name) {
@@ -289,6 +334,8 @@ public final class ModContent {
         r.accept(RailWorks.id("mould"), MOULD_ENTITY);
         TRACK_NODE_ENTITY = new BlockEntityType<>(TrackNodeBlockEntity::new, Set.of(TRACK_NODE));
         r.accept(RailWorks.id("track_node"), TRACK_NODE_ENTITY);
+        MACHINE_ENTITY = new BlockEntityType<>(MachineBlockEntity::new, Set.of(LATHE, PILLAR_DRILL));
+        r.accept(RailWorks.id("machine"), MACHINE_ENTITY);
     }
 
     public static void registerMenus(BiConsumer<Identifier, MenuType<?>> r) {
@@ -337,6 +384,22 @@ public final class ModContent {
                     out.accept(TROLLEY_PUMP);
                     out.accept(TROLLEY_BRAKE);
                     out.accept(HAND_TROLLEY);
+                    out.accept(LATHE);
+                    out.accept(PILLAR_DRILL);
+                    out.accept(CARRIAGE_WHEEL_PATTERN);
+                    out.accept(CARRIAGE_AXLE_PATTERN);
+                    out.accept(PLATE_PATTERN);
+                    out.accept(AXLE_BOX_PATTERN);
+                    out.accept(SPRING_PATTERN);
+                    out.accept(ROUGH_CARRIAGE_WHEEL);
+                    out.accept(CARRIAGE_WHEEL);
+                    out.accept(ROUGH_CARRIAGE_AXLE);
+                    out.accept(CARRIAGE_AXLE);
+                    out.accept(STEEL_PLATE);
+                    out.accept(DRILLED_PLATE);
+                    out.accept(ROUGH_AXLE_BOX);
+                    out.accept(AXLE_BOX);
+                    out.accept(BOGIE_SPRING);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);
