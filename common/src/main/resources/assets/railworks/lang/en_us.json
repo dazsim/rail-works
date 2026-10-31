@@ -88,6 +88,7 @@
   "railworks.track.points": "Points set for %s",
   "railworks.track.no_points": "No points in reach",
   "railworks.track.fails": "This section fails its survey",
+  "railworks.track.frame_held": "Held by redstone, cut the signal to work it by hand",
   "railworks.track.unsupported": "No solid ground under the tie at %s %s %s",
   "railworks.track.over_air": ", %s over air, first at %s %s %s",
   "railworks.track.crossing_bars": "The crossing here takes %s rail bars",

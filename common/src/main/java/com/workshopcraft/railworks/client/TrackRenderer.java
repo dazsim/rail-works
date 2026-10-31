@@ -518,14 +518,14 @@ public class TrackRenderer implements BlockEntityRenderer<TrackNodeBlockEntity, 
                 pts.add(inner(leg, throat));
                 pts.add(beside(other, leg, fr + 0.25, 0.17));
                 pts.add(beside(other, leg, fr + 0.95, 0.17));
-                pts.add(beside(other, leg, fr + 1.3, 0.3));
+                pts.add(beside(other, leg, fr + 1.3, 0.24));
                 railLine(pts, true, true);
                 int sd = leg.side[end(leg)];
                 pts = new ArrayList<>();
-                pts.add(legPt(leg, fr - 1.3, across(leg, -sd, GAUGE / 2 - 0.3)));
+                pts.add(legPt(leg, fr - 1.3, across(leg, -sd, GAUGE / 2 - 0.24)));
                 pts.add(legPt(leg, fr - 1.0, across(leg, -sd, GAUGE / 2 - 0.17)));
                 pts.add(legPt(leg, fr + 1.0, across(leg, -sd, GAUGE / 2 - 0.17)));
-                pts.add(legPt(leg, fr + 1.3, across(leg, -sd, GAUGE / 2 - 0.3)));
+                pts.add(legPt(leg, fr + 1.3, across(leg, -sd, GAUGE / 2 - 0.24)));
                 part(pts.get(1)[0], pts.get(1)[2]);
                 railLine(pts, true, true);
                 part(x0[0], x0[2]);

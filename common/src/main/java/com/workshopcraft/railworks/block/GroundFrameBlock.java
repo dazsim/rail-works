@@ -65,6 +65,15 @@ public class GroundFrameBlock extends HorizontalDirectionalBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack stack) {
         if (!(level instanceof ServerLevel sl)) return;
         TrackGraph.Node toe = TrackActions.nearestPoints(sl, pos);
+        if (level.hasNeighborSignal(pos)) {
+            // placed against a live signal: take the reverse route now, as if the signal had just come on
+            level.setBlock(pos, state.setValue(POWERED, true).setValue(REVERSED, true), 3);
+            if (toe != null) {
+                TrackGraph.get(sl).setRoute(sl, toe, 1);
+                TrackActions.updateFrames(sl, toe);
+            }
+            return;
+        }
         if (toe != null && (toe.route == 1) != state.getValue(REVERSED)) level.setBlock(pos, state.setValue(REVERSED, toe.route == 1), 3);
     }
 
@@ -87,6 +96,10 @@ public class GroundFrameBlock extends HorizontalDirectionalBlock {
     }
 
     private static void pull(ServerLevel level, BlockPos pos, Player player) {
+        if (level.getBlockState(pos).getValue(POWERED)) {
+            player.sendOverlayMessage(Component.translatable("railworks.track.frame_held").withStyle(ChatFormatting.GOLD));
+            return;
+        }
         TrackGraph.Node toe = TrackActions.nearestPoints(level, pos);
         level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6F, 0.8F);
         if (toe == null) {
