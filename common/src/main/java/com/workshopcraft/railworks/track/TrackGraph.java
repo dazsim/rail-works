@@ -675,8 +675,9 @@ public final class TrackGraph extends SavedData {
         if (segments.isEmpty()) return;
         double x = pos.getX() + 0.5, z = pos.getZ() + 0.5;
         for (Segment s : segments.values()) {
-            if (s.live || pos.getY() < s.baseY - 24 || pos.getY() > s.baseY + 24) continue;
-            if (s.reachFrom(x, z) <= 5) recheck.add(s.id);
+            if (pos.getY() < s.baseY - 24 || pos.getY() > s.baseY + 24 || s.reachFrom(x, z) > 5) continue;
+            if (s.live) s.checked = false;
+            else recheck.add(s.id);
         }
     }
 
@@ -698,8 +699,26 @@ public final class TrackGraph extends SavedData {
         }
     }
 
+    /** What stands in the way of a section, re-checked for finished track only when something nearby changed. */
+    public List<BlockPos> clearance(ServerLevel level, Segment s) {
+        if (s.live && !s.checked) {
+            s.blocked = scan(level, s);
+            s.checked = true;
+        }
+        return s.blocked;
+    }
+
     /** Re-check what stands in the way of a section's clearance envelope. */
     public void refresh(ServerLevel level, Segment s) {
+        s.blocked = scan(level, s);
+        BitSet un = new BitSet();
+        for (int i = 0; i < s.n; i++) if (!supported(level, s, i)) un.set(i);
+        s.unsupported = un;
+        s.checked = true;
+        s.rev++;
+    }
+
+    private List<BlockPos> scan(ServerLevel level, Segment s) {
         List<BlockPos> out = new ArrayList<>();
         java.util.Set<BlockPos> seen = new java.util.HashSet<>();
         double half = s.curved() ? 3.5 : 3.0;
@@ -718,12 +737,7 @@ public final class TrackGraph extends SavedData {
                     }
                 }
         }
-        s.blocked = out;
-        BitSet un = new BitSet();
-        for (int i = 0; i < s.n; i++) if (!supported(level, s, i)) un.set(i);
-        s.unsupported = un;
-        s.checked = true;
-        s.rev++;
+        return out;
     }
 
     // from just above the tie bottom, so ground standing above the bed counts as in the way

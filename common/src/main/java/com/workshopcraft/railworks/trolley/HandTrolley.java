@@ -440,7 +440,7 @@ public class HandTrolley extends Entity {
                 report.points(n, Component.translatable("railworks.report.facing", side(g, n, legs, nx)));
             }
         }
-        report.enter(nx);
+        report.enter(level, nx);
         return new Hop(rail(nx), nx.b == nodeId && nx.a != nodeId);
     }
 
@@ -908,7 +908,7 @@ public class HandTrolley extends Entity {
             startDist.clear();
             if (t.level() instanceof ServerLevel sl) {
                 TrackGraph.Segment sg = TrackGraph.get(sl).segment(t.seg);
-                if (sg != null) enter(sg);
+                if (sg != null) enter(sl, sg);
             }
         }
 
@@ -917,8 +917,8 @@ public class HandTrolley extends Entity {
             startDist.put(p.getUUID(), dist);
         }
 
-        void enter(TrackGraph.Segment sg) {
-            if (seen.add(sg.id)) clearance.addAll(sg.blocked());
+        void enter(ServerLevel level, TrackGraph.Segment sg) {
+            if (seen.add(sg.id)) clearance.addAll(TrackGraph.get(level).clearance(level, sg));
         }
 
         void points(TrackGraph.Node n, Component how) {
