@@ -606,7 +606,7 @@ public class HandTrolley extends Entity {
         if (dir != 0 && Math.abs(ds) >= Math.max(0, stop.dist())) {
             ds = dir * Math.max(0, stop.dist());
             stopped = Math.abs(u) > 0.01 || ridden;
-            if (Math.abs(u) > 0.3 && stopCooldown <= 0) {
+            if (Math.abs(u) > 0.3 && stopCooldown <= 0 && (stop.buffer() || !endBraking)) {
                 if (stop.buffer()) level.playSound(null, getX(), getY(), getZ(), SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, SoundSource.NEUTRAL, Math.min(1, (float) Math.abs(u) / 4 + 0.2f), 0.7f);
                 tellRiders(Component.translatable(stop.buffer() ? "message.railworks.trolley.buffer" : "message.railworks.trolley.end").withStyle(ChatFormatting.YELLOW), true);
                 stopCooldown = 40;
