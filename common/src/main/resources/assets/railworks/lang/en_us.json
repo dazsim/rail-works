@@ -114,5 +114,6 @@
   "railworks.track.two_stakes": "Not points: the lines at %s %s %s end on two stakes side by side. Points need both lines on one stake",
   "railworks.track.frame_far": "No points within %5$s blocks. The nearest toe is %1$s blocks away at %2$s %3$s %4$s",
   "railworks.track.points_far": "No points in reach. The nearest toe is %1$s blocks away at %2$s %3$s %4$s, stand within %5$s",
-  "railworks.track.nothing_here": "Nothing here for the hammer. Hit a stake, a section or a set of points"
+  "railworks.track.nothing_here": "Nothing here for the hammer. Hit a stake, a section or a set of points",
+  "railworks.track.reselected": "Already linked, so this stake is selected now. Hit the next one to branch from here"
 }

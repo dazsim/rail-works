@@ -235,6 +235,11 @@ public final class TrackActions {
             return;
         }
         TrackGraph.LinkResult r = g.link(level, a, n);
+        if (r == TrackGraph.LinkResult.EXISTS) {
+            SELECTED.put(player.getUUID(), n.pos);
+            say(player, Component.translatable("railworks.track.reselected").append(sections(g, n)));
+            return;
+        }
         if (r != TrackGraph.LinkResult.OK) {
             say(player, Component.translatable("railworks.track.link." + r.name().toLowerCase(java.util.Locale.ROOT)).withStyle(ChatFormatting.RED));
             return;
