@@ -149,7 +149,11 @@ public final class TrackActions {
         return new String[]{"n", "ne", "e", "se", "s", "sw", "w", "nw"}[i];
     }
 
+    /** Set RAILWORKS_ECHO in the server's environment to copy hammer readouts to the log, for testing. */
+    private static final boolean ECHO = System.getenv("RAILWORKS_ECHO") != null;
+
     private static void say(Player p, Component c) {
+        if (ECHO) org.slf4j.LoggerFactory.getLogger("railworks").info("say: {}", c.getString());
         WARNINGS.remove(p.getUUID());
         p.sendOverlayMessage(c);
     }
@@ -301,6 +305,7 @@ public final class TrackActions {
     public static InteractionResult hammerGround(ServerLevel level, Player player, Vec3 at) {
         TrackGraph g = TrackGraph.get(level);
         boolean sneak = player.isShiftKeyDown();
+        if (ECHO) org.slf4j.LoggerFactory.getLogger("railworks").info("hammer ground at {} sneak {}", at, sneak);
         if (!sneak) {
             TrackGraph.Node toe = nearestNode(g, at, 3.5, true, false);
             if (toe == null) toe = nearestNode(g, player.position(), HAMMER_REACH, true, false);
