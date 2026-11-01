@@ -488,7 +488,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         long nodeId = atB ? sg.b : sg.a;
         TrackGraph.Node n = g.node(nodeId);
         if (n == null || n.buffer) return null;
-        TrackGraph.Segment nx = g.next(nodeId, sg.id);
+        TrackGraph.Segment nx = nextFor(g, sg, nodeId);
         if (nx == null || !nx.live) return null;
         int p = g.pointsPort(n);
         if (p >= 0) {
@@ -506,11 +506,121 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                 }
                 pointsPassed(n, Component.translatable(thrown ? "railworks.report.trailing_thrown" : "railworks.report.trailing"));
             } else {
+                int idx = legs.indexOf(nx);
+                if (idx >= 0 && idx != n.route) {
+                    g.setRoute(level, n, idx);
+                    TrackActions.updateFrames(level, n);
+                    level.playSound(null, n.pos, SoundEvents.PISTON_CONTRACT, SoundSource.BLOCKS, 0.6f, 1.3f);
+                }
                 pointsPassed(n, Component.translatable("railworks.report.facing", side(g, n, legs, nx)));
             }
         }
         entered(level, nx);
         return new Hop(rail(nx), nx.b == nodeId && nx.a != nodeId);
+    }
+
+    static final double FOLLOW = 12;
+
+    /** The section taken over a node: at facing points the leg a coupled neighbour is already on, else the route. */
+    TrackGraph.@Nullable Segment nextFor(TrackGraph g, TrackGraph.Segment sg, long nodeId) {
+        TrackGraph.Segment nx = g.next(nodeId, sg.id);
+        TrackGraph.Node n = g.node(nodeId);
+        if (nx == null || n == null) return nx;
+        int p = g.pointsPort(n);
+        if (p < 0 || (sg.a == nodeId ? sg.aPort : sg.bPort) == p) return nx;
+        List<RailVehicle> near = coupled();
+        if (near.isEmpty()) return nx;
+        List<TrackGraph.Segment> legs = g.legs(n);
+        for (TrackGraph.Segment leg : legs) for (RailVehicle o : near) if (o.seg == leg.id) return leg;
+        for (TrackGraph.Segment leg : legs) for (RailVehicle o : near) if (beyond(g, leg, nodeId, o.seg, FOLLOW)) return leg;
+        return nx;
+    }
+
+    List<RailVehicle> coupled() {
+        List<RailVehicle> out = new ArrayList<>(followers());
+        RailVehicle l = leader();
+        if (l != null) out.add(l);
+        return out;
+    }
+
+    /** Whether section target lies on sg or past it, entering sg at from, within left blocks of legal moves. */
+    static boolean beyond(TrackGraph g, TrackGraph.Segment sg, long from, long target, double left) {
+        if (sg.id == target) return true;
+        long far = sg.a == from ? sg.b : sg.a;
+        left -= sg.path.length;
+        TrackGraph.Node n = g.node(far);
+        if (left <= 0 || n == null || n.buffer || far == from) return false;
+        int p = g.pointsPort(n);
+        if (p >= 0 && (sg.a == far ? sg.aPort : sg.bPort) != p) {
+            for (TrackGraph.Segment l : g.legs(n)) if (l.live && beyond(g, l, far, target, left)) return true;
+            return false;
+        }
+        TrackGraph.Segment nx = g.next(far, sg.id);
+        return nx != null && nx.live && beyond(g, nx, far, target, left);
+    }
+
+    /**
+     * Puts a consist found split over both legs of a set of points (an old save) back on the root's leg,
+     * or takes the bar off where that can't be done.
+     */
+    void mend(ServerLevel level, List<Member> ms) {
+        TrackGraph g = TrackGraph.get(level);
+        for (int i = 1; i < ms.size(); i++) {
+            RailVehicle b = ms.get(i).v, a = null;
+            for (int j = 0; j < i && a == null; j++) {
+                RailVehicle o = ms.get(j).v;
+                if (o.getUUID().equals(b.towId) || b.getUUID().equals(o.towId)) a = o;
+            }
+            if (a == null || a.seg == b.seg) continue;
+            TrackGraph.Segment sa = g.segment(a.seg), sb = g.segment(b.seg);
+            if (sa == null || sb == null) continue;
+            long node = sa.a == sb.a || sa.a == sb.b ? sa.a : sa.b == sb.a || sa.b == sb.b ? sa.b : -1;
+            TrackGraph.Node n = g.node(node);
+            if (n == null || g.pointsPort(n) < 0) continue;
+            List<TrackGraph.Segment> legs = g.legs(n);
+            if (!legs.contains(sa) || !legs.contains(sb) || sa.a == sa.b || sb.a == sb.b) continue;
+            if (beyond(g, sa, node, sb.id, sa.path.length + 16)) continue;
+            double db = sb.a == node ? b.s : sb.path.length - b.s;
+            double da = sa.a == node ? a.s : sa.path.length - a.s;
+            boolean ok = db <= sa.path.length && Math.abs(da - db) >= a.trackReach() + b.trackReach() - 0.3;
+            double ns = sa.a == node ? db : sa.path.length - db;
+            Rail r = rail(sa.id);
+            if (ok && r != null) ok = b.outlineHit(r, ns, 0) == null && clearOf(level, b, sa.id, ns, ms);
+            if (!ok || r == null) {
+                b.uncoupleFrom(level, a);
+                notifyNear(level, b, Component.translatable("message.railworks.tow.split").withStyle(ChatFormatting.YELLOW));
+                if (ECHO) LOG.info("[tow] split over points at {}, uncoupled", n.pos);
+                return;
+            }
+            if ((sa.a == node) != (sb.a == node)) {
+                b.u = -b.u;
+                b.front = !b.front;
+            }
+            b.seg = sa.id;
+            b.s = ns;
+            b.placeOn(r);
+            b.sync(true);
+            notifyNear(level, b, Component.translatable("message.railworks.tow.rejoined").withStyle(ChatFormatting.GOLD));
+            if (ECHO) LOG.info("[tow] split over points at {}, put back on {} at {}", n.pos, sa.id, ns);
+        }
+    }
+
+    private static boolean clearOf(ServerLevel level, RailVehicle b, long seg, double at, List<Member> ms) {
+        for (RailVehicle o : level.getEntitiesOfClass(RailVehicle.class, b.getBoundingBox().inflate(60), o -> o != b && o.seg == seg)) {
+            boolean ours = false;
+            for (Member m : ms) ours |= m.v == o;
+            if (!ours && Math.abs(o.s - at) < o.trackReach() + b.trackReach()) return false;
+        }
+        return true;
+    }
+
+    private void uncoupleFrom(ServerLevel level, RailVehicle other) {
+        if (other.getUUID().equals(towId)) uncouple(level, null);
+        else other.uncouple(level, null);
+    }
+
+    static void notifyNear(ServerLevel level, Entity at, Component c) {
+        for (Player p : level.getEntitiesOfClass(Player.class, at.getBoundingBox().inflate(16))) say(p, c);
     }
 
     private static Component side(TrackGraph g, TrackGraph.Node n, List<TrackGraph.Segment> legs, TrackGraph.Segment taken) {
@@ -631,7 +741,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             long nodeId = atB ? sg.b : sg.a;
             TrackGraph.Node n = g.node(nodeId);
             if (n != null && n.buffer) return new Stop(d - 0.59 - trackReach(), true);
-            TrackGraph.Segment nx = n == null ? null : g.next(nodeId, sg.id);
+            TrackGraph.Segment nx = n == null ? null : nextFor(g, sg, nodeId);
             if (nx == null || !nx.live) return new Stop(d - trackReach() + 0.05, false);
             atB = !(nx.b == nodeId && nx.a != nodeId);
             d += nx.path.length;
@@ -687,6 +797,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
      * our +s. Returns the distance moved along our +s.
      */
     double drive(ServerLevel level, List<Member> ms, double force, double drag, boolean hold, Ride ride, boolean changed) {
+        if (ms.size() > 1 && tickCount % 10 == 0) mend(level, ms);
         int n = ms.size(), fr = f();
         int[] k = new int[n];
         for (int i = 0; i < n; i++) k[i] = ms.get(i).sign * ms.get(i).v.f() * fr;
@@ -827,10 +938,10 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         }
     }
 
-    private static long nextCode(TrackGraph g, TrackGraph.Segment sg, long nodeId) {
+    private long nextCode(TrackGraph g, TrackGraph.Segment sg, long nodeId) {
         TrackGraph.Node n = g.node(nodeId);
         if (n == null || n.buffer) return -1;
-        TrackGraph.Segment nx = g.next(nodeId, sg.id);
+        TrackGraph.Segment nx = nextFor(g, sg, nodeId);
         if (nx == null || !nx.live) return -1;
         return nx.id * 2 + (nx.b == nodeId && nx.a != nodeId ? 1 : 0);
     }

@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -37,6 +39,7 @@ import org.jspecify.annotations.Nullable;
 public class GroundFrameBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<GroundFrameBlock> CODEC = simpleCodec(GroundFrameBlock::new);
     public static final int REACH = 12;
+    static final int RETRY = 10;
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty REVERSED = BooleanProperty.create("reversed");
@@ -69,10 +72,7 @@ public class GroundFrameBlock extends HorizontalDirectionalBlock {
         if (level.hasNeighborSignal(pos)) {
             // placed against a live signal: take the reverse route now, as if the signal had just come on
             level.setBlock(pos, state.setValue(POWERED, true).setValue(REVERSED, true), 3);
-            if (toe != null) {
-                TrackGraph.get(sl).setRoute(sl, toe, 1);
-                TrackActions.updateFrames(sl, toe);
-            }
+            if (toe != null && !TrackActions.setRoute(sl, TrackGraph.get(sl), toe, 1)) sl.scheduleTick(pos, this, RETRY);
             return;
         }
         if (toe != null && (toe.route == 1) != state.getValue(REVERSED)) level.setBlock(pos, state.setValue(REVERSED, toe.route == 1), 3);
@@ -107,7 +107,10 @@ public class GroundFrameBlock extends HorizontalDirectionalBlock {
             player.sendOverlayMessage(TrackActions.whyNoPoints(TrackGraph.get(level), Vec3.atCenterOf(pos), REACH, true));
             return;
         }
-        TrackActions.throwPoints(level, TrackGraph.get(level), toe);
+        if (!TrackActions.throwPoints(level, TrackGraph.get(level), toe)) {
+            player.sendOverlayMessage(TrackActions.locked());
+            return;
+        }
         player.sendOverlayMessage(Component.translatable("railworks.track.points", toe.route == 0 ? "A" : "B"));
     }
 
@@ -119,9 +122,23 @@ public class GroundFrameBlock extends HorizontalDirectionalBlock {
         level.setBlock(pos, state.setValue(POWERED, signal), 2);
         TrackGraph.Node toe = TrackActions.nearestPoints(sl, pos);
         if (toe == null) return;
-        TrackGraph.get(sl).setRoute(sl, toe, signal ? 1 : 0);
         level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6F, 0.8F);
-        level.playSound(null, toe.pos, SoundEvents.PISTON_CONTRACT, SoundSource.BLOCKS, 0.4F, 1.4F);
-        TrackActions.updateFrames(sl, toe);
+        follow(sl, pos, toe, signal);
+    }
+
+    /** Redstone wants the points set its way: done now, or retried until the vehicle on them has gone. */
+    private void follow(ServerLevel level, BlockPos pos, TrackGraph.Node toe, boolean signal) {
+        if (TrackActions.setRoute(level, TrackGraph.get(level), toe, signal ? 1 : 0)) return;
+        for (Player p : level.getEntitiesOfClass(Player.class, new AABB(pos).inflate(12))) p.sendOverlayMessage(TrackActions.locked());
+        level.scheduleTick(pos, this, RETRY);
+    }
+
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        TrackGraph.Node toe = TrackActions.nearestPoints(level, pos);
+        boolean signal = state.getValue(POWERED);
+        if (toe == null || (toe.route == 1) == signal) return;
+        if (TrackActions.setRoute(level, TrackGraph.get(level), toe, signal ? 1 : 0)) return;
+        level.scheduleTick(pos, this, RETRY);
     }
 }

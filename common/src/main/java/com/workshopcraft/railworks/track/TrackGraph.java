@@ -253,6 +253,18 @@ public final class TrackGraph extends SavedData {
         return out;
     }
 
+    /** How far down the legs from the toe they stay closer than width: the end of the points' locked zone. */
+    public double clearance(Node toe, double width) {
+        List<Segment> legs = legs(toe);
+        if (legs.size() != 2) return 0;
+        double max = Math.min(legs.get(0).path.length, legs.get(1).path.length);
+        for (double d = 0.25; d < max; d += 0.25) {
+            double[] p0 = at(legs.get(0), toe.id, d), p1 = at(legs.get(1), toe.id, d);
+            if (Math.hypot(p0[0] - p1[0], p0[1] - p1[1]) >= width) return d;
+        }
+        return max;
+    }
+
     /** The section a train takes after arriving at a node along `from`, or null at a dead end. For M4. */
     public @Nullable Segment next(long nodeId, long from) {
         Node n = nodes.get(nodeId);

@@ -5,6 +5,7 @@ import com.workshopcraft.railworks.block.StakeShapes;
 import com.workshopcraft.railworks.block.TrackNodeBlock;
 import com.workshopcraft.railworks.registry.ModContent;
 import java.util.BitSet;
+import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,10 +15,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -311,8 +314,11 @@ public final class TrackActions {
             TrackGraph.Node toe = nearestNode(g, at, 3.5, true, false);
             if (toe == null) toe = nearestNode(g, player.position(), HAMMER_REACH, true, false);
             if (toe != null) {
-                throwPoints(level, g, toe);
                 player.getCooldowns().addCooldown(player.getMainHandItem(), 8);
+                if (!throwPoints(level, g, toe)) {
+                    say(player, locked());
+                    return InteractionResult.SUCCESS;
+                }
                 MutableComponent msg = Component.translatable("railworks.track.points", toe.route == 0 ? "A" : "B");
                 TrackGraph.Spot near = g.nearestSegment(at.x, at.y, at.z, 4);
                 if (near != null && !near.seg().live) {
@@ -491,10 +497,45 @@ public final class TrackActions {
         return false;
     }
 
-    public static void throwPoints(ServerLevel level, TrackGraph g, TrackGraph.Node toe) {
-        g.throwPoints(level, toe);
+    /** Throws a set of points, unless a vehicle stands on them. False when they are locked. */
+    public static boolean throwPoints(ServerLevel level, TrackGraph g, TrackGraph.Node toe) {
+        return setRoute(level, g, toe, toe.route ^ 1);
+    }
+
+    /** Sets a route, unless a vehicle stands on the points. False when they are locked. */
+    public static boolean setRoute(ServerLevel level, TrackGraph g, TrackGraph.Node toe, int route) {
+        if (toe.route == route) return true;
+        if (pointsOccupied(level, g, toe)) {
+            level.playSound(null, toe.pos, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 0.5F, 0.6F);
+            if (ECHO) org.slf4j.LoggerFactory.getLogger("railworks").info("say: {}", locked().getString());
+            return false;
+        }
+        g.setRoute(level, toe, route);
         level.playSound(null, toe.pos, SoundEvents.PISTON_CONTRACT, SoundSource.BLOCKS, 0.4F, 1.4F);
         updateFrames(level, toe);
+        return true;
+    }
+
+    public static Component locked() {
+        return Component.translatable("railworks.track.points_locked").withStyle(ChatFormatting.RED);
+    }
+
+    /** Legs this far apart clear the widest vehicle, so the locked zone ends there. */
+    static final double CLEAR_WIDTH = 2.4;
+
+    /** True while any rail vehicle overhangs the toe or stands on a leg short of the clearance point. */
+    public static boolean pointsOccupied(ServerLevel level, TrackGraph g, TrackGraph.Node toe) {
+        List<TrackGraph.Segment> legs = g.legs(toe);
+        if (legs.size() != 2) return false;
+        double clear = g.clearance(toe, CLEAR_WIDTH);
+        for (Entity e : level.getEntities((Entity) null, new AABB(toe.pos).inflate(clear + 8), e -> e instanceof TrackRunner && e.isAlive())) {
+            TrackRunner r = (TrackRunner) e;
+            TrackGraph.Segment sg = g.segment(r.trackSegment());
+            if (sg == null || (sg.a == toe.id) == (sg.b == toe.id)) continue;
+            double d = (sg.a == toe.id ? r.trackS() : sg.path.length - r.trackS()) - r.trackReach();
+            if (legs.contains(sg) ? d < clear : d < 0.3) return true;
+        }
+        return false;
     }
 
     public static void updateFrames(ServerLevel level, TrackGraph.Node toe) {
