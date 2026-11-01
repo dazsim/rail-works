@@ -20,12 +20,17 @@ public final class ClientTrains {
     private ClientTrains() {}
 
     static final double DT = 0.05;
+    private static final boolean ECHO = System.getenv("RAILWORKS_ECHO") != null;
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("railworks");
 
     static final class Live {
         final Train path = new Train();
         int[] ids = new int[0];
         double speed, serverSpeed, serverRef;
         int age;
+        // for RAILWORKS_ECHO: how far the gaps between members wandered on screen
+        double[] gapMin, gapMax;
+        int snaps, ticks;
     }
 
     private static final Map<Integer, Live> TRAINS = new HashMap<>();
@@ -53,6 +58,12 @@ public final class ClientTrains {
                 t.path.ref = x;
                 t.speed = old.speed;
             }
+        }
+        if (old != null) {
+            t.gapMin = old.gapMin;
+            t.gapMax = old.gapMax;
+            t.snaps = old.snaps;
+            t.ticks = old.ticks;
         }
         TRAINS.put(p.root(), t);
         // a vehicle can only be in one train: drop older ones sharing a member
@@ -115,7 +126,10 @@ public final class ClientTrains {
         t.path.ref -= (before + t.speed) / 2 * DT;
         double target = t.serverRef - t.serverSpeed * Math.min(t.age, 6) * DT;
         double err = target - t.path.ref;
-        if (Math.abs(err) > 3) t.path.ref = target;
+        if (Math.abs(err) > 3) {
+            t.path.ref = target;
+            t.snaps++;
+        }
         else t.path.ref += err * (predicting ? 0.1 : 0.25);
         t.path.ref = Math.max(0, Math.min(t.path.ref, t.path.total(RailVehicle.clientTrack) - t.path.span()));
         double dx = t.path.ref - ref0;
@@ -128,5 +142,27 @@ public final class ClientTrains {
             v.placeByTrain(p.rail(), p.s(), -p.dir() * t.path.flip[i] > 0, -t.speed * p.dir(), dx * p.dir());
             for (Entity rider : v.getPassengers()) v.positionRider(rider);
         }
+        if (ECHO && vs.length > 1) echo(t, vs);
+    }
+
+    private static void echo(Live t, RailVehicle[] vs) {
+        int n = vs.length - 1;
+        if (t.gapMin == null || t.gapMin.length != n) {
+            t.gapMin = new double[n];
+            t.gapMax = new double[n];
+            java.util.Arrays.fill(t.gapMin, Double.MAX_VALUE);
+        }
+        for (int i = 0; i < n; i++) {
+            if (vs[i] == null || vs[i + 1] == null) continue;
+            double g = vs[i].position().distanceTo(vs[i + 1].position());
+            t.gapMin[i] = Math.min(t.gapMin[i], g);
+            t.gapMax[i] = Math.max(t.gapMax[i], g);
+        }
+        if (++t.ticks % 40 != 0) return;
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < n; i++) b.append(String.format(java.util.Locale.ROOT, " %.3f..%.3f", t.gapMin[i], t.gapMax[i]));
+        LOG.info("[train-client] {} members, speed {}, snaps {}, gaps{}", vs.length, String.format(java.util.Locale.ROOT, "%.2f", t.speed), t.snaps, b);
+        java.util.Arrays.fill(t.gapMin, Double.MAX_VALUE);
+        java.util.Arrays.fill(t.gapMax, 0);
     }
 }

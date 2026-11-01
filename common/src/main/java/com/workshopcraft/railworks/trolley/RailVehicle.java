@@ -902,6 +902,11 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             v.moved(level, now, moved[i], changed || stopped || before[i] != v.seg, ride);
             for (Entity p : v.getPassengers()) v.positionRider(p);
         }
+        if (ECHO && n > 1 && ds != 0 && tickCount % 40 == 0) {
+            StringBuilder b = new StringBuilder();
+            for (int i = 0; i + 1 < n; i++) b.append(String.format(java.util.Locale.ROOT, " %.3f", ms.get(i).v().position().distanceTo(ms.get(i + 1).v().position())));
+            LOG.info("[train] {} members at {} b/s over {} sections, gaps{}", n, String.format(java.util.Locale.ROOT, "%.2f", Math.abs(u)), t.steps.size(), b);
+        }
         sendTrain(level, t, ds != 0 || u != 0);
         return ds;
     }
