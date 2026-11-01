@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "W": "minecraft:white_dye",
+    "P": "railworks:steel_plate",
+    "C": "minecraft:copper_ingot",
+    "N": "minecraft:brown_dye"
+  },
+  "pattern": [
+    " G ",
+    "WPC",
+    " N "
+  ],
+  "result": {
+    "id": "railworks:carriage_door"
+  }
+}

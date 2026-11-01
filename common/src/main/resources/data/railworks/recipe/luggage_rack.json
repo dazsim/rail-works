@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "railworks:treated_planks",
+    "minecraft:copper_ingot"
+  ],
+  "result": {
+    "id": "railworks:luggage_rack"
+  }
+}

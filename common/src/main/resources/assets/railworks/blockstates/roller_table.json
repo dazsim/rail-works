@@ -130,6 +130,82 @@
         "model": "railworks:block/roller_table_carriage_wheel_b",
         "y": 90
       }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "7|8|9|10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_a"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "8|9|10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_b"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "9|10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_c"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_d"
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "7|8|9|10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_a",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "8|9|10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_b",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "9|10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_c",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "10"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_beam_d",
+        "y": 90
+      }
     }
   ]
 }

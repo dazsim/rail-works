@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "T": "railworks:treated_planks",
+    "N": "minecraft:brown_dye"
+  },
+  "pattern": [
+    "TGT",
+    "TN "
+  ],
+  "result": {
+    "id": "railworks:end_panel"
+  }
+}

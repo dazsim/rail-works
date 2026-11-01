@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "railworks:buffer_stock",
+    "railworks:bogie_spring"
+  ],
+  "result": {
+    "id": "railworks:carriage_buffer"
+  }
+}

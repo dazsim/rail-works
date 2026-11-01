@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": "minecraft:white_wool",
+    "P": "railworks:treated_planks",
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    "WW ",
+    "PPP",
+    " B "
+  ],
+  "result": {
+    "id": "railworks:roof_section"
+  }
+}

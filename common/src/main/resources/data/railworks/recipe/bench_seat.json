@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": "minecraft:red_wool",
+    "T": "railworks:treated_planks"
+  },
+  "pattern": [
+    "R",
+    "T",
+    "T"
+  ],
+  "result": {
+    "id": "railworks:bench_seat"
+  }
+}

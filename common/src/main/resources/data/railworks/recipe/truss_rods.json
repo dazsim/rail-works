@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": "railworks:rail_bar",
+    "I": "railworks:steel_ingot"
+  },
+  "pattern": [
+    "R R",
+    " I "
+  ],
+  "result": {
+    "id": "railworks:truss_rods"
+  }
+}

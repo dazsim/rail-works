@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "W": "minecraft:white_dye",
+    "T": "railworks:treated_planks",
+    "C": "minecraft:copper_ingot",
+    "N": "minecraft:brown_dye"
+  },
+  "pattern": [
+    " G ",
+    "WTC",
+    " TN"
+  ],
+  "result": {
+    "id": "railworks:carriage_door"
+  }
+}

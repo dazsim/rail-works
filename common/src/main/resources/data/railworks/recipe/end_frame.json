@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    "B B",
+    " B "
+  ],
+  "result": {
+    "id": "railworks:end_frame"
+  }
+}

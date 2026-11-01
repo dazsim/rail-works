@@ -131,10 +131,37 @@ public final class ModContent {
     public static Item BOLSTER;
     public static Item TOW_BAR;
     public static Item BOGIE;
+    public static Item RIVETS;
+    public static Item RIVET_PATTERN;
+    public static Item STEEL_BEAM;
+    public static Item BEAM_PATTERN;
+    public static Item ROLLED_SOLEBAR;
+    public static Item SOLEBAR;
+    public static Item HEADSTOCK;
+    public static Item CROSSMEMBER;
+    public static Item BODY_BOLSTER;
+    public static Item TRUSS_RODS;
+    public static Item BUFFER_PATTERN;
+    public static Item BUFFER_STOCK;
+    public static Item CARRIAGE_BUFFER;
+    public static Item SCREW_COUPLING;
+    public static Item FLOOR_SECTION;
+    public static Item SIDE_FRAME;
+    public static Item END_FRAME;
+    public static Item STEEL_SIDE_PANEL;
+    public static Item WOOD_SIDE_PANEL;
+    public static Item CARRIAGE_DOOR;
+    public static Item END_PANEL;
+    public static Item ROOF_SECTION;
+    public static Item BENCH_SEAT;
+    public static Item LUGGAGE_RACK;
+    public static Item CEILING_LAMP;
+    public static Item CARRIAGE_SCREEN;
 
     public static EntityType<HandTrolley> HAND_TROLLEY_ENTITY;
     public static EntityType<Bogie> BOGIE_ENTITY;
     public static final TicketType TROLLEY_TICKET = new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
+    public static final TicketType TRAIN_TICKET = new TicketType(600L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
 
     public static BlockEntityType<CokeOvenBlockEntity> COKE_OVEN_ENTITY;
     public static BlockEntityType<CreosoteVatBlockEntity> VAT_ENTITY;
@@ -315,6 +342,32 @@ public final class ModContent {
         r.accept(RailWorks.id("bogie"), BOGIE);
         blockItem(r, LATHE, "lathe");
         blockItem(r, PILLAR_DRILL, "pillar_drill");
+        RIVETS = simple(r, "rivets");
+        RIVET_PATTERN = pattern(r, "rivet_pattern");
+        STEEL_BEAM = simple(r, "steel_beam");
+        BEAM_PATTERN = pattern(r, "beam_pattern");
+        ROLLED_SOLEBAR = part(r, "rolled_solebar");
+        SOLEBAR = part(r, "solebar");
+        HEADSTOCK = part(r, "headstock");
+        CROSSMEMBER = part(r, "crossmember");
+        BODY_BOLSTER = part(r, "body_bolster");
+        TRUSS_RODS = part(r, "truss_rods");
+        BUFFER_PATTERN = pattern(r, "buffer_pattern");
+        BUFFER_STOCK = simple(r, "buffer_stock");
+        CARRIAGE_BUFFER = part(r, "carriage_buffer");
+        SCREW_COUPLING = part(r, "screw_coupling");
+        FLOOR_SECTION = part(r, "floor_section");
+        SIDE_FRAME = part(r, "side_frame");
+        END_FRAME = part(r, "end_frame");
+        STEEL_SIDE_PANEL = part(r, "steel_side_panel");
+        WOOD_SIDE_PANEL = part(r, "wood_side_panel");
+        CARRIAGE_DOOR = part(r, "carriage_door");
+        END_PANEL = part(r, "end_panel");
+        ROOF_SECTION = part(r, "roof_section");
+        BENCH_SEAT = part(r, "bench_seat");
+        LUGGAGE_RACK = part(r, "luggage_rack");
+        CEILING_LAMP = part(r, "ceiling_lamp");
+        CARRIAGE_SCREEN = part(r, "carriage_screen");
     }
 
     public static void registerEntities(BiConsumer<Identifier, EntityType<?>> r) {
@@ -330,9 +383,16 @@ public final class ModContent {
 
     public static void registerTicketTypes(BiConsumer<Identifier, TicketType> r) {
         r.accept(RailWorks.id("hand_trolley"), TROLLEY_TICKET);
+        r.accept(RailWorks.id("train"), TRAIN_TICKET);
     }
 
     private static Item pattern(BiConsumer<Identifier, Item> r, String name) {
+        Item i = new Item(item(name).stacksTo(16));
+        r.accept(RailWorks.id(name), i);
+        return i;
+    }
+
+    private static Item part(BiConsumer<Identifier, Item> r, String name) {
         Item i = new Item(item(name).stacksTo(16));
         r.accept(RailWorks.id(name), i);
         return i;
@@ -426,6 +486,32 @@ public final class ModContent {
                     out.accept(BOLSTER);
                     out.accept(TOW_BAR);
                     out.accept(BOGIE);
+                    out.accept(RIVETS);
+                    out.accept(RIVET_PATTERN);
+                    out.accept(STEEL_BEAM);
+                    out.accept(BEAM_PATTERN);
+                    out.accept(ROLLED_SOLEBAR);
+                    out.accept(SOLEBAR);
+                    out.accept(HEADSTOCK);
+                    out.accept(CROSSMEMBER);
+                    out.accept(BODY_BOLSTER);
+                    out.accept(TRUSS_RODS);
+                    out.accept(BUFFER_PATTERN);
+                    out.accept(BUFFER_STOCK);
+                    out.accept(CARRIAGE_BUFFER);
+                    out.accept(SCREW_COUPLING);
+                    out.accept(FLOOR_SECTION);
+                    out.accept(SIDE_FRAME);
+                    out.accept(END_FRAME);
+                    out.accept(STEEL_SIDE_PANEL);
+                    out.accept(WOOD_SIDE_PANEL);
+                    out.accept(CARRIAGE_DOOR);
+                    out.accept(END_PANEL);
+                    out.accept(ROOF_SECTION);
+                    out.accept(BENCH_SEAT);
+                    out.accept(LUGGAGE_RACK);
+                    out.accept(CEILING_LAMP);
+                    out.accept(CARRIAGE_SCREEN);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);

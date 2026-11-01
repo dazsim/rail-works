@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "T": "railworks:treated_planks",
+    "G": "minecraft:glass_pane"
+  },
+  "pattern": [
+    "T",
+    "G",
+    "T"
+  ],
+  "result": {
+    "id": "railworks:carriage_screen"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:glass",
+    "minecraft:copper_ingot",
+    "minecraft:torch"
+  ],
+  "result": {
+    "id": "railworks:ceiling_lamp"
+  }
+}

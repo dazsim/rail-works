@@ -60,10 +60,10 @@ public class MouldBlockEntity extends BlockEntity {
     public int fill(int max) {
         MouldStage stage = stage();
         if (stage != MouldStage.READY && stage != MouldStage.FILLING) return 0;
-        int take = Math.min(max, block().kind.need - amount);
+        int take = Math.min(max, block().kind.need(pattern) - amount);
         if (take <= 0) return 0;
         amount += take;
-        if (amount >= block().kind.need) {
+        if (amount >= block().kind.need(pattern)) {
             timer = COOL_TICKS;
             setStage(MouldStage.HOT);
             level.playSound(null, worldPosition, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.6F, 1.2F);

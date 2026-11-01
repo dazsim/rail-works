@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "railworks:steel_ingot",
+    "minecraft:iron_chain",
+    "minecraft:iron_ingot"
+  ],
+  "result": {
+    "id": "railworks:screw_coupling"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "W": "minecraft:white_dye",
+    "P": "railworks:steel_plate",
+    "T": "railworks:treated_planks",
+    "N": "minecraft:brown_dye"
+  },
+  "pattern": [
+    "GWG",
+    "PTP",
+    " N "
+  ],
+  "result": {
+    "id": "railworks:steel_side_panel"
+  }
+}

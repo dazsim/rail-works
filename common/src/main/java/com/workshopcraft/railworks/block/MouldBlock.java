@@ -52,12 +52,15 @@ public class MouldBlock extends BaseEntityBlock {
                 cast(() -> ModContent.AXLE_PATTERN, () -> new ItemStack(ModContent.AXLE)),
                 cast(() -> ModContent.CARRIAGE_AXLE_PATTERN, () -> new ItemStack(ModContent.ROUGH_CARRIAGE_AXLE)),
                 cast(() -> ModContent.PLATE_PATTERN, () -> new ItemStack(ModContent.STEEL_PLATE)),
-                cast(() -> ModContent.SPRING_PATTERN, () -> new ItemStack(ModContent.BOGIE_SPRING))),
+                cast(() -> ModContent.SPRING_PATTERN, () -> new ItemStack(ModContent.BOGIE_SPRING)),
+                cast(() -> ModContent.RIVET_PATTERN, () -> new ItemStack(ModContent.RIVETS, 16)),
+                cast(() -> ModContent.BEAM_PATTERN, () -> new ItemStack(ModContent.STEEL_BEAM), 2)),
         INGOT(4 * BrickFurnaceBlockEntity.INGOT, false,
                 cast(() -> ModContent.INGOT_PATTERN, () -> new ItemStack(ModContent.STEEL_INGOT, 4)),
                 cast(() -> ModContent.WHEEL_PATTERN, () -> new ItemStack(ModContent.WHEEL, 4)),
                 cast(() -> ModContent.CARRIAGE_WHEEL_PATTERN, () -> new ItemStack(ModContent.ROUGH_CARRIAGE_WHEEL, 2)),
-                cast(() -> ModContent.AXLE_BOX_PATTERN, () -> new ItemStack(ModContent.ROUGH_AXLE_BOX, 4)));
+                cast(() -> ModContent.AXLE_BOX_PATTERN, () -> new ItemStack(ModContent.ROUGH_AXLE_BOX, 4)),
+                cast(() -> ModContent.BUFFER_PATTERN, () -> new ItemStack(ModContent.BUFFER_STOCK, 4)));
 
         public final int need;
         public final boolean longBox;
@@ -74,6 +77,11 @@ public class MouldBlock extends BaseEntityBlock {
             return casts[Math.floorMod(i, casts.length)].pattern.get();
         }
 
+        /** Molten steel a cast takes; most take what the box holds, a beam twice a bar's. */
+        public int need(int i) {
+            return need * casts[Math.floorMod(i, casts.length)].times;
+        }
+
         public ItemStack result(int i) {
             return casts[Math.floorMod(i, casts.length)].result.get();
         }
@@ -84,10 +92,14 @@ public class MouldBlock extends BaseEntityBlock {
         }
     }
 
-    private record Cast(Supplier<Item> pattern, Supplier<ItemStack> result) {}
+    private record Cast(Supplier<Item> pattern, Supplier<ItemStack> result, int times) {}
 
     private static Cast cast(Supplier<Item> pattern, Supplier<ItemStack> result) {
-        return new Cast(pattern, result);
+        return new Cast(pattern, result, 1);
+    }
+
+    private static Cast cast(Supplier<Item> pattern, Supplier<ItemStack> result, int times) {
+        return new Cast(pattern, result, times);
     }
 
     private static final Map<Direction, VoxelShape[]> SHAPES = new EnumMap<>(Direction.class);
