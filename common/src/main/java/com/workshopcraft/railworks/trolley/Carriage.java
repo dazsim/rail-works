@@ -630,6 +630,11 @@ public class Carriage extends RailVehicle {
             Slot s = CarriageLayout.SLOTS.get(j);
             return (s.door() >= 0 || s.group().equals("bench")) && CarriageLayout.secure(st, j);
         }, true);
+        // an open doorway is looked through: a bench behind it wins, and the door shuts from above the benches
+        if (i >= 0 && CarriageLayout.SLOTS.get(i).door() >= 0 && (doors() >> CarriageLayout.SLOTS.get(i).door() & 1) != 0) {
+            int b = aimed(player, j -> CarriageLayout.SLOTS.get(j).group().equals("bench") && CarriageLayout.secure(st, j), true);
+            if (b >= 0) i = b;
+        }
         Slot s = i < 0 ? null : CarriageLayout.SLOTS.get(i);
         if (s != null && s.door() >= 0) {
             boolean open = (doors() >> s.door() & 1) != 0;
