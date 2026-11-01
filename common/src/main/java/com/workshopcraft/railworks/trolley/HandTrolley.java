@@ -81,6 +81,7 @@ public class HandTrolley extends RailVehicle {
     private boolean squealing;
     private int hudHold, squealCooldown, brakeCooldown;
     private boolean wasRidden;
+    private int towing;
     private final Report report = new Report();
 
     public HandTrolley(EntityType<? extends HandTrolley> type, Level level) {
@@ -385,8 +386,8 @@ public class HandTrolley extends RailVehicle {
     // strong push from rest, a flat middle that sets the 1 in 20 climb, then a fall to the top speed;
     // towing, the curve slows to a lower top and the push is shared over the extra mass
     static double pumpForce(double v, boolean one, int bogies, double load) {
-        double[] tops = one ? new double[]{6, 4.5, 3.5} : new double[]{7.5, 6, 5};
-        double top = tops[Math.min(bogies, 2)], sc = top / tops[0];
+        double[] tops = one ? new double[]{6, 4.5, 3.5, 2.5} : new double[]{7.5, 6, 5, 3.5};
+        double top = tops[Math.min(bogies, 3)], sc = top / tops[0];
         double f0 = (one ? 1.5 : 2.2) / load, flat = (one ? 0.61 : 0.67) / load, v1 = (one ? 3 : 4) * sc, v2 = (one ? 5.3 : 6.9) * sc;
         if (v < 0) return f0;
         if (v < v1) return f0 - (f0 - flat) * v / v1;
@@ -443,14 +444,10 @@ public class HandTrolley extends RailVehicle {
         if (t == null) return;
         List<Member> ms = t.members;
         double m = mass(ms), load = m / ownMass();
-        int bogies = 0;
+        int bogies = Math.min(points(ms), TROLLEY_POINTS);
+        towing = vehicles(ms) - 1;
         List<Entity> safe = new ArrayList<>();
-        for (Member x : ms) {
-            if (x.v() instanceof Bogie b) {
-                bogies++;
-                b.towedBrake(false);
-            }
-        }
+        for (Member x : ms) if (x.v() != this) x.v().towedBrake(false);
         pushersOf(ms, safe);
         byte[] pump = new byte[1];
         double force = thrust(inputs, looks, u, pump, bogies, load) + pushForce(ms, m) + gradeForce(ms, m);
@@ -496,8 +493,7 @@ public class HandTrolley extends RailVehicle {
         MutableComponent grade = TrackActions.gradeText(g);
         if (Math.abs(g) >= 1e-4) grade.append(Component.translatable(g > 0 ? "railworks.trolley.up" : "railworks.trolley.down"));
         MutableComponent c = Component.translatable("railworks.trolley.hud", String.format(java.util.Locale.ROOT, "%.1f", Math.abs(u)), grade);
-        int bogies = entityData.get(DATA_BOGIES);
-        if (bogies > 0) c.append(Component.translatable("railworks.trolley.towing", bogies));
+        if (towing > 0) c.append(Component.translatable("railworks.trolley.towing", towing));
         if (braking()) c.append(Component.translatable("railworks.trolley.brake_on"));
         tell(c, false);
     }

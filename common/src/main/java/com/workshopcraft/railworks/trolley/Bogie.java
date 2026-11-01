@@ -84,10 +84,6 @@ public class Bogie extends RailVehicle {
         return RUN_DOWN;
     }
 
-    void towedBrake(boolean on) {
-        entityData.set(DATA_BRAKE, on);
-    }
-
     // ---------------------------------------------------------------- placing and taking off
 
     /** Puts a bogie frame (or a whole bogie) on the nearest live track, facing the way the player looks. */
@@ -127,6 +123,7 @@ public class Bogie extends RailVehicle {
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+        if (mounted() && leader() != null) return leader().hurtServer(level, source, damage);
         if (source.getEntity() instanceof Player p && p.getMainHandItem().is(ModContent.HAMMER) && !p.isSecondaryUseActive()) hammer(level, p);
         return false;
     }
@@ -136,6 +133,9 @@ public class Bogie extends RailVehicle {
         ItemStack held = player.getItemInHand(hand);
         int st = stage();
         if (held.is(ModContent.TOW_BAR)) return Coupling.click(this, player, location, held);
+        RailVehicle body = mounted() ? leader() : null;
+        if (body != null && (held.is(ModContent.HAMMER) || held.isEmpty() || CarriageLayout.isPart(held.getItem()))) return body.interact(player, hand, location);
+        if (held.is(ModContent.SOLEBAR) && done() && !mounted()) return Carriage.start(this, player, held);
         if (held.is(ModContent.HAMMER)) {
             if (level() instanceof ServerLevel sl) {
                 if (!player.isSecondaryUseActive()) hammer(sl, player);
@@ -220,7 +220,7 @@ public class Bogie extends RailVehicle {
         List<Entity> safe = new ArrayList<>();
         pushersOf(ms, safe);
         Entity driver = safe.isEmpty() ? null : safe.getFirst();
-        for (Member x : ms) if (x.v() instanceof Bogie b) b.towedBrake(!pushed);
+        for (Member x : ms) if (!x.v().isTrolley()) x.v().towedBrake(!pushed);
         double force = pushForce(ms, m) + gradeForce(ms, m);
         double drag = 0.08 + 0.004 * u * u + (pushed ? 0 : BRAKE);
         drive(level, t, force, drag, false, new Ride(driver, 0.25f, safe), false);
@@ -231,7 +231,7 @@ public class Bogie extends RailVehicle {
         super.moved(level, r, ds, changed, ride);
         double speed = Math.abs(ds) / DT;
         if (speed > 0.3 && --rumble <= 0) {
-            play(level, SoundEvents.DEEPSLATE_BRICKS_STEP, 0.15f + (float) speed * 0.04f, 0.5f + (float) speed * 0.02f);
+            play(level, SoundEvents.DEEPSLATE_BRICKS_STEP, 0.15f + (float) speed * 0.04f, (mounted() ? 0.35f : 0.5f) + (float) speed * 0.02f);
             rumble = Mth.clamp((int) (10 - speed * 1.5), 3, 10);
         }
     }

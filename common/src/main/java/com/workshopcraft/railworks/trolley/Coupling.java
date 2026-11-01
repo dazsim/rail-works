@@ -29,7 +29,7 @@ final class Coupling {
         // boxes overlap where vehicles stand close, so take the tow eye nearest the player's line of sight
         Vec3 o = player.getEyePosition(), d = player.getLookAngle();
         double best = 1.2;
-        for (RailVehicle x : level.getEntitiesOfClass(RailVehicle.class, v.getBoundingBox().inflate(4), RailVehicle::isAlive)) {
+        for (RailVehicle x : level.getEntitiesOfClass(RailVehicle.class, v.getBoundingBox().inflate(4), x -> x.isAlive() && !x.mounted())) {
             for (int e = -1; e <= 1; e += 2) {
                 Vec3 w = x.eye(e).subtract(o);
                 double t = w.dot(d), miss = t < 0 ? w.length() : w.subtract(d.scale(t)).length();
@@ -76,15 +76,21 @@ final class Coupling {
         return InteractionResult.SUCCESS;
     }
 
-    private static String check(ServerLevel level, RailVehicle a, int ea, RailVehicle b, int eb) {
+    static String check(ServerLevel level, RailVehicle a, int ea, RailVehicle b, int eb) {
+        return check(level, a, ea, b, eb, RailVehicle.BAR_REACH, RailVehicle.MAX_BOGIES);
+    }
+
+    /** Why two ends may not couple, or null; reach is how far apart they may be, loose how many points go without a trolley. */
+    static String check(ServerLevel level, RailVehicle a, int ea, RailVehicle b, int eb, double reach, int loose) {
         List<RailVehicle.Member> ca = a.consist(), cb = b.consist();
         if (ca.stream().anyMatch(m -> m.v() == b)) return "same";
         long trolleys = ca.stream().filter(m -> m.v().isTrolley()).count() + cb.stream().filter(m -> m.v().isTrolley()).count();
-        long bogies = ca.size() + cb.size() - trolleys;
+        int points = RailVehicle.points(ca) + RailVehicle.points(cb);
         if (trolleys > 1) return "two_trolleys";
-        if (bogies > RailVehicle.MAX_BOGIES) return "too_many";
-        TrackRunner.Contact c = TrackRunner.ahead(level, a, ea * a.f(), RailVehicle.BAR_REACH);
-        TrackRunner.Contact d = TrackRunner.ahead(level, b, eb * b.f(), RailVehicle.BAR_REACH);
+        if (RailVehicle.vehicles(ca) + RailVehicle.vehicles(cb) > RailVehicle.MAX_VEHICLES) return "too_long";
+        if (points > (trolleys > 0 ? RailVehicle.TROLLEY_POINTS : loose)) return trolleys > 0 ? "too_heavy" : "too_many";
+        TrackRunner.Contact c = TrackRunner.ahead(level, a, ea * a.f(), reach);
+        TrackRunner.Contact d = TrackRunner.ahead(level, b, eb * b.f(), reach);
         if (c == null || c.other() != b || d == null || d.other() != a) return "not_lined";
         return null;
     }

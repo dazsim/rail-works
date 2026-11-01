@@ -54,7 +54,9 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     static final double HIT_MIN = 1.5, HIT_TOP = 12, HIT_KNOCK = 0.45, HIT_LIFT = 0.3, HIT_SLOW = 0.9;
     // pushing by hand: force per pusher, the speed it fades out at
     static final double PUSH_F = 1.6, PUSH_TOP = 2.5;
-    static final int MAX_BOGIES = 2;
+    static final int MAX_BOGIES = 2, MAX_VEHICLES = 8, TROLLEY_POINTS = 3;
+    /** How a vehicle hangs on its leader: by a tow bar, carried under a carriage, or by a screw coupling. */
+    public static final int BAR = 0, MOUNT = 1, SCREW = 2;
 
     static final EntityDataAccessor<Long> DATA_SEG = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.LONG);
     static final EntityDataAccessor<Float> DATA_S = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.FLOAT);
@@ -84,7 +86,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     protected boolean endBraking;
     private int lastSync, towLost;
     private @Nullable UUID towId;
-    private int towSign = 1, towEnd = 1;
+    private int towSign = 1, towEnd = 1, towKind = BAR;
     /** Everyone pushing by hand just now, each with the way they push, +1 towards our front. */
     protected final List<Push> pushers = new ArrayList<>();
 
@@ -116,6 +118,10 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     }
 
     public abstract int doneStage();
+
+    void towedBrake(boolean on) {
+        entityData.set(DATA_BRAKE, on);
+    }
 
     public boolean done() {
         return stage() >= doneStage();
@@ -160,7 +166,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
 
     @Override
     public boolean isPickable() {
-        return !isRemoved();
+        return !isRemoved() && !mounted();
     }
 
     @Override
@@ -202,7 +208,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     /** A sneaking hammer blow near a vehicle takes off a tow bar it touches, or else the vehicle itself. */
     public static boolean hammerNear(ServerLevel level, Player player, Vec3 at) {
         AABB box = new AABB(at, at).inflate(1.8, 1.2, 1.8);
-        for (RailVehicle v : level.getEntitiesOfClass(RailVehicle.class, box.inflate(4), RailVehicle::towed)) {
+        for (RailVehicle v : level.getEntitiesOfClass(RailVehicle.class, box.inflate(4), x -> x.towed() && x.towKind() == BAR)) {
             RailVehicle l = v.leader();
             if (l == null) continue;
             Vec3 a = v.eye(v.towEnd()), b = l.eye(v.leaderEnd());
@@ -212,7 +218,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             }
         }
         RailVehicle best = null;
-        for (RailVehicle t : level.getEntitiesOfClass(RailVehicle.class, box, e -> e.getPassengers().isEmpty()))
+        for (RailVehicle t : level.getEntitiesOfClass(RailVehicle.class, box, e -> e.getPassengers().isEmpty() && !e.mounted() && !(e instanceof Carriage)))
             if (best == null || t.distanceToSqr(at) < best.distanceToSqr(at)) best = t;
         if (best == null || best.distanceToSqr(player) > 36) return false;
         best.uncoupleAll(level, player);
@@ -231,12 +237,12 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         int end = endAt(loc);
         double hf = frontHeading(), a = Math.abs(loc.x * Math.cos(hf) + loc.z * Math.sin(hf));
         if (a < eyeReach() - 0.7) return false;
-        if (towed() && towEnd() == end) {
+        if (towed() && !mounted() && towEnd() == end) {
             uncouple(level, player);
             return true;
         }
         for (RailVehicle f : followers()) {
-            if (f.leaderEnd() == end) {
+            if (!f.mounted() && f.leaderEnd() == end) {
                 f.uncouple(level, player);
                 return true;
             }
@@ -271,6 +277,20 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         return level().isClientSide() ? ((entityData.get(DATA_TOW_END) & 1) != 0 ? 1 : -1) : towEnd;
     }
 
+    public int towKind() {
+        return level().isClientSide() ? (entityData.get(DATA_TOW_END) >> 2) & 3 : towKind;
+    }
+
+    /** Carried under a carriage, which does its moving, coupling and clicking for it. */
+    public boolean mounted() {
+        return towed() && towKind() == MOUNT;
+    }
+
+    @Override
+    public boolean trackContact() {
+        return !mounted();
+    }
+
     /** The leader's end the bar is on. */
     public int leaderEnd() {
         return -towSign() * towEnd();
@@ -279,12 +299,12 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     List<RailVehicle> followers() {
         if (!(level() instanceof ServerLevel)) return List.of();
         UUID me = getUUID();
-        return level().getEntitiesOfClass(RailVehicle.class, getBoundingBox().inflate(12), v -> v != this && me.equals(v.towId));
+        return level().getEntitiesOfClass(RailVehicle.class, getBoundingBox().inflate(24), v -> v != this && me.equals(v.towId));
     }
 
     public RailVehicle root() {
         RailVehicle v = this;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 32; i++) {
             RailVehicle l = v.leader();
             if (l == null || l == this) break;
             v = l;
@@ -296,7 +316,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     public List<Member> consist() {
         List<Member> out = new ArrayList<>();
         out.add(new Member(root(), 1));
-        for (int i = 0; i < out.size() && out.size() < 8; i++) {
+        for (int i = 0; i < out.size() && out.size() < 32; i++) {
             Member m = out.get(i);
             for (RailVehicle f : m.v.followers()) if (out.stream().noneMatch(o -> o.v == f)) out.add(new Member(f, m.sign * f.towSign));
         }
@@ -313,7 +333,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     private int rootK() {
         int sign = 1;
         RailVehicle v = this;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 32; i++) {
             RailVehicle l = v.leader();
             if (l == null) break;
             sign *= v.towSign();
@@ -324,14 +344,37 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
 
     public boolean coupledAt(int end) {
         if (towed() && towEnd() == end) return true;
-        for (RailVehicle f : followers()) if (f.leaderEnd() == end) return true;
+        for (RailVehicle f : followers()) if (!f.mounted() && f.leaderEnd() == end) return true;
         return false;
     }
 
+    /** The vehicles a coupling rule counts: everything but the bogies under carriages. */
+    static int vehicles(List<Member> ms) {
+        int n = 0;
+        for (Member m : ms) if (!m.v().mounted()) n++;
+        return n;
+    }
+
+    /** What a trolley tows, a loose bogie 1 and a carriage 3, set against how hard it pumps. */
+    static int points(List<Member> ms) {
+        int n = 0;
+        for (Member m : ms) n += m.v().towPoints();
+        return n;
+    }
+
+    protected int towPoints() {
+        return isTrolley() || mounted() ? 0 : 1;
+    }
+
     void setTow(@Nullable RailVehicle leader, int sign, int end) {
+        setTow(leader, sign, end, BAR);
+    }
+
+    void setTow(@Nullable RailVehicle leader, int sign, int end, int kind) {
         towId = leader == null ? null : leader.getUUID();
         towSign = sign;
         towEnd = end;
+        towKind = leader == null ? BAR : kind;
         towLost = 0;
         topology++;
         if (leader != null) train = null;
@@ -340,25 +383,30 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
 
     private void syncTow(@Nullable RailVehicle leader) {
         entityData.set(DATA_TOW, leader == null ? 0 : leader.getId() + 1);
-        entityData.set(DATA_TOW_END, (byte) ((towEnd > 0 ? 1 : 0) | (towSign > 0 ? 2 : 0)));
+        entityData.set(DATA_TOW_END, towBits());
+    }
+
+    private byte towBits() {
+        return (byte) ((towEnd > 0 ? 1 : 0) | (towSign > 0 ? 2 : 0) | towKind << 2);
     }
 
     /** Makes this vehicle the root, turning the bars on the way up round. */
     static void reroot(RailVehicle v) {
         List<RailVehicle> path = new ArrayList<>();
         path.add(v);
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 32; i++) {
             RailVehicle l = path.getLast().leader();
             if (l == null || path.contains(l)) break;
             path.add(l);
         }
         int n = path.size();
-        int[] sign = new int[n], end = new int[n];
+        int[] sign = new int[n], end = new int[n], kind = new int[n];
         for (int i = 0; i < n - 1; i++) {
             sign[i] = path.get(i).towSign;
             end[i] = path.get(i).leaderEnd();
+            kind[i] = path.get(i).towKind;
         }
-        for (int i = 0; i < n - 1; i++) path.get(i + 1).setTow(path.get(i), sign[i], end[i]);
+        for (int i = 0; i < n - 1; i++) path.get(i + 1).setTow(path.get(i), sign[i], end[i], kind[i]);
         v.setTow(null, 1, 1);
     }
 
@@ -366,17 +414,20 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     public void uncouple(ServerLevel level, @Nullable Player player) {
         if (towId == null) return;
         RailVehicle l = leader();
+        int kind = towKind;
         Vec3 at = l == null ? position() : eye(towEnd()).add(l.eye(leaderEnd())).scale(0.5);
         setTow(null, 1, 1);
-        give(level, player, new ItemStack(ModContent.TOW_BAR), at);
-        level.playSound(null, at.x, at.y, at.z, SoundEvents.CHAIN_BREAK, SoundSource.NEUTRAL, 0.7f, 1.1f);
-        if (player != null) say(player, Component.translatable("message.railworks.tow.uncoupled"));
+        if (kind == MOUNT) return;
+        if (kind == BAR) give(level, player, new ItemStack(ModContent.TOW_BAR), at);
+        level.playSound(null, at.x, at.y, at.z, SoundEvents.CHAIN_BREAK, SoundSource.NEUTRAL, 0.7f, kind == SCREW ? 0.8f : 1.1f);
+        if (player != null) say(player, Component.translatable(kind == SCREW ? "message.railworks.carriage.uncoupled" : "message.railworks.tow.uncoupled"));
         if (ECHO) LOG.info("[tow] uncoupled {}", getType().toShortString());
     }
 
+    /** Every coupling to other vehicles; bogies under a carriage stay put. */
     public void uncoupleAll(ServerLevel level, @Nullable Player player) {
-        uncouple(level, player);
-        for (RailVehicle f : followers()) f.uncouple(level, player);
+        if (!mounted()) uncouple(level, player);
+        for (RailVehicle f : followers()) if (!f.mounted()) f.uncouple(level, player);
     }
 
     public Vec3 eye(int end) {
@@ -590,7 +641,11 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             moved[i] = seg0 == v.seg && f0 == v.front ? v.s - s0 : moved[i];
             v.placeOn(p.rail());
         }
+        for (Member m : t.members) m.v().afterPlace();
     }
+
+    /** Called once every member of its train is placed, for bodies that sit on others, like a carriage on its bogies. */
+    public void afterPlace() {}
 
     /** Along a member's +s for each unit along the root's +s. */
     private int k(Train t, int i) {
@@ -728,8 +783,8 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     double pushForce(List<Member> ms, double m) {
         int n = pusherCount(ms);
         if (n == 0) return 0;
-        double top = 0;
-        for (Member x : ms) top = Math.max(top, x.v.pushTop(n));
+        double top = Double.MAX_VALUE;
+        for (Member x : ms) top = Math.min(top, x.v.pushTop(n));
         double f = 0;
         for (Member x : ms) {
             if (!x.v.pushed()) continue;
@@ -908,7 +963,19 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             LOG.info("[train] {} members at {} b/s over {} sections, gaps{}", n, String.format(java.util.Locale.ROOT, "%.2f", Math.abs(u)), t.steps.size(), b);
         }
         sendTrain(level, t, ds != 0 || u != 0);
+        if (tickCount % 20 == 0 && (ds != 0 || u != 0 || ridden(ms)))
+            for (Member x : ms) if (x.v().holdsChunks()) level.getChunkSource().addTicketWithRadius(ModContent.TRAIN_TICKET, ChunkPos.containing(x.v().blockPosition()), 3);
         return ds;
+    }
+
+    static boolean ridden(List<Member> ms) {
+        for (Member x : ms) if (!x.v().getPassengers().isEmpty()) return true;
+        return false;
+    }
+
+    /** Whether it keeps the chunks round it ticking while its train moves or is ridden. */
+    protected boolean holdsChunks() {
+        return false;
     }
 
     /** After a tick's move: wheels, clack at the joints, anyone in the way, and the clients. */
@@ -1021,7 +1088,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         return Double.NaN;
     }
 
-    private void clientTick() {
+    protected void clientTick() {
         if (level().getGameTime() - trainPlaced <= 2) return;
         // no train has placed it lately: sit where the server last said
         Rail r = rail(entityData.get(DATA_SEG));
@@ -1047,7 +1114,8 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         towId = tow.isEmpty() ? null : UUID.fromString(tow);
         towSign = in.getIntOr("tow_sign", 1);
         towEnd = in.getIntOr("tow_end", 1);
-        if (towId != null) entityData.set(DATA_TOW_END, (byte) ((towEnd > 0 ? 1 : 0) | (towSign > 0 ? 2 : 0)));
+        towKind = towId == null ? BAR : in.getIntOr("tow_kind", BAR);
+        if (towId != null) entityData.set(DATA_TOW_END, towBits());
         savedTrain = towId == null ? in.read("train", CompoundTag.CODEC).map(Train::load).orElse(null) : null;
         train = null;
         sync(true);
@@ -1064,6 +1132,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             out.putString("tow", towId.toString());
             out.putInt("tow_sign", towSign);
             out.putInt("tow_end", towEnd);
+            if (towKind != BAR) out.putInt("tow_kind", towKind);
         } else if (train != null && train.members.size() > 1) out.store("train", CompoundTag.CODEC, train.save());
     }
 }

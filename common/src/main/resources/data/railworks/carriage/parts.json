@@ -1,0 +1,85 @@
+{
+ "solebar": {
+  "item": "railworks:solebar",
+  "fix": "rivets",
+  "rivets": 8
+ },
+ "headstock": {
+  "item": "railworks:headstock",
+  "fix": "rivets",
+  "rivets": 3
+ },
+ "crossmember": {
+  "item": "railworks:crossmember",
+  "fix": "rivets",
+  "rivets": 2
+ },
+ "body_bolster": {
+  "item": "railworks:body_bolster",
+  "fix": "rivets",
+  "rivets": 3
+ },
+ "truss_rods": {
+  "item": "railworks:truss_rods",
+  "fix": "rivets",
+  "rivets": 2
+ },
+ "buffer": {
+  "item": "railworks:carriage_buffer",
+  "fix": "none"
+ },
+ "screw_coupling": {
+  "item": "railworks:screw_coupling",
+  "fix": "none"
+ },
+ "floor": {
+  "item": "railworks:floor_section",
+  "fix": "none"
+ },
+ "side_frame": {
+  "item": "railworks:side_frame",
+  "fix": "rivets",
+  "rivets": 2
+ },
+ "end_frame": {
+  "item": "railworks:end_frame",
+  "fix": "rivets",
+  "rivets": 3
+ },
+ "steel_panel": {
+  "item": "railworks:steel_side_panel",
+  "fix": "blow"
+ },
+ "wood_panel": {
+  "item": "railworks:wood_side_panel",
+  "fix": "blow"
+ },
+ "door": {
+  "item": "railworks:carriage_door",
+  "fix": "blow"
+ },
+ "end_panel": {
+  "item": "railworks:end_panel",
+  "fix": "blow"
+ },
+ "roof": {
+  "item": "railworks:roof_section",
+  "fix": "blow"
+ },
+ "bench": {
+  "item": "railworks:bench_seat",
+  "fix": "blow"
+ },
+ "rack": {
+  "item": "railworks:luggage_rack",
+  "fix": "blow"
+ },
+ "lamp": {
+  "item": "railworks:ceiling_lamp",
+  "fix": "blow"
+ },
+ "screen": {
+  "item": "railworks:carriage_screen",
+  "fix": "blow"
+ }
+}

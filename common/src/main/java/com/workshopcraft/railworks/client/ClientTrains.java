@@ -140,8 +140,9 @@ public final class ClientTrains {
             if (p == null) continue;
             // x runs towards the rear, so a member's +s speed is the train's speed times -dir
             v.placeByTrain(p.rail(), p.s(), -p.dir() * t.path.flip[i] > 0, -t.speed * p.dir(), dx * p.dir());
-            for (Entity rider : v.getPassengers()) v.positionRider(rider);
         }
+        for (RailVehicle v : vs) if (v != null) v.afterPlace();
+        for (RailVehicle v : vs) if (v != null) for (Entity rider : v.getPassengers()) v.positionRider(rider);
         if (ECHO && vs.length > 1) echo(t, vs);
     }
 

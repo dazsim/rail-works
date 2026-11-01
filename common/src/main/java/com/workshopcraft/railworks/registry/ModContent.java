@@ -25,6 +25,7 @@ import com.workshopcraft.railworks.item.LadleItem;
 import com.workshopcraft.railworks.item.TrackItems;
 import com.workshopcraft.railworks.item.TrolleyItem;
 import com.workshopcraft.railworks.trolley.Bogie;
+import com.workshopcraft.railworks.trolley.Carriage;
 import com.workshopcraft.railworks.trolley.HandTrolley;
 import com.workshopcraft.railworks.menu.BrickFurnaceMenu;
 import com.workshopcraft.railworks.menu.CokeOvenMenu;
@@ -160,6 +161,7 @@ public final class ModContent {
 
     public static EntityType<HandTrolley> HAND_TROLLEY_ENTITY;
     public static EntityType<Bogie> BOGIE_ENTITY;
+    public static EntityType<Carriage> CARRIAGE_ENTITY;
     public static final TicketType TROLLEY_TICKET = new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
     public static final TicketType TRAIN_TICKET = new TicketType(600L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
 
@@ -379,6 +381,10 @@ public final class ModContent {
         BOGIE_ENTITY = EntityType.Builder.<Bogie>of(Bogie::new, MobCategory.MISC).noLootTable()
                 .sized(2.4F, 1.0F).clientTrackingRange(10).updateInterval(3).build(bogie);
         r.accept(bogie.identifier(), BOGIE_ENTITY);
+        ResourceKey<EntityType<?>> carriage = ResourceKey.create(Registries.ENTITY_TYPE, RailWorks.id("carriage"));
+        CARRIAGE_ENTITY = EntityType.Builder.<Carriage>of(Carriage::new, MobCategory.MISC).noLootTable()
+                .sized(4.8F, 5.4F).clientTrackingRange(10).updateInterval(3).build(carriage);
+        r.accept(carriage.identifier(), CARRIAGE_ENTITY);
     }
 
     public static void registerTicketTypes(BiConsumer<Identifier, TicketType> r) {
