@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:drilled_plate",
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    "P",
+    "B",
+    "B"
+  ],
+  "result": {
+    "id": "railworks:bolster"
+  }
+}

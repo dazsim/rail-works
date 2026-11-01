@@ -1,6 +1,5 @@
 package com.workshopcraft.railworks.item;
 
-import com.workshopcraft.railworks.trolley.HandTrolley;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -11,13 +10,17 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/** The trolley frame, or a whole trolley taken off the track. Placed by right clicking near live track. */
+/** A vehicle frame, or a whole vehicle taken off the track. Placed by right clicking near live track. */
 public class TrolleyItem extends Item {
-    private final boolean complete;
+    public interface Placer {
+        boolean place(ServerLevel level, Player player, Vec3 at, ItemStack stack);
+    }
 
-    public TrolleyItem(Properties properties, boolean complete) {
+    private final Placer placer;
+
+    public TrolleyItem(Properties properties, Placer placer) {
         super(properties);
-        this.complete = complete;
+        this.placer = placer;
     }
 
     @Override
@@ -34,7 +37,7 @@ public class TrolleyItem extends Item {
     private InteractionResult place(Level level, Player player, InteractionHand hand, Vec3 at) {
         if (!(level instanceof ServerLevel sl)) return InteractionResult.SUCCESS;
         ItemStack stack = player.getItemInHand(hand);
-        if (!HandTrolley.place(sl, player, at, stack, complete)) return InteractionResult.FAIL;
+        if (!placer.place(sl, player, at, stack)) return InteractionResult.FAIL;
         if (!player.getAbilities().instabuild) stack.shrink(1);
         return InteractionResult.SUCCESS_SERVER;
     }

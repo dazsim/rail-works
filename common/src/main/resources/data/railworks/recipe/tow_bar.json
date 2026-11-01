@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "railworks:steel_ingot",
+    "B": "railworks:treated_beam"
+  },
+  "pattern": [
+    "IBI"
+  ],
+  "result": {
+    "id": "railworks:tow_bar"
+  }
+}

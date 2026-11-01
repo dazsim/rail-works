@@ -73,6 +73,63 @@
         "model": "railworks:block/roller_table_wheel_b",
         "y": 90
       }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "4|5|6"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_carriage_axle"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "5|6"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_carriage_wheel_a"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "press": "6"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_carriage_wheel_b"
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "4|5|6"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_carriage_axle",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "5|6"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_carriage_wheel_a",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "press": "6"
+      },
+      "apply": {
+        "model": "railworks:block/roller_table_carriage_wheel_b",
+        "y": 90
+      }
     }
   ]
 }

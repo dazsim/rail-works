@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "railworks:item/bogie_3d",
+    "model": {"type": "railworks:work_piece", "piece": "bogie"}
+  }
+}

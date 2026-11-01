@@ -335,7 +335,7 @@ public final class TrackActions {
             say(player, progress(g, s.seg(), player));
             return InteractionResult.SUCCESS;
         }
-        if (com.workshopcraft.railworks.trolley.HandTrolley.hammerNear(level, player, at)) return InteractionResult.SUCCESS;
+        if (com.workshopcraft.railworks.trolley.RailVehicle.hammerNear(level, player, at)) return InteractionResult.SUCCESS;
         TrackGraph.Node buf = nearestNode(g, at, 3, false, true);
         if (buf != null) {
             buf.buffer = false;

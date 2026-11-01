@@ -11,7 +11,7 @@ public final class TrolleyClient {
     private TrolleyClient() {}
 
     public static void init() {
-        HandTrolley.clientTrack = id -> {
+        com.workshopcraft.railworks.trolley.RailVehicle.clientTrack = id -> {
             TrackView.Seg s = ClientTrack.seg(id);
             return s == null ? null : new Rail(s.id, s.path, s.y, s.live);
         };

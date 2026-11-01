@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "railworks:item/tow_bar_3d",
+    "model": {"type": "railworks:work_piece", "piece": "tow_bar"}
+  }
+}

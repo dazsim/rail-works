@@ -45,6 +45,7 @@ public class RailWorksNeoForgeClient {
             e.registerBlockEntityRenderer(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new);
             e.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY, MachineRenderer::new);
             e.registerEntityRenderer(ModContent.HAND_TROLLEY_ENTITY, com.workshopcraft.railworks.client.TrolleyRenderer::new);
+            e.registerEntityRenderer(ModContent.BOGIE_ENTITY, com.workshopcraft.railworks.client.BogieRenderer::new);
         });
         modBus.addListener((RegisterSpecialModelRendererEvent e) -> e.register(WorkPieceRenderer.ID, WorkPieceRenderer.Unbaked.MAP_CODEC));
         com.workshopcraft.railworks.client.TrolleyClient.init();

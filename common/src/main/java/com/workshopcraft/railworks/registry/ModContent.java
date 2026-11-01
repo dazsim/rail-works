@@ -24,6 +24,7 @@ import com.workshopcraft.railworks.block.TrackNodeBlockEntity;
 import com.workshopcraft.railworks.item.LadleItem;
 import com.workshopcraft.railworks.item.TrackItems;
 import com.workshopcraft.railworks.item.TrolleyItem;
+import com.workshopcraft.railworks.trolley.Bogie;
 import com.workshopcraft.railworks.trolley.HandTrolley;
 import com.workshopcraft.railworks.menu.BrickFurnaceMenu;
 import com.workshopcraft.railworks.menu.CokeOvenMenu;
@@ -125,8 +126,14 @@ public final class ModContent {
     public static Item ROUGH_AXLE_BOX;
     public static Item AXLE_BOX;
     public static Item BOGIE_SPRING;
+    public static Item CARRIAGE_WHEELSET;
+    public static Item BOGIE_FRAME;
+    public static Item BOLSTER;
+    public static Item TOW_BAR;
+    public static Item BOGIE;
 
     public static EntityType<HandTrolley> HAND_TROLLEY_ENTITY;
+    public static EntityType<Bogie> BOGIE_ENTITY;
     public static final TicketType TROLLEY_TICKET = new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
 
     public static BlockEntityType<CokeOvenBlockEntity> COKE_OVEN_ENTITY;
@@ -274,13 +281,13 @@ public final class ModContent {
         AXLE = simple(r, "axle");
         WHEELSET = new Item(item("wheelset").stacksTo(16));
         r.accept(RailWorks.id("wheelset"), WHEELSET);
-        TROLLEY_FRAME = new TrolleyItem(item("trolley_frame").stacksTo(1), false);
+        TROLLEY_FRAME = new TrolleyItem(item("trolley_frame").stacksTo(1), (l, pl, at, s) -> HandTrolley.place(l, pl, at, s, false));
         r.accept(RailWorks.id("trolley_frame"), TROLLEY_FRAME);
         TROLLEY_PUMP = new Item(item("trolley_pump").stacksTo(1));
         r.accept(RailWorks.id("trolley_pump"), TROLLEY_PUMP);
         TROLLEY_BRAKE = new Item(item("trolley_brake").stacksTo(1));
         r.accept(RailWorks.id("trolley_brake"), TROLLEY_BRAKE);
-        HAND_TROLLEY = new TrolleyItem(item("hand_trolley").stacksTo(1), true);
+        HAND_TROLLEY = new TrolleyItem(item("hand_trolley").stacksTo(1), (l, pl, at, s) -> HandTrolley.place(l, pl, at, s, true));
         r.accept(RailWorks.id("hand_trolley"), HAND_TROLLEY);
         CARRIAGE_WHEEL_PATTERN = pattern(r, "carriage_wheel_pattern");
         CARRIAGE_AXLE_PATTERN = pattern(r, "carriage_axle_pattern");
@@ -296,6 +303,16 @@ public final class ModContent {
         ROUGH_AXLE_BOX = simple(r, "rough_axle_box");
         AXLE_BOX = simple(r, "axle_box");
         BOGIE_SPRING = simple(r, "bogie_spring");
+        CARRIAGE_WHEELSET = new Item(item("carriage_wheelset").stacksTo(4));
+        r.accept(RailWorks.id("carriage_wheelset"), CARRIAGE_WHEELSET);
+        BOGIE_FRAME = new TrolleyItem(item("bogie_frame").stacksTo(1), (l, pl, at, s) -> Bogie.place(l, pl, at, false));
+        r.accept(RailWorks.id("bogie_frame"), BOGIE_FRAME);
+        BOLSTER = new Item(item("bolster").stacksTo(4));
+        r.accept(RailWorks.id("bolster"), BOLSTER);
+        TOW_BAR = new Item(item("tow_bar").stacksTo(16));
+        r.accept(RailWorks.id("tow_bar"), TOW_BAR);
+        BOGIE = new TrolleyItem(item("bogie").stacksTo(1), (l, pl, at, s) -> Bogie.place(l, pl, at, true));
+        r.accept(RailWorks.id("bogie"), BOGIE);
         blockItem(r, LATHE, "lathe");
         blockItem(r, PILLAR_DRILL, "pillar_drill");
     }
@@ -305,6 +322,10 @@ public final class ModContent {
         HAND_TROLLEY_ENTITY = EntityType.Builder.<HandTrolley>of(HandTrolley::new, MobCategory.MISC).noLootTable()
                 .sized(2.0F, 1.0F).clientTrackingRange(10).updateInterval(3).build(key);
         r.accept(key.identifier(), HAND_TROLLEY_ENTITY);
+        ResourceKey<EntityType<?>> bogie = ResourceKey.create(Registries.ENTITY_TYPE, RailWorks.id("bogie"));
+        BOGIE_ENTITY = EntityType.Builder.<Bogie>of(Bogie::new, MobCategory.MISC).noLootTable()
+                .sized(2.4F, 1.0F).clientTrackingRange(10).updateInterval(3).build(bogie);
+        r.accept(bogie.identifier(), BOGIE_ENTITY);
     }
 
     public static void registerTicketTypes(BiConsumer<Identifier, TicketType> r) {
@@ -400,6 +421,11 @@ public final class ModContent {
                     out.accept(ROUGH_AXLE_BOX);
                     out.accept(AXLE_BOX);
                     out.accept(BOGIE_SPRING);
+                    out.accept(CARRIAGE_WHEELSET);
+                    out.accept(BOGIE_FRAME);
+                    out.accept(BOLSTER);
+                    out.accept(TOW_BAR);
+                    out.accept(BOGIE);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);

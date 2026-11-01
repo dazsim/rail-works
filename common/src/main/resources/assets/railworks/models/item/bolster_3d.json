@@ -1,0 +1,4 @@
+{
+  "parent": "railworks:item/work_piece",
+  "textures": {"particle": "railworks:item/tie"}
+}
