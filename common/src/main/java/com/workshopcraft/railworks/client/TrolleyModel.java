@@ -42,9 +42,10 @@ public class TrolleyModel extends EntityModel<TrolleyRenderState> {
         return p.addOrReplaceChild(name, CubeListBuilder.create(), PartPose.offset((float) (x * 16), (float) (y * 16), (float) (z * 16)));
     }
 
+    /** Each turned box is a little thinner than the last, so no two faces share a plane. */
     private static void disc(PartDefinition p, Zone zone, double cx, double cy, double cz, double r, double t) {
-        double b = r * Math.tan(Math.PI / 8) * 1.08;
-        for (int i = 0; i < 4; i++) box(p, zone, cx, cy, cz, 2 * r, 2 * b, t, i * Math.PI / 4, 0);
+        double b = r * Math.tan(Math.PI / 8) * 1.08, e = Math.min(0.006, t * 0.12);
+        for (int i = 0; i < 4; i++) box(p, zone, cx, cy, cz, 2 * r, 2 * b, t - 2 * e * i, i * Math.PI / 4, 0);
     }
 
     public static LayerDefinition layer() {
@@ -54,7 +55,7 @@ public class TrolleyModel extends EntityModel<TrolleyRenderState> {
         PartDefinition frame = group(root, "frame", 0, 0, 0);
         for (int side : new int[]{-1, 1}) box(frame, Zone.WOOD, 0, DECK - 0.1, side * 0.98, L, 0.2, 0.16);
         for (int e : new int[]{-1, 1}) {
-            box(frame, Zone.WOOD, e * (L / 2 - 0.08), DECK - 0.1, 0, 0.16, 0.2, W);
+            box(frame, Zone.WOOD, e * (L / 2 - 0.08), DECK - 0.1, 0, 0.16, 0.2, W - 0.3);
             for (int side : new int[]{-1, 1}) box(frame, Zone.DARK, e * (L / 2 + 0.01), DECK - 0.1, side * 0.75, 0.02, 0.22, 0.12);
         }
         int n = 9;
@@ -75,7 +76,7 @@ public class TrolleyModel extends EntityModel<TrolleyRenderState> {
             double ax = k == 0 ? WB : -WB;
             PartDefinition set = group(root, "set" + k, 0, 0, 0);
             for (int side : new int[]{-1, 1}) {
-                box(set, Zone.CAST, ax, AXH, side * 0.98, 0.22, 0.22, 0.16);
+                box(set, Zone.CAST, ax, AXH, side * 0.98, 0.22, 0.22, 0.19);
                 box(set, Zone.CAST, ax - 0.16, AXH, side * 0.98, 0.04, 0.34, 0.2);
                 box(set, Zone.CAST, ax + 0.16, AXH, side * 0.98, 0.04, 0.34, 0.2);
             }
@@ -84,7 +85,7 @@ public class TrolleyModel extends EntityModel<TrolleyRenderState> {
                 double w = side * GAUGE / 2;
                 disc(spin, Zone.CAST, 0, 0, w + side * 0.03, WR, 0.1);
                 disc(spin, Zone.CAST, 0, 0, w - side * 0.04, WR + 0.05, 0.03);
-                box(spin, Zone.DARK, 0, 0, w + side * 0.085, 0.12, 0.12, 0.02);
+                box(spin, Zone.DARK, 0, 0, w + side * 0.085, 0.12, 0.12, 0.03);
                 box(spin, Zone.DARK, 0, 0, w + side * 0.085, 0.4, 0.04, 0.02);
             }
             box(spin, Zone.DARK, 0, 0, 0, 0.08, 0.08, 1.95);
@@ -95,19 +96,19 @@ public class TrolleyModel extends EntityModel<TrolleyRenderState> {
             box(pump, Zone.WOOD, 0, TOP + 0.5, side * 0.32, 0.12, 1.0, 0.12);
             for (int e : new int[]{-1, 1}) {
                 double a1 = e * 0.55, h0 = TOP + 0.75, h1 = TOP;
-                box(pump, Zone.STEEL, a1 / 2, (h0 + h1) / 2, side * 0.32, Math.hypot(a1, h1 - h0), 0.04, 0.04, Math.atan2(h1 - h0, a1), 0);
+                box(pump, Zone.STEEL, a1 / 2, (h0 + h1) / 2, side * 0.32, Math.hypot(a1, h1 - h0), 0.04, e > 0 ? 0.04 : 0.034, Math.atan2(h1 - h0, a1), 0);
             }
         }
         box(pump, Zone.CAST, 0, PH, 0, 0.18, 0.18, 0.78);
         disc(pump, Zone.CAST, WB, AXH, 0.22, 0.26, 0.05);
-        disc(pump, Zone.CAST, WB - 0.33, AXH + 0.15, 0.22, 0.1, 0.05);
+        disc(pump, Zone.CAST, WB - 0.33, AXH + 0.15, 0.21, 0.1, 0.05);
         box(pump, Zone.DARK, WB - 0.33, AXH + 0.15, 0.05, 0.06, 0.06, 0.5);
         box(pump, Zone.STEEL, 0.2, (PH + AXH) / 2 + 0.1, 0.16, 0.05, PH - AXH - 0.1, 0.05, Math.atan2(PH - AXH, 0.35 - (WB - 0.33)) - Math.PI / 2, 0);
         PartDefinition beam = group(pump, "beam", 0, PH + 0.08, 0);
         box(beam, Zone.STEEL, 0, 0, 0, BL, 0.07, 0.07);
         for (int side : new int[]{-1, 1}) box(beam, Zone.STEEL, 0, 0, side * 0.07, BL * 0.55, 0.12, 0.03);
         for (int e : new int[]{-1, 1}) {
-            box(beam, Zone.STEEL, e * BL / 2, 0, 0, 0.06, 0.06, 1.1);
+            box(beam, Zone.STEEL, e * BL / 2, 0, 0, 0.06, 0.06, 1.06);
             for (int side : new int[]{-1, 1}) box(beam, Zone.WOOD, e * BL / 2, 0, side * 0.42, 0.09, 0.09, 0.26);
         }
 

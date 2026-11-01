@@ -1,6 +1,8 @@
 package com.workshopcraft.railworks.client;
 
 import com.workshopcraft.railworks.block.MachineBlockEntity;
+import java.util.EnumSet;
+import java.util.Set;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -9,6 +11,7 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.core.Direction;
 
 /**
  * The lathe and pillar drill, in blocks from the main part's floor centre. x runs to the operator's right,
@@ -17,6 +20,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 public class MachineModel extends Model<MachineRenderer.State> {
     static final double CH = 1.62, HX = -1.08, HY = 1.32;
     private static final float Q = (float) (Math.PI / 2);
+    private static final double STEP = 0.006;
 
     private enum Zone {
         WOOD(0, 0), STEEL(128, 0), CAST(0, 128), DARK(128, 128), RED(128, 192);
@@ -36,8 +40,17 @@ public class MachineModel extends Model<MachineRenderer.State> {
     }
 
     private static void box(PartDefinition p, Zone z, double cx, double cy, double cz, double sx, double sy, double sz, double rz) {
+        box(p, z, cx, cy, cz, sx, sy, sz, rz, EnumSet.allOf(Direction.class));
+    }
+
+    /** A box that sits on another, so its bottom face is never seen. */
+    private static void seated(PartDefinition p, Zone z, double cx, double cy, double cz, double sx, double sy, double sz) {
+        box(p, z, cx, cy, cz, sx, sy, sz, 0, EnumSet.complementOf(EnumSet.of(Direction.DOWN)));
+    }
+
+    private static void box(PartDefinition p, Zone z, double cx, double cy, double cz, double sx, double sy, double sz, double rz, Set<Direction> faces) {
         float x = (float) (sx * 16), y = (float) (sy * 16), d = (float) (sz * 16);
-        p.addOrReplaceChild("b" + count++, CubeListBuilder.create().texOffs(z.u, z.v).addBox(-x / 2, -y / 2, -d / 2, x, y, d),
+        p.addOrReplaceChild("b" + count++, CubeListBuilder.create().texOffs(z.u, z.v).addBox(-x / 2, -y / 2, -d / 2, x, y, d, faces),
                 PartPose.offsetAndRotation((float) (cx * 16), (float) (cy * 16), (float) (cz * 16), 0, 0, (float) rz));
     }
 
@@ -49,19 +62,25 @@ public class MachineModel extends Model<MachineRenderer.State> {
         return p.addOrReplaceChild(name, CubeListBuilder.create(), PartPose.offsetAndRotation((float) (x * 16), (float) (y * 16), (float) (z * 16), xr, yr, 0));
     }
 
-    /** Facing z, unless put in a group turned by {@link #Q}. */
+    /** Small depth step between overlapping faces, so no two of them share a plane. */
+    private static double step(double t) {
+        return Math.min(STEP, t * 0.12);
+    }
+
+    /** Facing z, unless put in a group turned by {@link #Q}. Each turned box is a step thinner than the last. */
     private static void disc(PartDefinition p, Zone zone, double cx, double cy, double cz, double r, double t) {
-        double b = r * Math.tan(Math.PI / 8) * 1.08;
-        for (int i = 0; i < 4; i++) box(p, zone, cx, cy, cz, 2 * r, 2 * b, t, i * Math.PI / 4);
+        double b = r * Math.tan(Math.PI / 8) * 1.08, e = step(t);
+        for (int i = 0; i < 4; i++) box(p, zone, cx, cy, cz, 2 * r, 2 * b, t - 2 * e * i, i * Math.PI / 4);
     }
 
     private static void wheel(PartDefinition p, Zone zone, double r, double t, int spokes) {
         int n = 18;
+        double e = step(t);
         for (int i = 0; i < n; i++) {
             double a = 2 * Math.PI * i / n;
-            box(p, zone, r * Math.cos(a), r * Math.sin(a), 0, 2 * Math.PI * r / n * 1.15, t, t, a + Math.PI / 2);
+            box(p, zone, r * Math.cos(a), r * Math.sin(a), 0, 2 * Math.PI * r / n * 1.15, t, t - 2 * e * (i % 2), a + Math.PI / 2);
         }
-        for (int i = 0; i < spokes; i++) box(p, zone, 0, 0, 0, 2 * r, t * 0.6, t * 0.6, Math.PI * i / spokes);
+        for (int i = 0; i < spokes; i++) box(p, zone, 0, 0, 0, 2 * r, t * 0.6, t * 0.6 - 2 * e * i, Math.PI * i / spokes);
         box(p, Zone.DARK, 0, 0, 0, t * 2, t * 2, t * 1.2);
     }
 
@@ -76,17 +95,17 @@ public class MachineModel extends Model<MachineRenderer.State> {
         PartDefinition root = mesh.getRoot();
         PartDefinition f = group(root, "frame", 0, 0, 0);
         for (double a : new double[]{-1.2, 1.15}) {
-            box(f, Zone.CAST, a, 0.42, 0, 0.5, 0.84, 0.6);
+            box(f, Zone.CAST, a, 0.45, 0, 0.5, 0.82, 0.6);
             box(f, Zone.CAST, a, 0.03, 0, 0.66, 0.06, 0.76);
         }
         box(f, Zone.CAST, 0, 0.95, 0, 3.1, 0.22, 0.5);
-        for (double w : new double[]{-0.16, 0.16}) box(f, Zone.STEEL, 0, 1.075, w, 3.1, 0.04, 0.07);
+        for (double w : new double[]{-0.16, 0.16}) box(f, Zone.STEEL, 0, 1.075, w, 3.06, 0.04, 0.07);
         box(f, Zone.DARK, 0, 0.66, 0, 2.0, 0.04, 0.42);
-        box(f, Zone.CAST, HX, 1.35, 0, 0.7, 0.58, 0.56);
+        seated(f, Zone.CAST, HX, 1.34, 0, 0.7, 0.6, 0.56);
         box(f, Zone.CAST, HX, 1.66, 0, 0.6, 0.06, 0.48);
         box(f, Zone.STEEL, -0.65, CH, 0, 0.22, 0.12, 0.12);
         box(f, Zone.CAST, 0.9, 1.33, 0, 0.42, 0.42, 0.4);
-        box(f, Zone.STEEL, 0.62, CH, 0, 0.3, 0.07, 0.07);
+        box(f, Zone.STEEL, 0.62, CH, 0, 0.3, 0.05, 0.05);
         wheel(group(f, "tail_wheel", 1.15, CH, 0, 0, Q), Zone.RED, 0.12, 0.03, 2);
         box(f, Zone.STEEL, HX, HY, 0.36, 0.07, 0.07, 0.2);
         box(f, Zone.STEEL, HX, HY, -0.36, 0.07, 0.07, 0.2);
@@ -97,11 +116,11 @@ public class MachineModel extends Model<MachineRenderer.State> {
         for (double t : new double[]{0.4, 2.5, 4.6}) box(fp, Zone.STEEL, 0.25 * Math.cos(t), 0.25 * Math.sin(t), 0.06, 0.08, 0.08, 0.08);
         PartDefinition rw = group(spin, "rough_wheel", 0.12, 0, 0, 0, Q);
         disc(rw, Zone.CAST, 0, 0, 0, 0.56, 0.17);
-        box(rw, Zone.DARK, 0, 0, 0.09, 0.2, 0.2, 0.02);
+        box(rw, Zone.DARK, 0, 0, 0.085, 0.2, 0.2, 0.03);
         PartDefinition tw = group(spin, "turned_wheel", 0.12, 0, 0, 0, Q);
         disc(tw, Zone.STEEL, 0, 0, 0.02, 0.5, 0.12);
-        disc(tw, Zone.STEEL, 0, 0, -0.06, 0.56, 0.04);
-        box(tw, Zone.DARK, 0, 0, 0.09, 0.2, 0.2, 0.02);
+        disc(tw, Zone.STEEL, 0, 0, -0.055, 0.56, 0.05);
+        box(tw, Zone.DARK, 0, 0, 0.085, 0.2, 0.2, 0.03);
         PartDefinition ra = group(spin, "rough_axle", 0.57, 0, 0, 0, Q);
         disc(ra, Zone.CAST, 0, 0, 0, 0.08, 1.14);
         PartDefinition ta = group(spin, "turned_axle", 0.57, 0, 0, 0, Q);
@@ -134,7 +153,7 @@ public class MachineModel extends Model<MachineRenderer.State> {
         box(f, Zone.CAST, 0, 0.05, 0, 0.8, 0.1, 0.8);
         box(f, Zone.CAST, 0, 0.2, -0.22, 0.3, 0.2, 0.3);
         box(f, Zone.STEEL, 0, 1.15, -0.22, 0.12, 1.9, 0.12);
-        box(f, Zone.CAST, 0, 0.9, -0.06, 0.14, 0.1, 0.3);
+        box(f, Zone.CAST, 0, 0.89, -0.06, 0.14, 0.1, 0.3);
         box(f, Zone.CAST, 0, 0.92, 0.12, 0.46, 0.05, 0.46);
         box(f, Zone.CAST, 0, 2.0, -0.04, 0.3, 0.26, 0.55);
         box(f, Zone.CAST, 0, 1.78, 0.12, 0.14, 0.2, 0.14);
@@ -143,16 +162,16 @@ public class MachineModel extends Model<MachineRenderer.State> {
         wheel(group(f, "feed", 0, 2.16, -0.04, Q, 0), Zone.RED, 0.14, 0.03, 2);
 
         PartDefinition plate = group(root, "plate", 0, 0.955, 0.12);
-        box(plate, Zone.STEEL, 0, 0, 0, 0.32, 0.02, 0.42);
+        seated(plate, Zone.STEEL, 0, 0, 0, 0.32, 0.02, 0.42);
         for (int i = 0; i < 4; i++) {
             PartDefinition h = group(plate, "hole" + i, 0, 0, 0);
-            box(h, Zone.DARK, (i % 2 == 0 ? -1 : 1) * 0.09, 0.011, (i < 2 ? -1 : 1) * 0.12, 0.05, 0.005, 0.05);
+            box(h, Zone.DARK, (i % 2 == 0 ? -1 : 1) * 0.09, 0.013, (i < 2 ? -1 : 1) * 0.12, 0.05, 0.008, 0.05);
         }
         PartDefinition ab = group(root, "axle_box", 0, 1.055, 0.12);
-        box(ab, Zone.CAST, 0, 0, 0, 0.3, 0.22, 0.26);
-        for (int e : new int[]{-1, 1}) box(ab, Zone.CAST, e * 0.19, -0.08, 0, 0.08, 0.06, 0.2);
+        seated(ab, Zone.CAST, 0, 0, 0, 0.3, 0.22, 0.26);
+        for (int e : new int[]{-1, 1}) seated(ab, Zone.CAST, e * 0.19, -0.08, 0, 0.08, 0.06, 0.2);
         PartDefinition bore = group(ab, "bore", 0, 0, 0);
-        box(bore, Zone.DARK, 0, 0.111, 0, 0.12, 0.005, 0.12);
+        box(bore, Zone.DARK, 0, 0.114, 0, 0.12, 0.01, 0.12);
 
         PartDefinition spindle = group(root, "spindle", 0, 1.6, 0.12);
         box(spindle, Zone.STEEL, 0, 0, 0, 0.05, 0.6, 0.05);
@@ -166,7 +185,7 @@ public class MachineModel extends Model<MachineRenderer.State> {
         PartDefinition pulley = group(root, "pulley", 0.33, 1.7, -0.02);
         PartDefinition pf = group(pulley, "face", 0, 0, 0, 0, Q);
         disc(pf, Zone.WOOD, 0, 0, 0, 0.2, 0.12);
-        box(pf, Zone.DARK, 0, 0, 0, 0.06, 0.06, 0.14);
+        box(pf, Zone.DARK, 0, 0, 0, 0.075, 0.075, 0.14);
         return LayerDefinition.create(mesh, 256, 256);
     }
 
