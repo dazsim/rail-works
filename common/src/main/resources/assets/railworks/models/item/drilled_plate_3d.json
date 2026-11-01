@@ -1,0 +1,7 @@
+{
+  "parent": "railworks:item/work_piece",
+  "textures": {"particle": "railworks:item/drilled_plate"},
+  "display": {
+    "fixed": {"rotation": [90, 0, 0], "translation": [0, 0, 0], "scale": [1.1, 1.1, 1.1]}
+  }
+}

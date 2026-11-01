@@ -23,7 +23,7 @@ public class MachineModel extends Model<MachineRenderer.State> {
     private static final double STEP = 0.006;
 
     private enum Zone {
-        WOOD(0, 0), STEEL(128, 0), CAST(0, 128), DARK(128, 128), RED(128, 192);
+        WOOD(0, 0), STEEL(128, 0), CAST(0, 128), DARK(128, 128), RED(128, 192), ROUGH(192, 192), FINE(128, 64), PLATE(128, 96);
 
         final int u, v;
 
@@ -120,16 +120,16 @@ public class MachineModel extends Model<MachineRenderer.State> {
         disc(fp, Zone.CAST, 0, 0, 0, 0.3, 0.06);
         for (double t : new double[]{0.4, 2.5, 4.6}) box(fp, Zone.STEEL, 0.25 * Math.cos(t), 0.25 * Math.sin(t), 0.06, 0.08, 0.08, 0.08);
         PartDefinition rw = group(spin, "rough_wheel", 0.12, 0, 0, 0, Q);
-        disc(rw, Zone.CAST, 0, 0, 0, 0.56, 0.17);
+        disc(rw, Zone.ROUGH, 0, 0, 0, 0.56, 0.17);
         box(rw, Zone.DARK, 0, 0, 0.085, 0.2, 0.2, 0.03);
         PartDefinition tw = group(spin, "turned_wheel", 0.12, 0, 0, 0, Q);
-        disc(tw, Zone.STEEL, 0, 0, 0.02, 0.5, 0.12);
-        disc(tw, Zone.STEEL, 0, 0, -0.055, 0.56, 0.05);
+        disc(tw, Zone.FINE, 0, 0, 0.02, 0.5, 0.12);
+        disc(tw, Zone.FINE, 0, 0, -0.055, 0.56, 0.05);
         box(tw, Zone.DARK, 0, 0, 0.085, 0.2, 0.2, 0.03);
         PartDefinition ra = group(spin, "rough_axle", 0.57, 0, 0, 0, Q);
-        disc(ra, Zone.CAST, 0, 0, 0, 0.08, 1.14);
+        disc(ra, Zone.ROUGH, 0, 0, 0, 0.08, 1.14);
         PartDefinition ta = group(spin, "turned_axle", 0.57, 0, 0, 0, Q);
-        disc(ta, Zone.STEEL, 0, 0, 0, 0.065, 1.14);
+        disc(ta, Zone.FINE, 0, 0, 0, 0.065, 1.14);
         for (double e : new double[]{-0.5, 0.5}) disc(ta, Zone.DARK, 0, 0, e, 0.075, 0.08);
 
         PartDefinition saddle = group(root, "saddle", 0.1, 1.145, 0);
@@ -176,16 +176,18 @@ public class MachineModel extends Model<MachineRenderer.State> {
         wheel(group(f, "feed", 0, 2.06, -0.05, Q, 0), Zone.STEEL, 0.14, 0.03, 3);
 
         PartDefinition plate = group(root, "plate", 0, 0.955, 0.12);
-        seated(plate, Zone.STEEL, 0, 0, 0, 0.32, 0.02, 0.42);
+        seated(group(plate, "raw_plate", 0, 0, 0), Zone.PLATE, 0, 0, 0, 0.32, 0.02, 0.42);
+        seated(group(plate, "fine_plate", 0, 0, 0), Zone.FINE, 0, 0, 0, 0.32, 0.02, 0.42);
         for (int i = 0; i < 4; i++) {
             PartDefinition h = group(plate, "hole" + i, 0, 0, 0);
             box(h, Zone.DARK, (i % 2 == 0 ? -1 : 1) * 0.09, 0.013, (i < 2 ? -1 : 1) * 0.12, 0.05, 0.008, 0.05);
         }
-        PartDefinition ab = group(root, "axle_box", 0, 1.055, 0.12);
-        seated(ab, Zone.CAST, 0, 0, 0, 0.3, 0.22, 0.26);
-        for (int e : new int[]{-1, 1}) seated(ab, Zone.CAST, e * 0.19, -0.08, 0, 0.08, 0.06, 0.2);
-        PartDefinition bore = group(ab, "bore", 0, 0, 0);
-        box(bore, Zone.DARK, 0, 0.114, 0, 0.12, 0.01, 0.12);
+        for (Zone z : new Zone[]{Zone.ROUGH, Zone.FINE}) {
+            PartDefinition ab = group(root, z == Zone.ROUGH ? "axle_box" : "fine_box", 0, 1.055, 0.12);
+            seated(ab, z, 0, 0, 0, 0.3, 0.22, 0.26);
+            for (int e : new int[]{-1, 1}) seated(ab, z, e * 0.19, -0.08, 0, 0.08, 0.06, 0.2);
+            if (z == Zone.FINE) box(ab, Zone.DARK, 0, 0.114, 0, 0.12, 0.01, 0.12);
+        }
 
         PartDefinition spindle = group(root, "spindle", 0, 1.6, 0.12);
         box(spindle, Zone.STEEL, 0, 0, 0, 0.05, 0.56, 0.05);
@@ -206,7 +208,7 @@ public class MachineModel extends Model<MachineRenderer.State> {
     private final boolean lathe;
     private final ModelPart crank, pulley;
     private ModelPart spin, roughWheel, turnedWheel, roughAxle, turnedAxle, saddle, faceTool, sideTool;
-    private ModelPart plate, axleBox, bore, spindle;
+    private ModelPart plate, rawPlate, finePlate, axleBox, fineBox, spindle;
     private final ModelPart[] holes = new ModelPart[4];
 
     public MachineModel(ModelPart root, boolean lathe) {
@@ -225,9 +227,11 @@ public class MachineModel extends Model<MachineRenderer.State> {
             sideTool = saddle.getChild("side_tool");
         } else {
             plate = root.getChild("plate");
+            rawPlate = plate.getChild("raw_plate");
+            finePlate = plate.getChild("fine_plate");
             for (int i = 0; i < 4; i++) holes[i] = plate.getChild("hole" + i);
             axleBox = root.getChild("axle_box");
-            bore = axleBox.getChild("bore");
+            fineBox = root.getChild("fine_box");
             spindle = root.getChild("spindle");
         }
     }
@@ -254,9 +258,11 @@ public class MachineModel extends Model<MachineRenderer.State> {
             pulley.xRot = s.crank;
             boolean pl = j == MachineBlockEntity.Job.PLATE, box = j == MachineBlockEntity.Job.AXLE_BOX;
             plate.visible = pl;
+            rawPlate.visible = p < 1;
+            finePlate.visible = p >= 1;
             for (int i = 0; i < 4; i++) holes[i].visible = p >= (i + 1) / 4.0F;
-            axleBox.visible = box;
-            bore.visible = p >= 1;
+            axleBox.visible = box && p < 1;
+            fineBox.visible = box && p >= 1;
             spindle.yRot = s.crank * 3;
             double top = pl ? 1.52 : box ? 1.73 : 1.6, drop = j == null ? 0 : 0.1 * (s.turning || p >= 1 ? 1 : 0.3);
             spindle.y = (float) ((top - drop) * 16);

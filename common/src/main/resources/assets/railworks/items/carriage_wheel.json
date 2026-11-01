@@ -1,6 +1,7 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "railworks:item/carriage_wheel"
+    "type": "minecraft:special",
+    "base": "railworks:item/carriage_wheel_3d",
+    "model": {"type": "railworks:work_piece", "piece": "carriage_wheel"}
   }
 }

@@ -1,6 +1,7 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "railworks:item/rough_axle_box"
+    "type": "minecraft:special",
+    "base": "railworks:item/rough_axle_box_3d",
+    "model": {"type": "railworks:work_piece", "piece": "rough_axle_box"}
   }
 }

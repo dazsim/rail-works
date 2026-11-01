@@ -1,0 +1,7 @@
+{
+  "parent": "railworks:item/work_piece",
+  "textures": {"particle": "railworks:item/axle_box"},
+  "display": {
+    "fixed": {"rotation": [0, 0, 0], "translation": [0, 0, 0], "scale": [1.1, 1.1, 1.1]}
+  }
+}

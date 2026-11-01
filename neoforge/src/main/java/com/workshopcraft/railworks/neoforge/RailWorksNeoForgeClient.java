@@ -11,6 +11,8 @@ import com.workshopcraft.railworks.client.ClientTrack;
 import com.workshopcraft.railworks.track.TrackSyncPayload;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
+import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
+import com.workshopcraft.railworks.client.WorkPieceRenderer;
 import net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -44,6 +46,7 @@ public class RailWorksNeoForgeClient {
             e.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY, MachineRenderer::new);
             e.registerEntityRenderer(ModContent.HAND_TROLLEY_ENTITY, com.workshopcraft.railworks.client.TrolleyRenderer::new);
         });
+        modBus.addListener((RegisterSpecialModelRendererEvent e) -> e.register(WorkPieceRenderer.ID, WorkPieceRenderer.Unbaked.MAP_CODEC));
         com.workshopcraft.railworks.client.TrolleyClient.init();
         modBus.addListener((RegisterFluidModelsEvent e) -> {
             e.register(RailWorksClient.CREOSOTE_MODEL, ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE);
