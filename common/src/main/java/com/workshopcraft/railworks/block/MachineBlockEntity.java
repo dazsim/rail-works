@@ -153,6 +153,7 @@ public class MachineBlockEntity extends BlockEntity {
     }
 
     void serverTick(ServerLevel level) {
+        if (level.getGameTime() % 100 == 0 && getBlockState().getBlock() instanceof MachineBlock m) m.fillParts(level, worldPosition, getBlockState());
         Player p = cranker;
         boolean on = job != null && !done() && p != null && level.getGameTime() < crankUntil && p.isAlive()
                 && p.distanceToSqr(Vec3.atCenterOf(worldPosition)) < 64;

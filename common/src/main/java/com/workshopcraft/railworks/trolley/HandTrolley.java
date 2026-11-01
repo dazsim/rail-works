@@ -1,8 +1,10 @@
 package com.workshopcraft.railworks.trolley;
 
+import com.workshopcraft.railworks.RailWorks;
 import com.workshopcraft.railworks.registry.ModContent;
 import com.workshopcraft.railworks.track.TrackActions;
 import com.workshopcraft.railworks.track.TrackGraph;
+import com.workshopcraft.railworks.track.TrackRunner;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -12,12 +14,14 @@ import java.util.function.LongFunction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -31,6 +35,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
@@ -59,10 +64,14 @@ import org.jspecify.annotations.Nullable;
  * so it always sits on the exact line the ties were laid to. The server owns the state; clients run the
  * same motion on their own copy of the track between updates.
  */
-public class HandTrolley extends Entity {
+public class HandTrolley extends Entity implements TrackRunner {
     public static final double LENGTH = 2.7, WIDTH = 2.1, HALF_WB = 0.8, WHEEL_R = 0.28, DECK = 0.64, SEAT = 0.98;
     static final double DT = 0.05, G = 9.8, BRAKE = 7.5, END_BRAKE = 4, CAP = 10, BUFFER_GAP = 0.59 + LENGTH / 2, END_GAP = 1.3;
     static final double STROKE = 3.5;
+    // running people down: no harm below HIT_MIN, HIT_TOP damage at CAP, linear between
+    static final double HIT_MIN = 1.5, HIT_TOP = 12, HIT_KNOCK = 0.45, HIT_LIFT = 0.3, HIT_SLOW = 0.9;
+    static final double MASS = 1, RIDER_MASS = 0.4;
+    static final ResourceKey<DamageType> RUN_DOWN = ResourceKey.create(Registries.DAMAGE_TYPE, RailWorks.id("trolley"));
     public static final int FRAME = 0, PUMP = 3, DONE = 4;
     static final double[][] PLACES = {{0.95, DECK, 0}, {-0.95, DECK, 0}, {-0.2, SEAT, 0.72}, {0.3, SEAT, 0.72}};
 
@@ -237,6 +246,11 @@ public class HandTrolley extends Entity {
 
     @Override
     public boolean isPickable() {
+        return !isRemoved();
+    }
+
+    @Override
+    public boolean canBeCollidedWith(@Nullable Entity other) {
         return !isRemoved();
     }
 
@@ -466,6 +480,38 @@ public class HandTrolley extends Entity {
         return Math.toRadians(getYRot() + 90);
     }
 
+    @Override
+    public long trackSegment() {
+        return seg;
+    }
+
+    @Override
+    public double trackS() {
+        return s;
+    }
+
+    @Override
+    public double trackSpeed() {
+        return stage() < DONE ? 0 : u;
+    }
+
+    @Override
+    public void bumpTrackSpeed(double nu) {
+        if (stage() < DONE) return;
+        u = Mth.clamp(nu, -CAP, CAP);
+        sync(true);
+    }
+
+    @Override
+    public double trackReach() {
+        return LENGTH / 2;
+    }
+
+    @Override
+    public double trackMass() {
+        return stage() < DONE ? 1000 : MASS + RIDER_MASS * getPassengers().size();
+    }
+
     private void placeOn(Rail r) {
         double ss = Mth.clamp(s, 0, r.length());
         double[] p = r.path().pose(ss);
@@ -648,6 +694,27 @@ public class HandTrolley extends Entity {
                 stopped = true;
             }
         }
+        if (ds != 0) {
+            int d = (int) Math.signum(ds);
+            TrackRunner.Contact c = TrackRunner.ahead(level, this, d, Math.abs(ds) + 0.05);
+            if (c != null && c.gap() < Math.abs(ds)) {
+                double v1 = d * u, v2 = c.k() * c.other().trackSpeed();
+                if (v1 > v2) {
+                    double[] v = TrackRunner.exchange(trackMass(), v1, c.other().trackMass(), v2);
+                    if (v1 - v2 > 0.5) {
+                        play(level, SoundEvents.ANVIL_LAND, Math.min(0.8f, (float) (v1 - v2) * 0.1f + 0.15f), 1.6f);
+                        if (stopCooldown <= 0) {
+                            tellRiders(Component.translatable("message.railworks.trolley.bump").withStyle(ChatFormatting.YELLOW), true);
+                            stopCooldown = 40;
+                        }
+                    }
+                    u = d * v[0];
+                    c.other().bumpTrackSpeed(c.k() * v[1]);
+                }
+                ds = d * Math.max(0, c.gap());
+                stopped = true;
+            }
+        }
         stopCooldown--;
         long before = seg;
         if (ds != 0 && !advance(ds)) stopped = true;
@@ -657,7 +724,7 @@ public class HandTrolley extends Entity {
         animate(ds);
         report.track(now, s, Math.abs(ds));
         sounds(level, now, ds, brake || endBrake, pump[0], ridden);
-        nudge();
+        nudge(level, ds / DT);
         boolean changed = before != seg || stopped || entityData.get(DATA_PUMP) != pump[0] || entityData.get(DATA_BRAKE) != (brake || endBrake);
         entityData.set(DATA_PUMP, pump[0]);
         entityData.set(DATA_BRAKE, brake || endBrake);
@@ -719,13 +786,32 @@ public class HandTrolley extends Entity {
         return null;
     }
 
-    private void nudge() {
-        for (Entity e : level().getEntities(this, getBoundingBox().inflate(0.4, 0, 0.4), e -> e instanceof LivingEntity && e.getVehicle() != this && !e.isSpectator())) {
-            double hf = frontHeading();
-            double w = -(e.getX() - getX()) * Math.sin(hf) + (e.getZ() - getZ()) * Math.cos(hf);
+    /** Runs down anything standing on the line, harder the faster it goes, and eases slow walkers aside. */
+    private void nudge(ServerLevel level, double v) {
+        double hf = frontHeading(), speed = Math.abs(v);
+        int dir = (int) Math.signum(v) * (front ? 1 : -1);
+        Entity driver = null;
+        for (Entity e : getPassengers()) if (isPumper(e)) driver = e;
+        for (Entity e : level.getEntities(this, getBoundingBox().inflate(1.0, 0.5, 1.0), e -> e instanceof LivingEntity && e.isAlive() && !e.isSpectator()
+                && !(e.getRootVehicle() instanceof TrackRunner))) {
+            double dx = e.getX() - getX(), dz = e.getZ() - getZ();
+            double a = dx * Math.cos(hf) + dz * Math.sin(hf), w = -dx * Math.sin(hf) + dz * Math.cos(hf);
+            double r = e.getBbWidth() / 2;
+            if (Math.abs(a) > LENGTH / 2 + r || Math.abs(w) > WIDTH / 2 + r || e.getY() > getY() + 1.5 || e.getY() + e.getBbHeight() < getY() - 0.3) continue;
             double side = w >= 0 ? 1 : -1;
-            e.push(-Math.sin(hf) * side * 0.15, 0, Math.cos(hf) * side * 0.15);
-            e.hurtMarked = true;
+            double sx = -Math.sin(hf) * side, sz = Math.cos(hf) * side;
+            if (speed >= HIT_MIN && a * dir > -LENGTH / 4) {
+                float dmg = (float) (HIT_TOP * Math.min(1, (speed - HIT_MIN) / (CAP - HIT_MIN)));
+                if (!((LivingEntity) e).hurtServer(level, new DamageSource(level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(RUN_DOWN), this, driver), dmg)) continue;
+                double k = HIT_KNOCK + 0.06 * speed, fx = Math.cos(hf) * dir, fz = Math.sin(hf) * dir;
+                e.setDeltaMovement(e.getDeltaMovement().multiply(0.3, 0, 0.3).add(sx * k + fx * speed * 0.03, HIT_LIFT + 0.02 * speed, sz * k + fz * speed * 0.03));
+                e.hurtMarked = true;
+                u *= HIT_SLOW;
+                if (ECHO) LOG.info("[trolley] hit {} at {} b/s for {}", e.getName().getString(), String.format(java.util.Locale.ROOT, "%.1f", speed), dmg);
+            } else if (speed > 0.05) {
+                e.push(sx * 0.04, 0, sz * 0.04);
+                e.hurtMarked = true;
+            }
         }
     }
 

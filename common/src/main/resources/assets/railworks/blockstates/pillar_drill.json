@@ -9,6 +9,15 @@
     "facing=north,part=2": {
       "model": "railworks:block/pillar_drill"
     },
+    "facing=north,part=3": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=north,part=4": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=north,part=5": {
+      "model": "railworks:block/pillar_drill"
+    },
     "facing=east,part=0": {
       "model": "railworks:block/pillar_drill"
     },
@@ -16,6 +25,15 @@
       "model": "railworks:block/pillar_drill"
     },
     "facing=east,part=2": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=east,part=3": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=east,part=4": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=east,part=5": {
       "model": "railworks:block/pillar_drill"
     },
     "facing=south,part=0": {
@@ -27,6 +45,15 @@
     "facing=south,part=2": {
       "model": "railworks:block/pillar_drill"
     },
+    "facing=south,part=3": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=south,part=4": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=south,part=5": {
+      "model": "railworks:block/pillar_drill"
+    },
     "facing=west,part=0": {
       "model": "railworks:block/pillar_drill"
     },
@@ -34,6 +61,15 @@
       "model": "railworks:block/pillar_drill"
     },
     "facing=west,part=2": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=west,part=3": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=west,part=4": {
+      "model": "railworks:block/pillar_drill"
+    },
+    "facing=west,part=5": {
       "model": "railworks:block/pillar_drill"
     }
   }

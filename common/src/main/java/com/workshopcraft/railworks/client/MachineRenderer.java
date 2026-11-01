@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public class MachineRenderer implements BlockEntityRenderer<MachineBlockEntity, MachineRenderer.State> {
-    private static final Identifier TEXTURE = RailWorks.id("textures/entity/hand_trolley.png");
+    private static final Identifier TEXTURE = RailWorks.id("textures/entity/machine.png");
     private final MachineModel lathe = new MachineModel(MachineModel.lathe().bakeRoot(), true);
     private final MachineModel drill = new MachineModel(MachineModel.drill().bakeRoot(), false);
 

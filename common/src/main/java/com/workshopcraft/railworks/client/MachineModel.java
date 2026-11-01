@@ -15,10 +15,10 @@ import net.minecraft.core.Direction;
 
 /**
  * The lathe and pillar drill, in blocks from the main part's floor centre. x runs to the operator's right,
- * z towards the operator, y up. Uses the hand trolley sheet.
+ * z towards the operator, y up. Painted parts are machine green, bright steel is left bare.
  */
 public class MachineModel extends Model<MachineRenderer.State> {
-    static final double CH = 1.62, HX = -1.08, HY = 1.32;
+    static final double CH = 1.62, HX = -1.08, HY = 1.32, DY = 1.6, DZ = -0.05;
     private static final float Q = (float) (Math.PI / 2);
     private static final double STEP = 0.006;
 
@@ -104,9 +104,14 @@ public class MachineModel extends Model<MachineRenderer.State> {
         seated(f, Zone.CAST, HX, 1.34, 0, 0.7, 0.6, 0.56);
         box(f, Zone.CAST, HX, 1.66, 0, 0.6, 0.06, 0.48);
         box(f, Zone.STEEL, -0.65, CH, 0, 0.22, 0.12, 0.12);
-        box(f, Zone.CAST, 0.9, 1.33, 0, 0.42, 0.42, 0.4);
-        box(f, Zone.STEEL, 0.62, CH, 0, 0.3, 0.05, 0.05);
-        wheel(group(f, "tail_wheel", 1.15, CH, 0, 0, Q), Zone.RED, 0.12, 0.03, 2);
+        box(f, Zone.CAST, 1.0, 1.1325, 0, 0.46, 0.075, 0.44);
+        box(f, Zone.CAST, 1.0, 1.44, 0, 0.38, 0.54, 0.3);
+        box(f, Zone.STEEL, 0.71, CH, 0, 0.2, 0.08, 0.08);
+        box(f, Zone.STEEL, 1.255, CH, 0, 0.15, 0.04, 0.04);
+        wheel(group(f, "tail_wheel", 1.29, CH, 0, 0, Q), Zone.STEEL, 0.12, 0.03, 3);
+        box(f, Zone.STEEL, 0, 0.99, 0.29, 2.9, 0.035, 0.035);
+        box(f, Zone.STEEL, 0, 0.91, 0.29, 2.9, 0.028, 0.028);
+        for (double e : new double[]{-1.47, 1.47}) box(f, Zone.CAST, e, 0.95, 0.29, 0.06, 0.18, 0.08);
         box(f, Zone.STEEL, HX, HY, 0.36, 0.07, 0.07, 0.2);
         box(f, Zone.STEEL, HX, HY, -0.36, 0.07, 0.07, 0.2);
 
@@ -127,20 +132,27 @@ public class MachineModel extends Model<MachineRenderer.State> {
         disc(ta, Zone.STEEL, 0, 0, 0, 0.065, 1.14);
         for (double e : new double[]{-0.5, 0.5}) disc(ta, Zone.DARK, 0, 0, e, 0.075, 0.08);
 
-        PartDefinition saddle = group(root, "saddle", 0.1, 1.15, 0);
+        PartDefinition saddle = group(root, "saddle", 0.1, 1.145, 0);
         box(saddle, Zone.CAST, 0, 0, 0, 0.36, 0.1, 0.62);
-        box(saddle, Zone.CAST, 0, 0.12, 0.28, 0.16, 0.16, 0.16);
+        seated(saddle, Zone.CAST, 0, 0.08, 0.04, 0.2, 0.06, 0.52);
+        seated(saddle, Zone.CAST, 0, 0.1475, 0.18, 0.16, 0.075, 0.22);
+        seated(saddle, Zone.DARK, 0, 0.2825, 0.2, 0.1, 0.205, 0.1);
+        seated(saddle, Zone.STEEL, 0, 0.455, 0.2, 0.14, 0.14, 0.14);
+        box(saddle, Zone.CAST, 0, -0.1675, 0.291, 0.34, 0.235, 0.078);
+        box(saddle, Zone.STEEL, 0, 0.08, 0.35, 0.03, 0.03, 0.1);
+        wheel(group(saddle, "cross_wheel", 0, 0.08, 0.38), Zone.STEEL, 0.07, 0.025, 2);
+        box(saddle, Zone.STEEL, 0.06, -0.19, 0.365, 0.03, 0.03, 0.07);
+        wheel(group(saddle, "apron_wheel", 0.06, -0.19, 0.38), Zone.STEEL, 0.08, 0.025, 3);
         PartDefinition face = group(saddle, "face_tool", 0, 0, 0);
-        box(face, Zone.STEEL, -0.2, 0.18, 0.28, 0.32, 0.05, 0.05);
+        box(face, Zone.STEEL, -0.21, 0.27, 0.2, 0.38, 0.05, 0.05);
         PartDefinition side = group(saddle, "side_tool", 0, 0, 0);
-        box(side, Zone.STEEL, 0, 0.18, 0.14, 0.05, 0.05, 0.22);
-        wheel(group(saddle, "cross_wheel", 0, 0, 0.36), Zone.RED, 0.1, 0.03, 2);
+        box(side, Zone.STEEL, 0, 0.455, 0.15, 0.05, 0.05, 0.14);
 
         PartDefinition crank = group(root, "crank", HX, HY, 0.47);
         wheel(crank, Zone.RED, 0.46, 0.05, 3);
         handle(crank, 0.42, 1);
         PartDefinition pulley = group(root, "pulley", HX, HY, -0.44);
-        disc(pulley, Zone.WOOD, 0, 0, 0, 0.22, 0.14);
+        disc(pulley, Zone.CAST, 0, 0, 0, 0.22, 0.14);
         box(pulley, Zone.DARK, 0, 0, 0, 0.06, 0.06, 0.16);
         return LayerDefinition.create(mesh, 256, 256);
     }
@@ -152,14 +164,16 @@ public class MachineModel extends Model<MachineRenderer.State> {
         PartDefinition f = group(root, "frame", 0, 0, 0);
         box(f, Zone.CAST, 0, 0.05, 0, 0.8, 0.1, 0.8);
         box(f, Zone.CAST, 0, 0.2, -0.22, 0.3, 0.2, 0.3);
-        box(f, Zone.STEEL, 0, 1.15, -0.22, 0.12, 1.9, 0.12);
-        box(f, Zone.CAST, 0, 0.89, -0.06, 0.14, 0.1, 0.3);
+        box(f, Zone.STEEL, 0, 1.05, -0.22, 0.12, 1.7, 0.12);
+        box(f, Zone.CAST, 0, 0.89, -0.22, 0.18, 0.12, 0.18);
+        box(f, Zone.CAST, 0, 0.89, -0.06, 0.14, 0.1, 0.18);
         box(f, Zone.CAST, 0, 0.92, 0.12, 0.46, 0.05, 0.46);
-        box(f, Zone.CAST, 0, 2.0, -0.04, 0.3, 0.26, 0.55);
-        box(f, Zone.CAST, 0, 1.78, 0.12, 0.14, 0.2, 0.14);
-        box(f, Zone.STEEL, -0.22, 1.7, -0.02, 0.16, 0.06, 0.06);
-        box(f, Zone.STEEL, 0.22, 1.7, -0.02, 0.16, 0.06, 0.06);
-        wheel(group(f, "feed", 0, 2.16, -0.04, Q, 0), Zone.RED, 0.14, 0.03, 2);
+        box(f, Zone.CAST, 0, 1.75, -0.05, 0.28, 0.5, 0.5);
+        box(f, Zone.CAST, 0, 1.46, 0.12, 0.12, 0.08, 0.12);
+        box(f, Zone.STEEL, 0, DY, DZ, 0.74, 0.05, 0.05);
+        for (double e : new double[]{-0.165, 0.165}) disc(group(f, "boss" + (e < 0 ? 0 : 1), e, DY, DZ, 0, Q), Zone.CAST, 0, 0, 0, 0.065, 0.05);
+        box(f, Zone.STEEL, 0, 2.02, -0.05, 0.04, 0.06, 0.04);
+        wheel(group(f, "feed", 0, 2.06, -0.05, Q, 0), Zone.STEEL, 0.14, 0.03, 3);
 
         PartDefinition plate = group(root, "plate", 0, 0.955, 0.12);
         seated(plate, Zone.STEEL, 0, 0, 0, 0.32, 0.02, 0.42);
@@ -174,17 +188,17 @@ public class MachineModel extends Model<MachineRenderer.State> {
         box(bore, Zone.DARK, 0, 0.114, 0, 0.12, 0.01, 0.12);
 
         PartDefinition spindle = group(root, "spindle", 0, 1.6, 0.12);
-        box(spindle, Zone.STEEL, 0, 0, 0, 0.05, 0.6, 0.05);
-        box(spindle, Zone.DARK, 0, -0.38, 0, 0.03, 0.16, 0.03);
-        box(spindle, Zone.DARK, 0, -0.34, 0, 0.04, 0.04, 0.012);
+        box(spindle, Zone.STEEL, 0, 0, 0, 0.05, 0.56, 0.05);
+        box(spindle, Zone.STEEL, 0, -0.3, 0, 0.08, 0.07, 0.08);
+        box(spindle, Zone.DARK, 0, -0.41, 0, 0.03, 0.16, 0.03);
 
-        PartDefinition crank = group(root, "crank", -0.33, 1.7, -0.02);
+        PartDefinition crank = group(root, "crank", -0.33, DY, DZ);
         PartDefinition cf = group(crank, "face", 0, 0, 0, 0, Q);
         wheel(cf, Zone.RED, 0.36, 0.045, 3);
         handle(cf, 0.32, -1);
-        PartDefinition pulley = group(root, "pulley", 0.33, 1.7, -0.02);
+        PartDefinition pulley = group(root, "pulley", 0.33, DY, DZ);
         PartDefinition pf = group(pulley, "face", 0, 0, 0, 0, Q);
-        disc(pf, Zone.WOOD, 0, 0, 0, 0.2, 0.12);
+        disc(pf, Zone.CAST, 0, 0, 0, 0.2, 0.12);
         box(pf, Zone.DARK, 0, 0, 0, 0.075, 0.075, 0.14);
         return LayerDefinition.create(mesh, 256, 256);
     }
