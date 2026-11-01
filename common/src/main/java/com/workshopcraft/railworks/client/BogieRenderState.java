@@ -10,4 +10,6 @@ public class BogieRenderState extends EntityRenderState {
     public boolean brake;
     /** The tow bar ends, relative to the bogie, when it is towed. */
     public @Nullable Vec3 barFrom, barTo;
+    /** The partner bogie, relative to this one, while a solebar is held over a pair. */
+    public @Nullable Vec3 ghostTo;
 }
