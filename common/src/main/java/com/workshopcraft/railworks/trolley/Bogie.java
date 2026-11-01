@@ -164,9 +164,7 @@ public class Bogie extends RailVehicle {
         if (!level().isClientSide()) {
             Vec3 look = player.getLookAngle();
             double hf = frontHeading();
-            pusher = player;
-            pushUntil = tickCount + 6;
-            pushDir = look.x * Math.cos(hf) + look.z * Math.sin(hf) >= 0 ? 1 : -1;
+            push(player, look.x * Math.cos(hf) + look.z * Math.sin(hf) >= 0 ? 1 : -1);
         }
         return InteractionResult.SUCCESS;
     }
@@ -214,21 +212,18 @@ public class Bogie extends RailVehicle {
             return;
         }
         if (towTick(level)) return;
-        List<Member> ms = consist();
+        Train t = train(level);
+        if (t == null) return;
+        List<Member> ms = t.members;
         double m = mass(ms);
         boolean pushed = anyPushed(ms);
         List<Entity> safe = new ArrayList<>();
-        Entity driver = null;
-        for (Member x : ms) {
-            if (x.v() instanceof Bogie b) b.towedBrake(!pushed);
-            if (x.v().pushed()) {
-                safe.add(x.v().pusher);
-                driver = x.v().pusher;
-            }
-        }
+        pushersOf(ms, safe);
+        Entity driver = safe.isEmpty() ? null : safe.getFirst();
+        for (Member x : ms) if (x.v() instanceof Bogie b) b.towedBrake(!pushed);
         double force = pushForce(ms, m) + gradeForce(ms, m);
         double drag = 0.08 + 0.004 * u * u + (pushed ? 0 : BRAKE);
-        drive(level, ms, force, drag, false, new Ride(driver, 0.25f, safe), false);
+        drive(level, t, force, drag, false, new Ride(driver, 0.25f, safe), false);
     }
 
     @Override

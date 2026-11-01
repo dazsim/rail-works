@@ -27,7 +27,7 @@ public class RailWorksNeoForge {
     public RailWorksNeoForge(IEventBus modBus, ModContainer container) {
         modBus.addListener(RailWorksNeoForge::onRegister);
         modBus.addListener(RailWorksNeoForge::onCapabilities);
-        modBus.addListener((RegisterPayloadHandlersEvent e) -> e.registrar("1").playToClient(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC));
+        modBus.addListener((RegisterPayloadHandlersEvent e) -> e.registrar("1").playToClient(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC).playToClient(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, com.workshopcraft.railworks.trolley.TrainSyncPayload.CODEC));
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post e) -> {
             if (e.getLevel() instanceof ServerLevel l) TrackSync.tick(l);
         });

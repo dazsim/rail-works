@@ -27,17 +27,27 @@ public interface TrackRunner {
 
     double trackMass();
 
+    /** False for a runner carried by another, like a bogie under a carriage, which the carrier stands in for. */
+    default boolean trackContact() {
+        return true;
+    }
+
     /** The nearest runner ahead, gap is buffer face to buffer face, k turns its speed into ours. */
     record Contact(TrackRunner other, double gap, int k) {}
 
     static @Nullable Contact ahead(ServerLevel level, Entity self, int dir, double range) {
+        return ahead(level, self, dir, range, r -> false);
+    }
+
+    /** As above, passing over runners skip accepts, such as the rest of its own train. */
+    static @Nullable Contact ahead(ServerLevel level, Entity self, int dir, double range, java.util.function.Predicate<TrackRunner> skip) {
         if (!(self instanceof TrackRunner me) || dir == 0) return null;
         TrackGraph g = TrackGraph.get(level);
         TrackGraph.Segment sg = g.segment(me.trackSegment());
         if (sg == null) return null;
         double look = range + me.trackReach() + 4;
         java.util.List<TrackRunner> near = new java.util.ArrayList<>();
-        for (Entity e : level.getEntities(self, self.getBoundingBox().inflate(look), e -> e instanceof TrackRunner && e.isAlive()))
+        for (Entity e : level.getEntities(self, self.getBoundingBox().inflate(look), e -> e instanceof TrackRunner r && e.isAlive() && r.trackContact() && !skip.test(r)))
             near.add((TrackRunner) e);
         if (near.isEmpty()) return null;
         TrackRunner best = null;

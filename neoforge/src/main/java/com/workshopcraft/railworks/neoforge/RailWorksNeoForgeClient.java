@@ -35,7 +35,11 @@ public class RailWorksNeoForgeClient {
             e.register(ModContent.COKE_OVEN_MENU, CokeOvenScreen::new);
             e.register(ModContent.BRICK_FURNACE_MENU, BrickFurnaceScreen::new);
         });
-        modBus.addListener((RegisterClientPayloadHandlersEvent e) -> e.register(TrackSyncPayload.TYPE, (p, ctx) -> ClientTrack.receive(p.tag())));
+        modBus.addListener((RegisterClientPayloadHandlersEvent e) -> {
+            e.register(TrackSyncPayload.TYPE, (p, ctx) -> ClientTrack.receive(p.tag()));
+            e.register(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, (p, ctx) -> com.workshopcraft.railworks.client.ClientTrains.receive(p));
+        });
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientTickEvent.Post e) -> com.workshopcraft.railworks.client.ClientTrains.tick());
         modBus.addListener((RegisterRenderPipelinesEvent e) -> {
             e.registerPipeline(ClientTrack.SOLID);
             e.registerPipeline(ClientTrack.GLASS);

@@ -439,7 +439,9 @@ public class HandTrolley extends RailVehicle {
             return;
         }
         if (towTick(level)) return;
-        List<Member> ms = consist();
+        Train t = train(level);
+        if (t == null) return;
+        List<Member> ms = t.members;
         double m = mass(ms), load = m / ownMass();
         int bogies = 0;
         List<Entity> safe = new ArrayList<>();
@@ -448,15 +450,15 @@ public class HandTrolley extends RailVehicle {
                 bogies++;
                 b.towedBrake(false);
             }
-            if (x.v().pushed()) safe.add(x.v().pusher);
         }
+        pushersOf(ms, safe);
         byte[] pump = new byte[1];
         double force = thrust(inputs, looks, u, pump, bogies, load) + pushForce(ms, m) + gradeForce(ms, m);
         double drag = 0.08 + 0.004 * u * u + (brake ? BRAKE / load : 0);
         boolean changed = entityData.get(DATA_PUMP) != pump[0] || entityData.get(DATA_BRAKE) != (brake || endBraking) || entityData.get(DATA_BOGIES) != bogies;
         entityData.set(DATA_BOGIES, (byte) bogies);
         entityData.set(DATA_LOAD, (float) load);
-        double ds = drive(level, ms, force, drag, ridden, new Ride(driver, 1, safe), changed);
+        double ds = drive(level, t, force, drag, ridden, new Ride(driver, 1, safe), changed);
         Rail now = rail(seg);
         if (now == null) return;
         report.track(now, s, Math.abs(ds));
@@ -503,25 +505,22 @@ public class HandTrolley extends RailVehicle {
     // ---------------------------------------------------------------- client
 
     @Override
-    protected double predict(Rail r) {
+    public double predictTrain(double speed, int flip, boolean settled) {
         Input in = clientInput.apply(this);
         if (in == null || stage() != DONE) return Double.NaN;
+        Rail r = rail(seg);
+        if (r == null) return Double.NaN;
         Entity me = null;
         for (Entity e : getPassengers()) if (isPumper(e)) me = e;
         List<Input> inputs = List.of(in);
         List<Vec3> looks = List.of(me != null ? me.getLookAngle() : Vec3.ZERO);
         byte[] pump = new byte[1];
-        double load = entityData.get(DATA_LOAD);
-        double force = thrust(inputs, looks, u, pump, entityData.get(DATA_BOGIES), load) - G * r.path().gradeAt(Mth.clamp(s, 0, r.length()));
-        double drag = 0.08 + 0.004 * u * u + (in.jump() || braking() ? BRAKE / load : 0);
-        double nu = step(u, force, drag);
-        double ds = (u + nu) / 2 * DT;
-        u = nu;
-        if (snapU() == 0 && Math.abs(u) < 0.3 && nearSnap()) {
-            ds = 0;
-            u = 0;
-        }
-        return ds;
+        double load = entityData.get(DATA_LOAD), k = flip * f(), us = speed * k;
+        double force = thrust(inputs, looks, us, pump, entityData.get(DATA_BOGIES), load) - G * r.path().gradeAt(Mth.clamp(s, 0, r.length()));
+        double drag = 0.08 + 0.004 * us * us + (in.jump() || braking() ? BRAKE / load : 0);
+        double nu = step(us, force, drag);
+        if (settled && Math.abs(nu) < 0.3) nu = 0;
+        return nu * k;
     }
 
     // ---------------------------------------------------------------- saving

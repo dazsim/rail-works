@@ -12,6 +12,7 @@ import java.util.function.LongFunction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -31,6 +32,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -60,8 +62,6 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     static final EntityDataAccessor<Boolean> DATA_FRONT = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.BOOLEAN);
     static final EntityDataAccessor<Integer> DATA_STAGE = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.INT);
     static final EntityDataAccessor<Boolean> DATA_BRAKE = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.BOOLEAN);
-    static final EntityDataAccessor<Long> DATA_NEXT_A = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.LONG);
-    static final EntityDataAccessor<Long> DATA_NEXT_B = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.LONG);
     static final EntityDataAccessor<Integer> DATA_TOW = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.INT);
     static final EntityDataAccessor<Byte> DATA_TOW_END = SynchedEntityData.defineId(RailVehicle.class, EntityDataSerializers.BYTE);
 
@@ -85,14 +85,12 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     private int lastSync, towLost;
     private @Nullable UUID towId;
     private int towSign = 1, towEnd = 1;
-    protected @Nullable Player pusher;
-    protected int pushUntil, pushDir;
+    /** Everyone pushing by hand just now, each with the way they push, +1 towards our front. */
+    protected final List<Push> pushers = new ArrayList<>();
+
+    protected record Push(Player player, int dir, int until) {}
 
     // client only
-    private boolean fresh = true, pending;
-    private long snapSeg;
-    private double snapS, snapU, lastAlong;
-    private int snapAge, mismatch;
     private final InterpolationHandler ignore = new InterpolationHandler(this) {
         @Override
         public void interpolateTo(Vec3 position, float yRot, float xRot) {}
@@ -106,7 +104,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder b) {
         b.define(DATA_SEG, 0L).define(DATA_S, 0f).define(DATA_U, 0f).define(DATA_FRONT, true).define(DATA_STAGE, 0)
-                .define(DATA_BRAKE, true).define(DATA_NEXT_A, -1L).define(DATA_NEXT_B, -1L).define(DATA_TOW, 0).define(DATA_TOW_END, (byte) 3);
+                .define(DATA_BRAKE, true).define(DATA_TOW, 0).define(DATA_TOW_END, (byte) 3);
     }
 
     public int stage() {
@@ -335,6 +333,8 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         towSign = sign;
         towEnd = end;
         towLost = 0;
+        topology++;
+        if (leader != null) train = null;
         syncTow(leader);
     }
 
@@ -394,7 +394,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         if (towId == null) return false;
         RailVehicle l = leader();
         if (l == null) {
-            if (++towLost > 40) {
+            if (entitiesLoadedAround(level, 24) && ++towLost > 40) {
                 uncouple(level, null);
                 return false;
             }
@@ -406,6 +406,14 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             uncouple(level, null);
             return false;
         }
+        return true;
+    }
+
+    /** Whether the entities within r blocks are all loaded, so a missing leader is really gone. */
+    boolean entitiesLoadedAround(ServerLevel level, double r) {
+        int x0 = Mth.floor(getX() - r) >> 4, x1 = Mth.floor(getX() + r) >> 4, z0 = Mth.floor(getZ() - r) >> 4, z1 = Mth.floor(getZ() + r) >> 4;
+        for (int x = x0; x <= x1; x++)
+            for (int z = z0; z <= z1; z++) if (!level.areEntitiesLoaded(ChunkPos.pack(x, z))) return false;
         return true;
     }
 
@@ -460,7 +468,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             say(player, Component.translatable("message.railworks.trolley.occupied"));
             return false;
         }
-        BlockPos hit = v.outlineHit(rail(sg), v.s, 0);
+        BlockPos hit = v.outlineHit(level, sg.id, v.s, 0);
         if (hit != null) {
             say(player, Component.translatable("message.railworks.trolley.no_room", hit.getX(), hit.getY(), hit.getZ()));
             return false;
@@ -471,24 +479,71 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         return true;
     }
 
-    private record Hop(Rail rail, boolean enterAtB) {}
+    // ---------------------------------------------------------------- trains
 
-    private @Nullable Hop hop(Rail r, boolean atB) {
-        if (level() instanceof ServerLevel sl) return serverHop(sl, r, atB);
-        long code = entityData.get(atB ? DATA_NEXT_B : DATA_NEXT_A);
-        if (code < 0 || entityData.get(DATA_SEG) != r.id()) return null;
-        Rail n = clientTrack.apply(code >> 1);
-        return n == null ? null : new Hop(n, (code & 1) != 0);
+    /** Bumped whenever any tow bar goes on or off, so every train checks its members again. */
+    static int topology;
+    private @Nullable Train train, savedTrain;
+    private int trainTopo = -1, trainWait, lastTrainSync;
+    private boolean trainDirty;
+
+    public @Nullable Train currentTrain() {
+        return train;
     }
 
-    private @Nullable Hop serverHop(ServerLevel level, Rail r, boolean atB) {
+    /** The train this root moves, found again whenever the couplings change. Null while members are still loading. */
+    @Nullable Train train(ServerLevel level) {
+        if (train != null && trainTopo == topology && intact(train)) return train;
+        Train t = null;
+        if (savedTrain != null) {
+            Train sv = savedTrain;
+            List<Member> found = new ArrayList<>();
+            boolean missing = false;
+            for (int i = 0; i < sv.ids.size(); i++) {
+                if (level.getEntity(sv.ids.get(i)) instanceof RailVehicle v && v.isAlive()) found.add(new Member(v, sv.flip[i]));
+                else missing = true;
+            }
+            if (missing && ++trainWait < 200) return null;
+            savedTrain = null;
+            if (!missing && sameSet(found, consist()) && validPath(level, sv)) {
+                sv.members.addAll(found);
+                t = sv;
+                if (ECHO) LOG.info("[train] loaded {} vehicles from the save", found.size());
+            }
+        }
+        if (t == null) t = Trains.build(level, this);
+        train = t;
+        trainTopo = topology;
+        trainDirty = true;
+        return t;
+    }
+
+    private boolean intact(Train t) {
+        if (t.members.isEmpty() || t.members.getFirst().v() == null) return false;
+        for (Member m : t.members) if (!m.v().isAlive()) return false;
+        return t.indexOf(this) >= 0;
+    }
+
+    private static boolean sameSet(List<Member> a, List<Member> b) {
+        if (a.size() != b.size()) return false;
+        for (Member x : a) if (b.stream().noneMatch(y -> y.v() == x.v())) return false;
+        return true;
+    }
+
+    private static boolean validPath(ServerLevel level, Train t) {
         TrackGraph g = TrackGraph.get(level);
-        TrackGraph.Segment sg = g.segment(r.id());
-        if (sg == null) return null;
-        long nodeId = atB ? sg.b : sg.a;
+        for (Train.Step st : t.steps) {
+            TrackGraph.Segment sg = g.segment(st.seg());
+            if (sg == null || !sg.live) return false;
+        }
+        return t.ref >= 0 && t.ref + t.span() <= t.total(id -> Trains.rail(g, id)) + 1e-6;
+    }
+
+    /** The section over a node, throwing trailing points and reporting them. Null at a buffer or dead end. */
+    TrackGraph.@Nullable Segment cross(ServerLevel level, TrackGraph g, TrackGraph.Segment sg, long nodeId) {
         TrackGraph.Node n = g.node(nodeId);
         if (n == null || n.buffer) return null;
-        TrackGraph.Segment nx = nextFor(g, sg, nodeId);
+        TrackGraph.Segment nx = g.next(nodeId, sg.id);
         if (nx == null || !nx.live) return null;
         int p = g.pointsPort(n);
         if (p >= 0) {
@@ -502,7 +557,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                     TrackActions.updateFrames(level, n);
                     level.playSound(null, n.pos, SoundEvents.PISTON_CONTRACT, SoundSource.BLOCKS, 0.6f, 1.3f);
                     level.playSound(null, n.pos, SoundEvents.IRON_DOOR_CLOSE, SoundSource.BLOCKS, 0.5f, 1.6f);
-                    root().tell(Component.translatable("message.railworks.trolley.thrown", n.pos.getX(), n.pos.getY(), n.pos.getZ()).withStyle(ChatFormatting.GOLD), true);
+                    tell(Component.translatable("message.railworks.trolley.thrown", n.pos.getX(), n.pos.getY(), n.pos.getZ()).withStyle(ChatFormatting.GOLD), true);
                 }
                 pointsPassed(n, Component.translatable(thrown ? "railworks.report.trailing_thrown" : "railworks.report.trailing"));
             } else {
@@ -516,107 +571,42 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             }
         }
         entered(level, nx);
-        return new Hop(rail(nx), nx.b == nodeId && nx.a != nodeId);
-    }
-
-    static final double FOLLOW = 12;
-
-    /** The section taken over a node: at facing points the leg a coupled neighbour is already on, else the route. */
-    TrackGraph.@Nullable Segment nextFor(TrackGraph g, TrackGraph.Segment sg, long nodeId) {
-        TrackGraph.Segment nx = g.next(nodeId, sg.id);
-        TrackGraph.Node n = g.node(nodeId);
-        if (nx == null || n == null) return nx;
-        int p = g.pointsPort(n);
-        if (p < 0 || (sg.a == nodeId ? sg.aPort : sg.bPort) == p) return nx;
-        List<RailVehicle> near = coupled();
-        if (near.isEmpty()) return nx;
-        List<TrackGraph.Segment> legs = g.legs(n);
-        for (TrackGraph.Segment leg : legs) for (RailVehicle o : near) if (o.seg == leg.id) return leg;
-        for (TrackGraph.Segment leg : legs) for (RailVehicle o : near) if (beyond(g, leg, nodeId, o.seg, FOLLOW)) return leg;
         return nx;
     }
 
-    List<RailVehicle> coupled() {
-        List<RailVehicle> out = new ArrayList<>(followers());
-        RailVehicle l = leader();
-        if (l != null) out.add(l);
-        return out;
-    }
-
-    /** Whether section target lies on sg or past it, entering sg at from, within left blocks of legal moves. */
-    static boolean beyond(TrackGraph g, TrackGraph.Segment sg, long from, long target, double left) {
-        if (sg.id == target) return true;
-        long far = sg.a == from ? sg.b : sg.a;
-        left -= sg.path.length;
-        TrackGraph.Node n = g.node(far);
-        if (left <= 0 || n == null || n.buffer || far == from) return false;
-        int p = g.pointsPort(n);
-        if (p >= 0 && (sg.a == far ? sg.aPort : sg.bPort) != p) {
-            for (TrackGraph.Segment l : g.legs(n)) if (l.live && beyond(g, l, far, target, left)) return true;
-            return false;
-        }
-        TrackGraph.Segment nx = g.next(far, sg.id);
-        return nx != null && nx.live && beyond(g, nx, far, target, left);
-    }
-
-    /**
-     * Puts a consist found split over both legs of a set of points (an old save) back on the root's leg,
-     * or takes the bar off where that can't be done.
-     */
-    void mend(ServerLevel level, List<Member> ms) {
-        TrackGraph g = TrackGraph.get(level);
-        for (int i = 1; i < ms.size(); i++) {
-            RailVehicle b = ms.get(i).v, a = null;
-            for (int j = 0; j < i && a == null; j++) {
-                RailVehicle o = ms.get(j).v;
-                if (o.getUUID().equals(b.towId) || b.getUUID().equals(o.towId)) a = o;
-            }
-            if (a == null || a.seg == b.seg) continue;
-            TrackGraph.Segment sa = g.segment(a.seg), sb = g.segment(b.seg);
-            if (sa == null || sb == null) continue;
-            long node = sa.a == sb.a || sa.a == sb.b ? sa.a : sa.b == sb.a || sa.b == sb.b ? sa.b : -1;
-            TrackGraph.Node n = g.node(node);
-            if (n == null || g.pointsPort(n) < 0) continue;
-            List<TrackGraph.Segment> legs = g.legs(n);
-            if (!legs.contains(sa) || !legs.contains(sb) || sa.a == sa.b || sb.a == sb.b) continue;
-            if (beyond(g, sa, node, sb.id, sa.path.length + 16)) continue;
-            double db = sb.a == node ? b.s : sb.path.length - b.s;
-            double da = sa.a == node ? a.s : sa.path.length - a.s;
-            boolean ok = db <= sa.path.length && Math.abs(da - db) >= a.trackReach() + b.trackReach() - 0.3;
-            double ns = sa.a == node ? db : sa.path.length - db;
-            Rail r = rail(sa.id);
-            if (ok && r != null) ok = b.outlineHit(r, ns, 0) == null && clearOf(level, b, sa.id, ns, ms);
-            if (!ok || r == null) {
-                b.uncoupleFrom(level, a);
-                notifyNear(level, b, Component.translatable("message.railworks.tow.split").withStyle(ChatFormatting.YELLOW));
-                if (ECHO) LOG.info("[tow] split over points at {}, uncoupled", n.pos);
-                return;
-            }
-            if ((sa.a == node) != (sb.a == node)) {
-                b.u = -b.u;
-                b.front = !b.front;
-            }
-            b.seg = sa.id;
-            b.s = ns;
-            b.placeOn(r);
-            b.sync(true);
-            notifyNear(level, b, Component.translatable("message.railworks.tow.rejoined").withStyle(ChatFormatting.GOLD));
-            if (ECHO) LOG.info("[tow] split over points at {}, put back on {} at {}", n.pos, sa.id, ns);
+    /** Puts every member where the train says, turning each to face the way its flip says. */
+    private void placeMembers(Train t, double[] moved) {
+        LongFunction<@Nullable Rail> track = this::rail;
+        for (int i = 0; i < t.members.size(); i++) {
+            RailVehicle v = t.members.get(i).v();
+            Train.Pos p = t.at(track, t.ref + t.d[i]);
+            if (p == null) continue;
+            long seg0 = v.seg;
+            double s0 = v.s;
+            boolean f0 = v.front;
+            v.seg = p.rail().id();
+            v.s = p.s();
+            v.front = -p.dir() * t.flip[i] > 0;
+            moved[i] = seg0 == v.seg && f0 == v.front ? v.s - s0 : moved[i];
+            v.placeOn(p.rail());
         }
     }
 
-    private static boolean clearOf(ServerLevel level, RailVehicle b, long seg, double at, List<Member> ms) {
-        for (RailVehicle o : level.getEntitiesOfClass(RailVehicle.class, b.getBoundingBox().inflate(60), o -> o != b && o.seg == seg)) {
-            boolean ours = false;
-            for (Member m : ms) ours |= m.v == o;
-            if (!ours && Math.abs(o.s - at) < o.trackReach() + b.trackReach()) return false;
-        }
-        return true;
+    /** Along a member's +s for each unit along the root's +s. */
+    private int k(Train t, int i) {
+        RailVehicle v = t.members.get(i).v();
+        return t.flip[i] * v.f() * f();
     }
 
-    private void uncoupleFrom(ServerLevel level, RailVehicle other) {
-        if (other.getUUID().equals(towId)) uncouple(level, null);
-        else other.uncouple(level, null);
+    void sendTrain(ServerLevel level, Train t, boolean moving) {
+        if (!trainDirty && !(moving || tickCount - lastTrainSync >= 20)) return;
+        trainDirty = false;
+        lastTrainSync = tickCount;
+        Train c = Trains.lookahead(level, t, 10);
+        TrainSyncPayload p = TrainSyncPayload.of(this, level.getGameTime(), u * f(), c, t);
+        double range = 160 + t.span();
+        for (net.minecraft.server.level.ServerPlayer sp : level.players())
+            if (sp.distanceToSqr(this) < range * range) sp.connection.send(new net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket(p));
     }
 
     static void notifyNear(ServerLevel level, Entity at, Component c) {
@@ -672,6 +662,11 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         }
     }
 
+    /** Its train, found from any member: the root's while it lives. */
+    public @Nullable Train trainOf() {
+        return root().train;
+    }
+
     @Override
     public double trackMass() {
         if (!done()) return 1000;
@@ -707,24 +702,51 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         return -G * f / m;
     }
 
+    /** Someone leaning on it this tick, or holding the push for a few ticks more. */
+    void push(Player p, int dir) {
+        pushers.removeIf(x -> x.player() == p);
+        pushers.add(new Push(p, dir, tickCount + 6));
+    }
+
     boolean pushed() {
-        return pusher != null && tickCount <= pushUntil && pusher.isAlive();
+        pushers.removeIf(x -> tickCount > x.until() || !x.player().isAlive());
+        return !pushers.isEmpty();
+    }
+
+    /** The speed hand pushing fades out at, for n people at once. */
+    protected double pushTop(int n) {
+        return PUSH_TOP;
+    }
+
+    static int pusherCount(List<Member> ms) {
+        int n = 0;
+        for (Member x : ms) if (x.v.pushed()) n += x.v.pushers.size();
+        return n;
     }
 
     /** People pushing by hand, along the root's +s. */
     double pushForce(List<Member> ms, double m) {
+        int n = pusherCount(ms);
+        if (n == 0) return 0;
+        double top = 0;
+        for (Member x : ms) top = Math.max(top, x.v.pushTop(n));
         double f = 0;
         for (Member x : ms) {
             if (!x.v.pushed()) continue;
-            int d = x.v.pushDir * x.sign * f();
-            f += d * PUSH_F * Mth.clamp((PUSH_TOP - u * d) / 0.4, 0, 1);
+            for (Push p : x.v.pushers) {
+                int d = p.dir() * x.sign * f();
+                f += d * PUSH_F * Mth.clamp((top - u * d) / 0.4, 0, 1);
+            }
         }
         return f / m;
     }
 
     static boolean anyPushed(List<Member> ms) {
-        for (Member x : ms) if (x.v.pushed()) return true;
-        return false;
+        return pusherCount(ms) > 0;
+    }
+
+    static void pushersOf(List<Member> ms, List<Entity> out) {
+        for (Member x : ms) if (x.v.pushed()) for (Push p : x.v.pushers) out.add(p.player());
     }
 
     record Stop(double dist, boolean buffer) {}
@@ -737,11 +759,11 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         if (sg == null || !sg.live) return new Stop(0, false);
         double d = dir > 0 ? sg.path.length - s : s;
         boolean atB = dir > 0;
-        for (int i = 0; i < 6 && d < 80; i++) {
+        for (int i = 0; i < 8 && d < 80; i++) {
             long nodeId = atB ? sg.b : sg.a;
             TrackGraph.Node n = g.node(nodeId);
             if (n != null && n.buffer) return new Stop(d - 0.59 - trackReach(), true);
-            TrackGraph.Segment nx = n == null ? null : nextFor(g, sg, nodeId);
+            TrackGraph.Segment nx = n == null ? null : g.next(nodeId, sg.id);
             if (nx == null || !nx.live) return new Stop(d - trackReach() + 0.05, false);
             atB = !(nx.b == nodeId && nx.a != nodeId);
             d += nx.path.length;
@@ -750,29 +772,18 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         return NONE;
     }
 
-    /** Moves along the line, hopping sections. Returns false if it ran out of track. */
-    boolean advance(double ds) {
-        Rail r = rail(seg);
-        if (r == null) return false;
-        s += ds;
-        for (int guard = 0; guard < 4 && (s > r.length() || s < 0); guard++) {
-            boolean atB = s > r.length();
-            double over = atB ? s - r.length() : -s;
-            Hop h = hop(r, atB);
-            if (h == null) {
-                s = atB ? r.length() : 0;
-                u = 0;
-                return false;
+    /** The member whose body reaches furthest the way the train moves, dir +1 towards the front. */
+    private static int leading(Train t, int dir) {
+        int best = 0;
+        double bx = 0;
+        for (int i = 0; i < t.members.size(); i++) {
+            double x = t.d[i] - dir * t.members.get(i).v().trackReach();
+            if (i == 0 || x * dir < bx * dir) {
+                best = i;
+                bx = x;
             }
-            if (atB == h.enterAtB()) {
-                u = -u;
-                front = !front;
-            }
-            r = h.rail();
-            seg = r.id();
-            s = h.enterAtB() ? r.length() - over : over;
         }
-        return true;
+        return best;
     }
 
     protected void animate(double ds) {
@@ -793,23 +804,19 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     record Ride(@Nullable Entity driver, float harm, List<Entity> safe) {}
 
     /**
-     * Moves the whole consist one tick, this vehicle being its root. force and drag are accelerations along
-     * our +s. Returns the distance moved along our +s.
+     * Moves the whole train one tick, this vehicle being its root. force and drag are accelerations along
+     * our +s. Every member moves by exactly the same distance. Returns the distance moved along our +s.
      */
-    double drive(ServerLevel level, List<Member> ms, double force, double drag, boolean hold, Ride ride, boolean changed) {
-        if (ms.size() > 1 && tickCount % 10 == 0) mend(level, ms);
+    double drive(ServerLevel level, Train t, double force, double drag, boolean hold, Ride ride, boolean changed) {
+        List<Member> ms = t.members;
         int n = ms.size(), fr = f();
         int[] k = new int[n];
-        for (int i = 0; i < n; i++) k[i] = ms.get(i).sign * ms.get(i).v.f() * fr;
+        for (int i = 0; i < n; i++) k[i] = k(t, i);
         int dir = u > 0.001 ? 1 : u < -0.001 ? -1 : 0;
         if (dir == 0) dir = (int) Math.signum(force);
-        Stop stop = NONE;
-        if (dir != 0) {
-            for (int i = 0; i < n; i++) {
-                Stop st = ms.get(i).v.stopAhead(level, dir * k[i]);
-                if (st.dist() < stop.dist()) stop = st;
-            }
-        }
+        // dir along our +s; towards the train's front when dir * f() > 0
+        int lead = dir == 0 ? 0 : leading(t, dir * fr);
+        Stop stop = dir == 0 ? NONE : ms.get(lead).v().stopAhead(level, dir * k[lead]);
         boolean endBrake = false;
         if (!stop.buffer() && stop.dist() < 60 && u * u / (2 * END_BRAKE) >= stop.dist() - 0.1) {
             drag += END_BRAKE;
@@ -832,12 +839,12 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             u = 0;
         }
         if (ds != 0) {
+            int sd = (int) Math.signum(ds);
             for (int i = 0; i < n; i++) {
-                RailVehicle v = ms.get(i).v;
-                Rail r = v.rail(v.seg);
-                if (r == null) continue;
-                double dm = ds * k[i];
-                BlockPos hit = v.outlineHit(r, Mth.clamp(v.s + dm, 0, r.length()), (int) Math.signum(dm));
+                RailVehicle v = ms.get(i).v();
+                if (!v.trackContact()) continue;
+                double[] at = Trains.walk(TrackGraph.get(level), v.seg, v.s, ds * k[i]);
+                BlockPos hit = at == null ? null : v.outlineHit(level, (long) at[0], at[1], sd * k[i] * (int) at[2]);
                 if (hit == null) continue;
                 if (Math.abs(u) > 0.3 || stopCooldown <= 0) {
                     BlockState bs = level.getBlockState(hit);
@@ -853,18 +860,12 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         }
         if (ds != 0) {
             int d = (int) Math.signum(ds);
-            TrackRunner.Contact c = null;
-            RailVehicle by = this;
-            for (int i = 0; i < n; i++) {
-                TrackRunner.Contact ci = TrackRunner.ahead(level, ms.get(i).v, d * k[i], Math.abs(ds) + 0.05);
-                if (ci == null || ms.stream().anyMatch(x -> x.v == ci.other())) continue;
-                if (c == null || ci.gap() < c.gap()) {
-                    c = ci;
-                    by = ms.get(i).v;
-                }
-            }
+            int li = leading(t, d * fr);
+            RailVehicle by = ms.get(li).v();
+            int along = d * k[li];
+            TrackRunner.Contact c = TrackRunner.ahead(level, by, along, Math.abs(ds) + 0.05, r -> r instanceof RailVehicle rv && t.indexOf(rv) >= 0);
             if (c != null && c.gap() < Math.abs(ds)) {
-                double v1 = d * u, v2 = c.k() * c.other().trackSpeed();
+                double v1 = d * u, v2 = c.k() * c.other().trackSpeed() * along;
                 if (v1 > v2) {
                     double[] v = TrackRunner.exchange(mass(ms), v1, c.other().trackMass(), v2);
                     if (v1 - v2 > 0.5) {
@@ -875,7 +876,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                         }
                     }
                     u = d * v[0];
-                    c.other().bumpTrackSpeed(c.k() * v[1]);
+                    c.other().bumpTrackSpeed(c.k() * v[1] * along);
                 }
                 ds = d * Math.max(0, c.gap());
                 stopped = true;
@@ -883,22 +884,25 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         }
         stopCooldown--;
         long[] before = new long[n];
+        double[] moved = new double[n];
         for (int i = 0; i < n; i++) {
-            RailVehicle v = ms.get(i).v;
-            before[i] = v.seg;
-            if (ds != 0 && !v.advance(ds * k[i])) {
-                stopped = true;
-                u = 0;
-            }
+            before[i] = ms.get(i).v().seg;
+            moved[i] = ds * k[i];
         }
+        if (ds != 0 && !Trains.move(level, this, t, -ds * fr)) {
+            stopped = true;
+            u = 0;
+        }
+        placeMembers(t, moved);
         for (int i = 0; i < n; i++) {
-            RailVehicle v = ms.get(i).v;
-            v.u = u * ms.get(i).sign * v.f() * f();
+            RailVehicle v = ms.get(i).v();
+            v.u = u * k(t, i);
             Rail now = v.rail(v.seg);
             if (now == null) continue;
-            v.placeOn(now);
-            v.moved(level, now, ds * k[i], changed || stopped || before[i] != v.seg, ride);
+            v.moved(level, now, moved[i], changed || stopped || before[i] != v.seg, ride);
+            for (Entity p : v.getPassengers()) v.positionRider(p);
         }
+        sendTrain(level, t, ds != 0 || u != 0);
         return ds;
     }
 
@@ -921,47 +925,35 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
 
     void sync(boolean force) {
         if (level().isClientSide()) return;
-        if (force || tickCount - lastSync >= 4) {
+        if (force || tickCount - lastSync >= 20) {
             lastSync = tickCount;
             entityData.set(DATA_SEG, seg);
             entityData.set(DATA_S, (float) s);
             entityData.set(DATA_U, (float) u);
             entityData.set(DATA_FRONT, front);
-            if (level() instanceof ServerLevel sl) {
-                TrackGraph g = TrackGraph.get(sl);
-                TrackGraph.Segment sg = g.segment(seg);
-                if (sg != null) {
-                    entityData.set(DATA_NEXT_A, nextCode(g, sg, sg.a));
-                    entityData.set(DATA_NEXT_B, nextCode(g, sg, sg.b));
-                }
-            }
         }
     }
 
-    private long nextCode(TrackGraph g, TrackGraph.Segment sg, long nodeId) {
-        TrackGraph.Node n = g.node(nodeId);
-        if (n == null || n.buffer) return -1;
-        TrackGraph.Segment nx = nextFor(g, sg, nodeId);
-        if (nx == null || !nx.live) return -1;
-        return nx.id * 2 + (nx.b == nodeId && nx.a != nodeId ? 1 : 0);
-    }
-
-    /** The first solid block inside the outline, checking only the leading end when moving. */
-    @Nullable BlockPos outlineHit(Rail r, double at, int dir) {
-        double[] c = r.path().pose(at);
-        double h = c[2], e = trackReach(), hw = halfWidth();
+    /** The first solid block inside the outline, checking only the leading end when moving, dir along +s. */
+    @Nullable BlockPos outlineHit(ServerLevel level, long seg, double at, int dir) {
+        TrackGraph g = TrackGraph.get(level);
+        double e = trackReach(), hw = halfWidth();
         double[] as = dir == 0 ? new double[]{-e + 0.05, -e / 2, 0, e / 2, e - 0.05} : new double[]{dir * e};
         for (double a : as) {
-            double base = r.top(Mth.clamp(at + a, 0, r.length()));
-            double x0 = c[0] + a * Math.cos(h), z0 = c[1] + a * Math.sin(h);
+            double[] w0 = Trains.walk(g, seg, at, a);
+            Rail r = w0 == null ? null : Trains.rail(g, (long) w0[0]);
+            if (r == null) continue;
+            double ss = Mth.clamp(w0[1], 0, r.length());
+            double[] c = r.path().pose(ss);
+            double h = c[2], base = r.top(ss);
             for (int i = 0; i <= 8; i++) {
                 double w = -hw + i * hw / 4;
-                double x = x0 - w * Math.sin(h), z = z0 + w * Math.cos(h);
+                double x = c[0] - w * Math.sin(h), z = c[1] + w * Math.cos(h);
                 for (double y = base + 0.15; y <= base + outlineHeight(); y += 0.4) {
                     BlockPos bp = BlockPos.containing(x, y, z);
-                    BlockState st = level().getBlockState(bp);
+                    BlockState st = level.getBlockState(bp);
                     if (st.isAir() || st.is(ModContent.TRACK_NODE)) continue;
-                    VoxelShape shape = st.getCollisionShape(level(), bp);
+                    VoxelShape shape = st.getCollisionShape(level, bp);
                     if (shape.isEmpty()) continue;
                     double lx = x - bp.getX(), ly = y - bp.getY(), lz = z - bp.getZ();
                     for (AABB box : shape.toAabbs()) if (box.contains(lx, ly, lz)) return bp;
@@ -1004,84 +996,37 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
 
     // ---------------------------------------------------------------- client
 
-    @Override
-    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
-        super.onSyncedDataUpdated(key);
-        if (level().isClientSide() && (key == DATA_S || key == DATA_SEG || key == DATA_U)) pending = true;
+    /** Client: the game time a train last placed this vehicle; it leaves its own moving alone while one does. */
+    public long trainPlaced = Long.MIN_VALUE;
+
+    /** Client: puts it where its train says, u its speed along +s, fallback the move to show if it changed section. */
+    public void placeByTrain(Rail r, double ns, boolean nf, double nu, double fallback) {
+        double moved = r.id() == seg && nf == front ? ns - s : fallback;
+        seg = r.id();
+        s = ns;
+        front = nf;
+        u = nu;
+        placeOn(r);
+        animate(moved);
+        trainPlaced = level().getGameTime();
     }
 
-    /** The client's own guess at this tick's move along +s, or NaN to follow the server. */
-    protected double predict(Rail r) {
+    /** The client's own guess at its train's next speed towards the train's front, or NaN to follow the server. */
+    public double predictTrain(double speed, int flip, boolean settled) {
         return Double.NaN;
     }
 
-    protected double snapU() {
-        return snapU;
-    }
-
-    protected boolean nearSnap() {
-        return snapAge < 10 && Math.abs(snapS - s) < 0.5 && snapSeg == seg;
-    }
-
     private void clientTick() {
-        if (pending) {
-            pending = false;
-            snapSeg = entityData.get(DATA_SEG);
-            snapS = entityData.get(DATA_S);
-            snapU = entityData.get(DATA_U);
-            snapAge = 0;
-            if (fresh) {
-                fresh = false;
-                seg = snapSeg;
-                s = snapS;
-                u = snapU;
-                front = entityData.get(DATA_FRONT);
-            }
-        } else snapAge++;
-        if (fresh) return;
-        Rail r = rail(seg);
-        if (r == null) {
-            seg = snapSeg;
-            s = snapS;
-            front = entityData.get(DATA_FRONT);
-            r = rail(seg);
-            if (r == null) return;
-        }
-        RailVehicle l = towed() ? leader() : null;
-        double ds = l == null || l.fresh ? predict(r) : Double.NaN;
-        boolean own = !Double.isNaN(ds);
-        if (l != null && !l.fresh) {
-            u += (snapU - u) * 0.5;
-            ds = l.lastAlong * towSign() * f();
-            own = true;
-        } else if (!own) {
-            u += (snapU - u) * 0.5;
-            ds = u * DT;
-        }
-        double sBefore = s;
-        long segBefore = seg;
-        boolean frontBefore = front;
-        if (ds != 0) advance(ds);
-        if (seg == snapSeg) {
-            double target = snapS + (snapU == 0 ? 0 : snapU * Math.min(snapAge, 6) * DT);
-            double err = target - s;
-            if (Math.abs(err) > 3) s = target;
-            else s += err * (own ? 0.1 : 0.25);
-            mismatch = 0;
-        } else if (++mismatch > 8) {
-            seg = snapSeg;
-            s = snapS;
-            u = snapU;
-            front = entityData.get(DATA_FRONT);
-            mismatch = 0;
-        }
-        Rail now = rail(seg);
-        if (now == null) return;
-        if (front != entityData.get(DATA_FRONT) && seg == snapSeg) front = entityData.get(DATA_FRONT);
-        placeOn(now);
-        double moved = seg == segBefore && front == frontBefore ? s - sBefore : ds;
-        animate(moved);
-        lastAlong = moved * f();
+        if (level().getGameTime() - trainPlaced <= 2) return;
+        // no train has placed it lately: sit where the server last said
+        Rail r = rail(entityData.get(DATA_SEG));
+        if (r == null) return;
+        seg = r.id();
+        s = entityData.get(DATA_S);
+        front = entityData.get(DATA_FRONT);
+        u = entityData.get(DATA_U);
+        placeOn(r);
+        animate(0);
     }
 
     // ---------------------------------------------------------------- saving
@@ -1098,6 +1043,8 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         towSign = in.getIntOr("tow_sign", 1);
         towEnd = in.getIntOr("tow_end", 1);
         if (towId != null) entityData.set(DATA_TOW_END, (byte) ((towEnd > 0 ? 1 : 0) | (towSign > 0 ? 2 : 0)));
+        savedTrain = towId == null ? in.read("train", CompoundTag.CODEC).map(Train::load).orElse(null) : null;
+        train = null;
         sync(true);
     }
 
@@ -1112,6 +1059,6 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             out.putString("tow", towId.toString());
             out.putInt("tow_sign", towSign);
             out.putInt("tow_end", towEnd);
-        }
+        } else if (train != null && train.members.size() > 1) out.store("train", CompoundTag.CODEC, train.save());
     }
 }

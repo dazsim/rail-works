@@ -15,6 +15,7 @@ public class RailWorksFabric implements ModInitializer {
     public void onInitialize() {
         ModContent.registerAllDirect(new CreosoteFluid.Source(), new CreosoteFluid.Flowing(), new MoltenSteelFluid.Source(), new MoltenSteelFluid.Flowing());
         PayloadTypeRegistry.clientboundPlay().register(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, com.workshopcraft.railworks.trolley.TrainSyncPayload.CODEC);
         ServerTickEvents.END_LEVEL_TICK.register(TrackSync::tick);
         FuelValueEvents.BUILD.register((builder, context) -> builder.add(ModContent.COKE, 3200));
     }
