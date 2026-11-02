@@ -123,6 +123,7 @@ public class Bogie extends RailVehicle {
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+        if (source.getEntity() instanceof Player hp && other(hp) instanceof Picked pk) return pk.v().hurtServer(level, source, damage);
         if (mounted() && leader() != null) return leader().hurtServer(level, source, damage);
         if (source.getEntity() instanceof Player p && p.getMainHandItem().is(ModContent.HAMMER) && !p.isSecondaryUseActive()) hammer(level, p);
         return false;
@@ -130,6 +131,8 @@ public class Bogie extends RailVehicle {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
+        Picked pk = other(player);
+        if (pk != null) return pk.v().interact(player, hand, pk.loc());
         ItemStack held = player.getItemInHand(hand);
         int st = stage();
         if (held.is(ModContent.TOW_BAR)) return Coupling.click(this, player, location, held);

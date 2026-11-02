@@ -316,7 +316,7 @@ public class Carriage extends RailVehicle {
         Slot s = CarriageLayout.SLOTS.get(i);
         setSlot(i, '.');
         if (s.door() >= 0) entityData.set(DATA_DOORS, doors() & ~(1 << s.door()));
-        if (s.group().equals("bench")) for (Entity p : List.copyOf(getPassengers())) if (seatOf(p) / 4 == i) p.stopRiding();
+        if (m != null && !m.seats().isEmpty()) for (Entity p : List.copyOf(getPassengers())) if (seatOf(p) / 4 == i) p.stopRiding();
         if (m != null) give(level, player, new ItemStack(m.part().asItem()), position());
         play(level, SoundEvents.ANVIL_PLACE, 0.4f, 1.3f);
         if (player != null) say(player, Component.translatable("message.railworks.carriage.removed", new ItemStack(m == null ? ModContent.SOLEBAR : m.part().asItem()).getHoverName()));
@@ -396,12 +396,15 @@ public class Carriage extends RailVehicle {
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+        if (source.getEntity() instanceof Player hp && other(hp) instanceof Picked pk) return pk.v().hurtServer(level, source, damage);
         if (source.getEntity() instanceof Player p && p.getMainHandItem().is(ModContent.HAMMER) && !p.isSecondaryUseActive()) hammer(level, p);
         return false;
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
+        Picked pk = other(player);
+        if (pk != null) return pk.v().interact(player, hand, pk.loc());
         ItemStack held = player.getItemInHand(hand);
         if (held.is(ModContent.TOW_BAR)) return Coupling.click(this, player, location, held);
         if (held.is(ModContent.HAMMER)) {
@@ -638,11 +641,11 @@ public class Carriage extends RailVehicle {
         }
         int i = aimed(player, j -> {
             Slot s = CarriageLayout.SLOTS.get(j);
-            return (s.door() >= 0 || s.group().equals("bench")) && CarriageLayout.secure(st, j);
+            return (s.door() >= 0 || seats(st, j)) && CarriageLayout.secure(st, j);
         }, true);
         // an open doorway is looked through: a bench behind it wins, and the door shuts from above the benches
         if (i >= 0 && CarriageLayout.SLOTS.get(i).door() >= 0 && (doors() >> CarriageLayout.SLOTS.get(i).door() & 1) != 0) {
-            int b = aimed(player, j -> CarriageLayout.SLOTS.get(j).group().equals("bench") && CarriageLayout.secure(st, j), true);
+            int b = aimed(player, j -> seats(st, j) && CarriageLayout.secure(st, j), true);
             if (b >= 0) i = b;
         }
         Slot s = i < 0 ? null : CarriageLayout.SLOTS.get(i);
@@ -690,7 +693,12 @@ public class Carriage extends RailVehicle {
 
     // ---------------------------------------------------------------- seats
 
-    /** Seats are numbered 4 to a bench slot: slot * 4 + the seat on that bench. */
+    private static boolean seats(String st, int i) {
+        Model m = CarriageLayout.modelAt(st, i);
+        return m != null && !m.seats().isEmpty();
+    }
+
+    /** Seats are numbered 4 to a seating slot: slot * 4 + the seat on that bench. */
     public static float @Nullable [] seat(String st, int id) {
         if (id < 0) return null;
         Model m = CarriageLayout.modelAt(st, id / 4);
@@ -739,7 +747,7 @@ public class Carriage extends RailVehicle {
         String st = slots();
         List<Integer> l = new ArrayList<>();
         for (Slot s : CarriageLayout.SLOTS) {
-            if (!s.group().equals("bench") || !CarriageLayout.secure(st, s.i())) continue;
+            if (!seats(st, s.i()) || !CarriageLayout.secure(st, s.i())) continue;
             Model m = CarriageLayout.modelAt(st, s.i());
             if (m != null) for (int k = 0; k < m.seats().size(); k++) l.add(s.i() * 4 + k);
         }

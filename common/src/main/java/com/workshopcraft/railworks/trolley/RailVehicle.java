@@ -187,6 +187,33 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         return new AABB(pos.x - ex, pos.y, pos.z - ez, pos.x + ex, pos.y + getBbHeight(), pos.z + ez);
     }
 
+    public record Picked(RailVehicle v, Vec3 loc) {}
+
+    /** The vehicle the player really looks at, by each body's turned box rather than the square one the client picks with. */
+    public @Nullable Picked picked(Player p) {
+        Vec3 eye = p.getEyePosition(), look = p.getViewVector(1.0F);
+        double reach = p.entityInteractionRange() + 2, best = Double.MAX_VALUE;
+        Picked out = null;
+        for (RailVehicle v : level().getEntitiesOfClass(RailVehicle.class, getBoundingBox().inflate(reach + 12), e -> e.isPickable())) {
+            double hf = v.frontHeading(), c = Math.cos(hf), sn = Math.sin(hf), l = v.eyeReach() + 0.15, w = v.halfWidth();
+            Vec3 r = eye.subtract(v.position());
+            Vec3 a = new Vec3(r.x * c + r.z * sn, r.y, -r.x * sn + r.z * c);
+            Vec3 d = new Vec3(look.x * c + look.z * sn, look.y, -look.x * sn + look.z * c);
+            var hit = new AABB(-l, 0, -w, l, v.getBbHeight(), w).clip(a, a.add(d.scale(reach)));
+            double t = new AABB(-l, 0, -w, l, v.getBbHeight(), w).contains(a) ? 0 : hit.map(h -> h.distanceTo(a)).orElse(Double.MAX_VALUE);
+            if (t < best) {
+                best = t;
+                out = new Picked(v, eye.add(look.scale(t)).subtract(v.position()));
+            }
+        }
+        return out;
+    }
+
+    protected @Nullable Picked other(Player p) {
+        Picked k = picked(p);
+        return k != null && k.v() != this ? k : null;
+    }
+
     /** Which end a click lands on, +1 the front. */
     public int endAt(Vec3 loc) {
         double hf = frontHeading();

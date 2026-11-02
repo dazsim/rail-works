@@ -195,15 +195,23 @@ public class HandTrolley extends RailVehicle {
         return l;
     }
 
+    @Override
+    protected boolean holdsChunks() {
+        return true;
+    }
+
     // ---------------------------------------------------------------- interaction
 
     @Override
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+        if (source.getEntity() instanceof Player hp && other(hp) instanceof Picked pk) return pk.v().hurtServer(level, source, damage);
         return false;
     }
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
+        Picked pk = other(player);
+        if (pk != null) return pk.v().interact(player, hand, pk.loc());
         ItemStack held = player.getItemInHand(hand);
         int st = stage();
         boolean riding = player.getVehicle() == this;
