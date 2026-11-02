@@ -16,6 +16,11 @@ public class RailWorksFabric implements ModInitializer {
         ModContent.registerAllDirect(new CreosoteFluid.Source(), new CreosoteFluid.Flowing(), new MoltenSteelFluid.Source(), new MoltenSteelFluid.Flowing());
         PayloadTypeRegistry.clientboundPlay().register(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, com.workshopcraft.railworks.trolley.TrainSyncPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(com.workshopcraft.railworks.trolley.AboardSyncPayload.TYPE, com.workshopcraft.railworks.trolley.AboardSyncPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(com.workshopcraft.railworks.trolley.AboardPayload.TYPE, com.workshopcraft.railworks.trolley.AboardPayload.CODEC);
+        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.registerGlobalReceiver(com.workshopcraft.railworks.trolley.AboardPayload.TYPE, (p, ctx) -> com.workshopcraft.railworks.trolley.Aboard.receive(ctx.player(), p));
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((h, sender, server) -> com.workshopcraft.railworks.trolley.Aboard.login(h.player));
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register((h, server) -> com.workshopcraft.railworks.trolley.Aboard.logout(h.player));
         ServerTickEvents.END_LEVEL_TICK.register(TrackSync::tick);
         FuelValueEvents.BUILD.register((builder, context) -> builder.add(ModContent.COKE, 3200));
     }

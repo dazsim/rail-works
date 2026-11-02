@@ -1004,7 +1004,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
     }
 
     static boolean ridden(List<Member> ms) {
-        for (Member x : ms) if (!x.v().getPassengers().isEmpty()) return true;
+        for (Member x : ms) if (!x.v().getPassengers().isEmpty() || x.v() instanceof Carriage c && Aboard.anyAboard(c)) return true;
         return false;
     }
 

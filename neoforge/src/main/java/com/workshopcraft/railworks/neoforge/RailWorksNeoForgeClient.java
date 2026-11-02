@@ -38,6 +38,7 @@ public class RailWorksNeoForgeClient {
         modBus.addListener((RegisterClientPayloadHandlersEvent e) -> {
             e.register(TrackSyncPayload.TYPE, (p, ctx) -> ClientTrack.receive(p.tag()));
             e.register(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, (p, ctx) -> com.workshopcraft.railworks.client.ClientTrains.receive(p));
+            e.register(com.workshopcraft.railworks.trolley.AboardSyncPayload.TYPE, (p, ctx) -> com.workshopcraft.railworks.client.ClientAboard.receive(p));
         });
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientTickEvent.Post e) -> com.workshopcraft.railworks.client.ClientTrains.tick());
         modBus.addListener((RegisterRenderPipelinesEvent e) -> {

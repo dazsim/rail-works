@@ -27,7 +27,17 @@ public class RailWorksNeoForge {
     public RailWorksNeoForge(IEventBus modBus, ModContainer container) {
         modBus.addListener(RailWorksNeoForge::onRegister);
         modBus.addListener(RailWorksNeoForge::onCapabilities);
-        modBus.addListener((RegisterPayloadHandlersEvent e) -> e.registrar("1").playToClient(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC).playToClient(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, com.workshopcraft.railworks.trolley.TrainSyncPayload.CODEC));
+        modBus.addListener((RegisterPayloadHandlersEvent e) -> e.registrar("1").playToClient(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC).playToClient(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, com.workshopcraft.railworks.trolley.TrainSyncPayload.CODEC)
+                .playToClient(com.workshopcraft.railworks.trolley.AboardSyncPayload.TYPE, com.workshopcraft.railworks.trolley.AboardSyncPayload.CODEC)
+                .playToServer(com.workshopcraft.railworks.trolley.AboardPayload.TYPE, com.workshopcraft.railworks.trolley.AboardPayload.CODEC, (p, ctx) -> {
+                    if (ctx.player() instanceof net.minecraft.server.level.ServerPlayer sp) com.workshopcraft.railworks.trolley.Aboard.receive(sp, p);
+                }));
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent e) -> {
+            if (e.getEntity() instanceof net.minecraft.server.level.ServerPlayer sp) com.workshopcraft.railworks.trolley.Aboard.login(sp);
+        });
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent e) -> {
+            if (e.getEntity() instanceof net.minecraft.server.level.ServerPlayer sp) com.workshopcraft.railworks.trolley.Aboard.logout(sp);
+        });
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post e) -> {
             if (e.getLevel() instanceof ServerLevel l) TrackSync.tick(l);
         });

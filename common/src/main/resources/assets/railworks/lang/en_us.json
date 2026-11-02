@@ -298,12 +298,11 @@
   "message.railworks.carriage.no_neighbour": "Needs a carriage buffer to buffer at this end",
   "message.railworks.carriage.coupled": "Screw coupling done up",
   "message.railworks.carriage.uncoupled": "Screw coupling undone",
-  "message.railworks.carriage.door_moving": "Not while it is moving",
+  "message.railworks.carriage.door_moving": "The doors lock above walking pace",
   "message.railworks.carriage.doors_shut": "Open a door first",
   "message.railworks.carriage.bench_full": "That bench is full",
-  "message.railworks.carriage.seated": "Movement keys change seat, sneak to get off",
-  "message.railworks.carriage.too_fast": "Too fast to step off",
-  "message.railworks.carriage.how_to_board": "Open a door and click a bench to sit, or push at either end",
+  "message.railworks.carriage.seated": "Movement keys change seat, sneak to stand up",
+  "message.railworks.carriage.how_to_board": "Open a door and walk in, click a bench to sit, or push at either end",
   "death.attack.railworks.carriage": "%1$s was run down by a carriage",
   "death.attack.railworks.carriage.player": "%1$s was run down by a carriage pushed by %2$s"
 }

@@ -98,6 +98,7 @@ public final class ClientTrains {
             seen = level;
         }
         if (level == null || mc.isPaused()) return;
+        ClientAboard.beforeTrains(mc, level);
         for (Iterator<Live> it = TRAINS.values().iterator(); it.hasNext(); ) {
             Live t = it.next();
             if (++t.age > 100) {
@@ -106,6 +107,7 @@ public final class ClientTrains {
             }
             step(level, t);
         }
+        ClientAboard.afterTrains(mc, level);
     }
 
     private static void step(ClientLevel level, Live t) {

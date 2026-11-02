@@ -46,6 +46,7 @@ public final class TrackSync {
 
     public static void tick(ServerLevel level) {
         TrackActions.tickWarnings(level);
+        com.workshopcraft.railworks.trolley.Aboard.tick(level);
         TrackGraph tg = TrackGraph.get(level);
         tg.restoreBroken(level);
         tg.recheckChanged(level);

@@ -25,6 +25,7 @@ public class RailWorksFabricClient implements ClientModInitializer {
         MenuScreens.register(ModContent.BRICK_FURNACE_MENU, BrickFurnaceScreen::new);
         ClientPlayNetworking.registerGlobalReceiver(TrackSyncPayload.TYPE, (p, ctx) -> ClientTrack.receive(p.tag()));
         ClientPlayNetworking.registerGlobalReceiver(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, (p, ctx) -> com.workshopcraft.railworks.client.ClientTrains.receive(p));
+        ClientPlayNetworking.registerGlobalReceiver(com.workshopcraft.railworks.trolley.AboardSyncPayload.TYPE, (p, ctx) -> com.workshopcraft.railworks.client.ClientAboard.receive(p));
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> com.workshopcraft.railworks.client.ClientTrains.tick());
         LevelRenderEvents.COLLECT_SUBMITS.register(ctx -> ClientTrack.submit(ctx.submitNodeCollector(), ctx.levelState()));
         BlockEntityRenderers.register(ModContent.TRACK_NODE_ENTITY, TrackRenderer::new);

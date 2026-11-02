@@ -6,6 +6,8 @@
     "HumanoidMobRendererMixin"
   ],
   "mixins": [
+    "EntityMixin",
+    "ServerGamePacketListenerImplMixin",
     "ServerLevelMixin"
   ],
   "injectors": {

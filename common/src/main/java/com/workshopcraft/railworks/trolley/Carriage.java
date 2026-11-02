@@ -36,7 +36,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
@@ -51,7 +50,7 @@ import org.jspecify.annotations.Nullable;
  */
 public class Carriage extends RailVehicle {
     public static final double HALF_CENTRES = 7, REACH = 10.58;
-    static final double MASS = 3.0, BRAKE = 1.45, DOOR_TOP = 1.0, STEP_TOP = 4.3;
+    static final double MASS = 3.0, BRAKE = 1.45, DOOR_TOP = 4.3, AISLE_FLOOR = 1.33;
     static final ResourceKey<DamageType> RUN_DOWN = damage("carriage");
     static final EntityDataAccessor<String> DATA_SLOTS = SynchedEntityData.defineId(Carriage.class, EntityDataSerializers.STRING);
     static final EntityDataAccessor<String> DATA_SEATS = SynchedEntityData.defineId(Carriage.class, EntityDataSerializers.STRING);
@@ -64,10 +63,13 @@ public class Carriage extends RailVehicle {
     private @Nullable UUID bogieA, bogieB;
     private final Map<UUID, Integer> pending = new HashMap<>();
     private final Map<UUID, Integer> stepWait = new HashMap<>();
-    private final Map<UUID, Integer> reseat = new HashMap<>();
     private int lost, rumble;
     // client: how far each door stands open, 0 to 1
     public final float[] door = new float[6], doorO = new float[6];
+    private @Nullable CarriageBody body;
+    private @Nullable String bodySlots;
+    private int bodyDoors;
+    private CarriageBody.@Nullable Pose carried;
 
     public Carriage(EntityType<? extends Carriage> type, Level level) {
         super(type, level);
@@ -179,6 +181,47 @@ public class Carriage extends RailVehicle {
         setYRot(Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(dz, dx)) - 90));
         setXRot((float) -Math.toDegrees(Math.atan2(dy, h)));
         setPos(pa.add(pb).scale(0.5));
+        carry();
+    }
+
+    @Override
+    public void tick() {
+        CarriageBody.live(this);
+        super.tick();
+    }
+
+    boolean placed() {
+        return bogie(-1) != null && bogie(1) != null;
+    }
+
+    public CarriageBody.Pose pose() {
+        return new CarriageBody.Pose(getX(), getY(), getZ(), frontHeading(), tanPitch());
+    }
+
+    CarriageBody body() {
+        String st = slots();
+        int d = doors();
+        if (body == null || bodyDoors != d || (st != bodySlots && !st.equals(bodySlots))) {
+            body = CarriageBody.build(st, d);
+            bodySlots = st;
+            bodyDoors = d;
+        }
+        return body;
+    }
+
+    /** Takes whatever stands in the body along with it since it was last placed. */
+    private void carry() {
+        CarriageBody.Pose now = pose(), was = carried;
+        carried = now;
+        if (was == null || was.same(now)) return;
+        if (level() instanceof ServerLevel sl) Aboard.carry(this, sl, was, now);
+        else CarriageBody.clientCarry.carry(this, was, now);
+    }
+
+    // the carriage stays in the world when its one player rider logs out
+    @Override
+    public boolean hasExactlyOnePlayerPassenger() {
+        return false;
     }
 
     @Override
@@ -704,12 +747,9 @@ public class Carriage extends RailVehicle {
             return;
         }
         if (s != null) {
-            if (doors() == 0) {
+            // from outside a bench is reached through an open door; from the aisle it is just there
+            if (!Aboard.aboard(player, this) && doors() == 0) {
                 say(player, Component.translatable("message.railworks.carriage.doors_shut"));
-                return;
-            }
-            if (Math.abs(u) >= DOOR_TOP) {
-                say(player, Component.translatable("message.railworks.carriage.door_moving"));
                 return;
             }
             int seat = freeSeat(i);
@@ -811,7 +851,6 @@ public class Carriage extends RailVehicle {
         super.addPassenger(passenger);
         if (level().isClientSide()) return;
         Integer want = pending.remove(passenger.getUUID());
-        if (want == null) want = reseat.remove(passenger.getUUID());
         int seat = want != null && !taken(want) ? want : -1;
         if (seat < 0) for (int k : allSeats()) if (!taken(k)) {
             seat = k;
@@ -840,11 +879,6 @@ public class Carriage extends RailVehicle {
         Map<Integer, Integer> m = seatMap();
         m.remove(passenger.getId());
         setSeats(m);
-        // nobody steps off faster than walking pace: back to the seat next tick
-        if (passenger instanceof ServerPlayer sp && sp.isAlive() && !isRemoved() && Math.abs(u) > STEP_TOP && seat >= 0) {
-            reseat.put(sp.getUUID(), seat);
-            sp.sendOverlayMessage(Component.translatable("message.railworks.carriage.too_fast"));
-        }
     }
 
     @Override
@@ -868,37 +902,26 @@ public class Carriage extends RailVehicle {
         }
     }
 
-    /** Out through the nearest door, open ones first. */
+    /** Up into the aisle beside the seat. */
     @Override
     public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
-        String st = slots();
-        // vanilla asks after the passenger is already off, so the seat it left is remembered
         int was = seatOf(passenger);
-        float[] p = seat(st, was >= 0 ? was : leaving);
-        double sx = p == null ? 0 : p[0], sz = p == null ? 0 : p[2];
-        List<Slot> ds = new ArrayList<>();
-        for (Slot s : CarriageLayout.SLOTS) if (s.door() >= 0 && s.at() != null && CarriageLayout.fitted(st, s.i())) ds.add(s);
-        int open = doors();
-        ds.sort((a, b) -> {
-            int oa = (open >> a.door() & 1) != 0 ? 0 : 1, ob = (open >> b.door() & 1) != 0 ? 0 : 1;
-            if (oa != ob) return oa - ob;
-            return Double.compare(sq(a.at(), sx, sz), sq(b.at(), sx, sz));
-        });
-        for (Slot s : ds) {
-            Vec3 at = world(s.at().x, s.at().y, s.at().z);
-            for (int dy = 1; dy >= -2; dy--) {
-                BlockPos bp = BlockPos.containing(at.x, at.y + dy, at.z);
-                double floor = level().getBlockFloorHeight(bp);
-                if (!DismountHelper.isBlockFloorValid(floor)) continue;
-                Vec3 v = new Vec3(at.x, bp.getY() + floor, at.z);
-                if (DismountHelper.canDismountTo(level(), v, passenger, Pose.STANDING)) return v;
-            }
-        }
-        return super.getDismountLocationForPassenger(passenger);
+        return pose().world(aisleBeside(was >= 0 ? was : leaving));
     }
 
-    private static double sq(Vec3 a, double x, double z) {
-        return (a.x - x) * (a.x - x) + (a.z - z) * (a.z - z);
+    /** The aisle floor level with a seat, in the body's frame. */
+    Vec3 aisleBeside(int seat) {
+        float[] p = seat(slots(), seat);
+        return new Vec3(p == null ? 0 : p[0], AISLE_FLOOR, 0);
+    }
+
+    /** Back on the seat a player logged out on, if it is still free. */
+    boolean seatAgain(ServerPlayer sp, int seat) {
+        if (seat(slots(), seat) == null || taken(seat)) return false;
+        pending.put(sp.getUUID(), seat);
+        if (sp.startRiding(this, true, false)) return true;
+        pending.remove(sp.getUUID());
+        return false;
     }
 
     /** Movement keys step a seated player along to the next free seat, or across the aisle. */
@@ -998,10 +1021,6 @@ public class Carriage extends RailVehicle {
             afterPlace();
             sync(false);
             return;
-        }
-        for (Map.Entry<UUID, Integer> e : List.copyOf(reseat.entrySet())) {
-            if (level.getEntity(e.getKey()) instanceof ServerPlayer sp && sp.isAlive() && sp.getVehicle() == null && sp.distanceTo(this) < 16) sp.startRiding(this, true, false);
-            reseat.remove(e.getKey());
         }
         seatKeys(level);
         if (doors() != 0 && Math.abs(trainSpeed()) > DOOR_TOP) {
