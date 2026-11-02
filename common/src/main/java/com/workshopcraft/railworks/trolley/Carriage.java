@@ -414,6 +414,7 @@ public class Carriage extends RailVehicle {
         String st = slots();
         order.remove(Integer.valueOf(i));
         fittings.drop(i);
+        Berths.gone(level, this, i);
         Model m = CarriageLayout.modelAt(st, i);
         Slot s = CarriageLayout.SLOTS.get(i);
         setSlot(i, '.');
@@ -438,6 +439,7 @@ public class Carriage extends RailVehicle {
     public void remove(Entity.RemovalReason reason) {
         if (!level().isClientSide() && reason.shouldDestroy() && level() instanceof ServerLevel sl) {
             fittings.dropAll();
+            Berths.gone(sl, this, -1);
             for (int e = -1; e <= 1; e += 2) {
                 Bogie b = bogie(e);
                 if (b != null && b.mounted()) b.setTow(null, 1, 1);
@@ -806,7 +808,10 @@ public class Carriage extends RailVehicle {
             say(player, readout(st));
             return;
         }
-        if (player.getVehicle() == this) return;
+        if (player.getVehicle() == this) {
+            if (player instanceof ServerPlayer sp && !sp.isSleeping() && Berths.berth(this, seatOf(sp))) Berths.lieDown(this, sp, seatOf(sp));
+            return;
+        }
         // the end face is for pushing: looking along the body must not reach a bench or door inside
         if (Math.abs(local(player.position(), true).x) > eyeReach()) {
             pushAlong(player);
@@ -850,6 +855,7 @@ public class Carriage extends RailVehicle {
             }
             pending.put(player.getUUID(), seat);
             if (!player.startRiding(this)) pending.remove(player.getUUID());
+            else if (player instanceof ServerPlayer sp && Berths.berth(this, seatOf(sp))) Berths.lieDown(this, sp, seatOf(sp));
             return;
         }
         if (Math.abs(local(loc, false).x) > eyeReach() - 1.6) {
@@ -977,6 +983,7 @@ public class Carriage extends RailVehicle {
         leaving = seat;
         super.removePassenger(passenger);
         if (level().isClientSide()) return;
+        if (passenger instanceof ServerPlayer sp && sp.isSleeping()) sp.stopSleepInBed(true, true);
         Map<Integer, Integer> m = seatMap();
         m.remove(passenger.getId());
         setSeats(m);
@@ -987,8 +994,14 @@ public class Carriage extends RailVehicle {
         float[] p = seat(slots(), seatOf(passenger));
         if (p == null) return new Vec3(0, 1.4, 0);
         double hf = frontHeading();
-        double y = p[1] + p[0] * tanPitch();
-        return new Vec3(p[0] * Math.cos(hf) - p[2] * Math.sin(hf), y, p[0] * Math.sin(hf) + p[2] * Math.cos(hf));
+        double a = p[0], y = p[1];
+        // a sleeper is placed by the head, on the pillow, as in a bed
+        if (lying(p) && passenger instanceof LivingEntity le && le.isSleeping()) {
+            a += Math.signum(p[3]) * Berths.HEAD;
+            y += Berths.PILLOW;
+        }
+        y += a * tanPitch();
+        return new Vec3(a * Math.cos(hf) - p[2] * Math.sin(hf), y, a * Math.sin(hf) + p[2] * Math.cos(hf));
     }
 
     @Override
@@ -1028,7 +1041,7 @@ public class Carriage extends RailVehicle {
     /** Movement keys step a seated player along to the next free seat, or across the aisle. */
     private void seatKeys(ServerLevel level) {
         for (Entity e : getPassengers()) {
-            if (!(e instanceof ServerPlayer sp)) continue;
+            if (!(e instanceof ServerPlayer sp) || sp.isSleeping()) continue;
             int wait = stepWait.getOrDefault(sp.getUUID(), 0);
             if (wait > 0) {
                 stepWait.put(sp.getUUID(), wait - 1);
@@ -1125,6 +1138,7 @@ public class Carriage extends RailVehicle {
         }
         seatKeys(level);
         fittings.tick();
+        if (tickCount % 20 == 0) Berths.track(level, this);
         if (doors() != 0 && Math.abs(trainSpeed()) > DOOR_TOP) {
             entityData.set(DATA_DOORS, 0);
             play(level, SoundEvents.WOODEN_DOOR_CLOSE, 1.0f, 0.6f);

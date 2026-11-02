@@ -3,12 +3,17 @@
   "package": "com.workshopcraft.railworks.neoforge.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "HumanoidMobRendererMixin"
+    "CameraMixin",
+    "HumanoidMobRendererMixin",
+    "LivingEntityRenderStateMixin",
+    "LivingEntityRendererMixin"
   ],
   "mixins": [
     "EntityMixin",
+    "LivingEntityMixin",
     "ServerGamePacketListenerImplMixin",
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "ServerPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

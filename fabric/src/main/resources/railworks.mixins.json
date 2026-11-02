@@ -3,8 +3,11 @@
   "package": "com.workshopcraft.railworks.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "CameraMixin",
     "FogRendererMixin",
     "HumanoidMobRendererMixin",
+    "LivingEntityRenderStateMixin",
+    "LivingEntityRendererMixin",
     "SpecialModelRenderersMixin"
   ],
   "injectors": {
@@ -12,7 +15,9 @@
   },
   "mixins": [
     "EntityMixin",
+    "LivingEntityMixin",
     "ServerGamePacketListenerImplMixin",
-    "ServerLevelMixin"
+    "ServerLevelMixin",
+    "ServerPlayerMixin"
   ]
 }
