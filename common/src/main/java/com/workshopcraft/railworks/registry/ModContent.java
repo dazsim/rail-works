@@ -167,6 +167,7 @@ public final class ModContent {
     public static Item BARREL_FIXTURE;
     public static Item CARRIAGE_WORKBENCH;
     public static Item CARRIAGE_STOVE;
+    public static @org.jspecify.annotations.Nullable Item TEST_SMOKER;
     public static Item STEEL_BLANK_PANEL;
     public static Item WOOD_BLANK_PANEL;
 
@@ -392,6 +393,8 @@ public final class ModContent {
         CARRIAGE_STOVE = part(r, "carriage_stove");
         STEEL_BLANK_PANEL = part(r, "steel_blank_panel");
         WOOD_BLANK_PANEL = part(r, "wood_blank_panel");
+        if (Boolean.getBoolean("railworks.fixtureTest")) TEST_SMOKER = part(r, "test_smoker");
+        com.workshopcraft.railworks.trolley.BuiltinFixtures.register();
     }
 
     public static void registerEntities(BiConsumer<Identifier, EntityType<?>> r) {
@@ -549,6 +552,7 @@ public final class ModContent {
                     out.accept(BARREL_FIXTURE);
                     out.accept(CARRIAGE_WORKBENCH);
                     out.accept(CARRIAGE_STOVE);
+                    if (TEST_SMOKER != null) out.accept(TEST_SMOKER);
                     out.accept(STEEL_BLANK_PANEL);
                     out.accept(WOOD_BLANK_PANEL);
                 })

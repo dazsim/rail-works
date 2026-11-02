@@ -57,8 +57,11 @@ public class Carriage extends RailVehicle {
     static final EntityDataAccessor<Integer> DATA_DOORS = SynchedEntityData.defineId(Carriage.class, EntityDataSerializers.INT);
     static final EntityDataAccessor<Integer> DATA_BOGIE_A = SynchedEntityData.defineId(Carriage.class, EntityDataSerializers.INT);
     static final EntityDataAccessor<Integer> DATA_BOGIE_B = SynchedEntityData.defineId(Carriage.class, EntityDataSerializers.INT);
+    // which fixtures burn, one 0 or 1 per slot
+    static final EntityDataAccessor<String> DATA_LOOK = SynchedEntityData.defineId(Carriage.class, EntityDataSerializers.STRING);
 
     private final List<Integer> order = new ArrayList<>();
+    final Fittings fittings = new Fittings(this);
     // A under the rear end, B under the front
     private @Nullable UUID bogieA, bogieB;
     private final Map<UUID, Integer> pending = new HashMap<>();
@@ -80,7 +83,7 @@ public class Carriage extends RailVehicle {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder b) {
         super.defineSynchedData(b);
-        b.define(DATA_SLOTS, CarriageLayout.empty()).define(DATA_SEATS, "").define(DATA_DOORS, 0).define(DATA_BOGIE_A, 0).define(DATA_BOGIE_B, 0);
+        b.define(DATA_SLOTS, CarriageLayout.empty()).define(DATA_SEATS, "").define(DATA_DOORS, 0).define(DATA_BOGIE_A, 0).define(DATA_BOGIE_B, 0).define(DATA_LOOK, "");
     }
 
     @Override
@@ -150,6 +153,14 @@ public class Carriage extends RailVehicle {
 
     public String slots() {
         return entityData.get(DATA_SLOTS);
+    }
+
+    public String look() {
+        return entityData.get(DATA_LOOK);
+    }
+
+    void setLook(String v) {
+        entityData.set(DATA_LOOK, v);
     }
 
     public int doors() {
@@ -366,7 +377,15 @@ public class Carriage extends RailVehicle {
             dissolve(level);
             return;
         }
-        int i = order.removeLast();
+        removeAt(level, player, order.getLast());
+        if (order.isEmpty()) dissolve(level);
+    }
+
+    /** Takes one part off, handing it back and dropping whatever a fixture there held. */
+    private void removeAt(ServerLevel level, @Nullable Player player, int i) {
+        String st = slots();
+        order.remove(Integer.valueOf(i));
+        fittings.drop(i);
         Model m = CarriageLayout.modelAt(st, i);
         Slot s = CarriageLayout.SLOTS.get(i);
         setSlot(i, '.');
@@ -375,7 +394,6 @@ public class Carriage extends RailVehicle {
         if (m != null) give(level, player, new ItemStack(m.part().asItem()), position());
         play(level, SoundEvents.ANVIL_PLACE, 0.4f, 1.3f);
         if (player != null) say(player, Component.translatable("message.railworks.carriage.removed", new ItemStack(m == null ? ModContent.SOLEBAR : m.part().asItem()).getHoverName()));
-        if (order.isEmpty()) dissolve(level);
     }
 
     /** No body left: the bogies go back to being loose bogies. */
@@ -391,6 +409,7 @@ public class Carriage extends RailVehicle {
     @Override
     public void remove(Entity.RemovalReason reason) {
         if (!level().isClientSide() && reason.shouldDestroy() && level() instanceof ServerLevel sl) {
+            fittings.dropAll();
             for (int e = -1; e <= 1; e += 2) {
                 Bogie b = bogie(e);
                 if (b != null && b.mounted()) b.setTow(null, 1, 1);
@@ -555,6 +574,11 @@ public class Carriage extends RailVehicle {
                 screw(level, player, CarriageLayout.SLOTS.get(c).end());
                 return;
             }
+            int o = aimed(player, j -> owes(st, j), false);
+            if (o >= 0) {
+                blow(level, player, st, o);
+                return;
+            }
             play(level, SoundEvents.ANVIL_LAND, 0.2f, 2.0f);
             say(player, Component.translatable("message.railworks.carriage.status", Component.translatable(braking() ? "railworks.bogie.brake_on" : "railworks.bogie.brake_off"),
                     String.format(java.util.Locale.ROOT, "%.1f", Math.abs(u)), seated()));
@@ -566,25 +590,7 @@ public class Carriage extends RailVehicle {
             break;
         }
         if (i >= 0) {
-            Model m = CarriageLayout.modelAt(st, i);
-            int w = CarriageLayout.work(st, i);
-            if (m == null) return;
-            if (m.part().fix().equals(CarriageLayout.RIVETS)) {
-                if (!takeRivet(player)) {
-                    play(level, SoundEvents.ANVIL_LAND, 0.2f, 1.8f);
-                    say(player, Component.translatable("message.railworks.carriage.need_rivets", new ItemStack(m.part().asItem()).getHoverName()).withStyle(ChatFormatting.YELLOW));
-                    return;
-                }
-                setSlot(i, CarriageLayout.code(CarriageLayout.model(st, i), w + 1));
-                play(level, SoundEvents.ANVIL_LAND, 0.3f, 1.7f);
-                play(level, SoundEvents.CHAIN_HIT, 0.5f, 1.3f);
-                say(player, Component.translatable("message.railworks.carriage.rivet", new ItemStack(m.part().asItem()).getHoverName(), w + 1, m.part().rivets(), CarriageLayout.rivetsOwed(slots())));
-            } else {
-                setSlot(i, CarriageLayout.code(CarriageLayout.model(st, i), 1));
-                play(level, SoundEvents.WOOD_HIT, 0.9f, 0.8f);
-                play(level, SoundEvents.ANVIL_LAND, 0.15f, 1.4f);
-                say(player, Component.translatable("message.railworks.carriage.fixed", new ItemStack(m.part().asItem()).getHoverName()));
-            }
+            blow(level, player, st, i);
             return;
         }
         if (CarriageLayout.finished(st)) {
@@ -600,6 +606,28 @@ public class Carriage extends RailVehicle {
         ItemStack off = player.getOffhandItem();
         say(player, CarriageLayout.isPart(off.getItem()) && !CarriageLayout.fitsFor(st, off.getItem()).isEmpty()
                 ? Component.translatable("message.railworks.carriage.hammer_hand", off.getHoverName()) : readout(st));
+    }
+
+    private void blow(ServerLevel level, Player player, String st, int i) {
+        Model m = CarriageLayout.modelAt(st, i);
+        int w = CarriageLayout.work(st, i);
+        if (m == null) return;
+        if (m.part().fix().equals(CarriageLayout.RIVETS)) {
+            if (!takeRivet(player)) {
+                play(level, SoundEvents.ANVIL_LAND, 0.2f, 1.8f);
+                say(player, Component.translatable("message.railworks.carriage.need_rivets", new ItemStack(m.part().asItem()).getHoverName()).withStyle(ChatFormatting.YELLOW));
+                return;
+            }
+            setSlot(i, CarriageLayout.code(CarriageLayout.model(st, i), w + 1));
+            play(level, SoundEvents.ANVIL_LAND, 0.3f, 1.7f);
+            play(level, SoundEvents.CHAIN_HIT, 0.5f, 1.3f);
+            say(player, Component.translatable("message.railworks.carriage.rivet", new ItemStack(m.part().asItem()).getHoverName(), w + 1, m.part().rivets(), CarriageLayout.rivetsOwed(slots())));
+        } else {
+            setSlot(i, CarriageLayout.code(CarriageLayout.model(st, i), 1));
+            play(level, SoundEvents.WOOD_HIT, 0.9f, 0.8f);
+            play(level, SoundEvents.ANVIL_LAND, 0.15f, 1.4f);
+            say(player, Component.translatable("message.railworks.carriage.fixed", new ItemStack(m.part().asItem()).getHoverName()));
+        }
     }
 
     private static boolean takeRivet(Player p) {
@@ -668,6 +696,16 @@ public class Carriage extends RailVehicle {
                 return;
             }
             if (hammerBar(level, player, loc)) return;
+            int one = aimed(player, j -> CarriageLayout.SLOTS.get(j).halfBay() != null && CarriageLayout.fitted(st, j), true);
+            if (one >= 0) {
+                int k = one;
+                if (getPassengers().stream().anyMatch(p -> seatOf(p) / 4 == k)) {
+                    say(player, Component.translatable("message.railworks.carriage.occupied"));
+                    return;
+                }
+                removeAt(level, player, one);
+                return;
+            }
             if (!getPassengers().isEmpty()) {
                 say(player, Component.translatable("message.railworks.carriage.occupied"));
                 return;
@@ -748,7 +786,7 @@ public class Carriage extends RailVehicle {
         }
         int i = aimed(player, j -> {
             Slot s = CarriageLayout.SLOTS.get(j);
-            return (s.door() >= 0 || seats(st, j)) && CarriageLayout.secure(st, j);
+            return (s.door() >= 0 || seats(st, j) || Fittings.typeAt(st, j) != null) && CarriageLayout.secure(st, j);
         }, true);
         // an open doorway is looked through: a bench behind it wins, and the door shuts from above the benches
         if (i >= 0 && CarriageLayout.SLOTS.get(i).door() >= 0 && (doors() >> CarriageLayout.SLOTS.get(i).door() & 1) != 0) {
@@ -771,6 +809,10 @@ public class Carriage extends RailVehicle {
             // from outside a bench is reached through an open door; from the aisle it is just there
             if (!Aboard.aboard(player, this) && doors() == 0) {
                 say(player, Component.translatable("message.railworks.carriage.doors_shut"));
+                return;
+            }
+            if (!seats(st, i)) {
+                if (!fittings.use(i, player)) say(player, Component.translatable("message.railworks.carriage.fixture_reach"));
                 return;
             }
             int seat = freeSeat(i);
@@ -1054,6 +1096,7 @@ public class Carriage extends RailVehicle {
             return;
         }
         seatKeys(level);
+        fittings.tick();
         if (doors() != 0 && Math.abs(trainSpeed()) > DOOR_TOP) {
             entityData.set(DATA_DOORS, 0);
             play(level, SoundEvents.WOODEN_DOOR_CLOSE, 1.0f, 0.6f);
@@ -1109,6 +1152,7 @@ public class Carriage extends RailVehicle {
         }
         entityData.set(DATA_SLOTS, st);
         entityData.set(DATA_DOORS, in.getIntOr("doors", 0));
+        fittings.load(in);
         order.clear();
         in.getIntArray("order").ifPresent(a -> {
             for (int i : a) if (i >= 0 && i < CarriageLayout.SLOTS.size()) order.add(i);
@@ -1130,6 +1174,7 @@ public class Carriage extends RailVehicle {
         }
         out.putString("parts", parts.toString());
         out.putInt("doors", doors());
+        fittings.save(out);
         out.putIntArray("order", order.stream().mapToInt(Integer::intValue).toArray());
         if (bogieA != null) out.putString("bogie_a", bogieA.toString());
         if (bogieB != null) out.putString("bogie_b", bogieB.toString());
