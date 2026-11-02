@@ -679,6 +679,7 @@ public class Carriage extends RailVehicle {
 
     /** Seats are numbered 4 to a bench slot: slot * 4 + the seat on that bench. */
     public static float @Nullable [] seat(String st, int id) {
+        if (id < 0) return null;
         Model m = CarriageLayout.modelAt(st, id / 4);
         return m == null || id % 4 >= m.seats().size() ? null : m.seats().get(id % 4);
     }
@@ -702,6 +703,8 @@ public class Carriage extends RailVehicle {
         }
         entityData.set(DATA_SEATS, b.toString());
     }
+
+    private int leaving = -1;
 
     public int seatOf(Entity e) {
         Integer s = seatMap().get(e.getId());
@@ -767,6 +770,7 @@ public class Carriage extends RailVehicle {
     @Override
     protected void removePassenger(Entity passenger) {
         int seat = seatOf(passenger);
+        leaving = seat;
         super.removePassenger(passenger);
         if (level().isClientSide()) return;
         Map<Integer, Integer> m = seatMap();
@@ -804,7 +808,9 @@ public class Carriage extends RailVehicle {
     @Override
     public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
         String st = slots();
-        float[] p = seat(st, seatOf(passenger));
+        // vanilla asks after the passenger is already off, so the seat it left is remembered
+        int was = seatOf(passenger);
+        float[] p = seat(st, was >= 0 ? was : leaving);
         double sx = p == null ? 0 : p[0], sz = p == null ? 0 : p[2];
         List<Slot> ds = new ArrayList<>();
         for (Slot s : CarriageLayout.SLOTS) if (s.door() >= 0 && s.at() != null && CarriageLayout.fitted(st, s.i())) ds.add(s);
