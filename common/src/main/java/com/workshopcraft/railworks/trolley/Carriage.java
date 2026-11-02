@@ -303,6 +303,10 @@ public class Carriage extends RailVehicle {
     /** Takes off the last part fitted; with the first solebar off the bogies are left loose. */
     private void takeLast(ServerLevel level, @Nullable Player player) {
         String st = slots();
+        // parts set without a fitting order (commands, edited saves) come off before the ones on record
+        List<Integer> loose = new ArrayList<>();
+        for (int j = 0; j < CarriageLayout.SLOTS.size(); j++) if (CarriageLayout.fitted(st, j) && !order.contains(j)) loose.add(j);
+        order.addAll(loose);
         if (order.isEmpty()) {
             dissolve(level);
             return;
