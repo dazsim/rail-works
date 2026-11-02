@@ -98,6 +98,10 @@ public final class Berths {
         Spawns s = Spawns.get(over);
         Spawn e = s.byPlayer.get(sp.getUUID());
         if (e == null) return null;
+        if (e.seat < 0) {
+            s.forget(sp.getUUID());
+            return TeleportTransition.missingRespawnBlock(sp, post);
+        }
         ServerLevel level = sp.level().getServer().getLevel(e.dim);
         if (level != null && level.getEntity(e.cart) instanceof Carriage c && !c.isRemoved()) {
             if (berth(c, e.seat)) {
@@ -122,12 +126,13 @@ public final class Berths {
         if (s.carts.contains(c.getUUID())) s.track(c);
     }
 
-    /** A berth taken off, or -1 for the whole carriage gone. */
+    /** A berth taken off, or -1 for the whole carriage gone. Its sleepers get the missing-bed message on their next respawn. */
     static void gone(ServerLevel level, Carriage c, int slot) {
         Spawns s = Spawns.get(level.getServer().overworld());
         if (!s.carts.contains(c.getUUID())) return;
-        s.byPlayer.values().removeIf(e -> e.cart.equals(c.getUUID()) && (slot < 0 || e.seat / 4 == slot));
-        s.reindex();
+        s.byPlayer.replaceAll((p, e) -> e.cart.equals(c.getUUID()) && e.seat >= 0 && (slot < 0 || e.seat / 4 == slot)
+                ? new Spawn(e.cart, -1, e.dim, e.at, e.yaw) : e);
+        s.setDirty();
     }
 
     record Spawn(UUID cart, int seat, ResourceKey<Level> dim, Vec3 at, float yaw) {}
@@ -161,7 +166,7 @@ public final class Berths {
             boolean moved = false;
             for (Map.Entry<UUID, Spawn> en : byPlayer.entrySet()) {
                 Spawn e = en.getValue();
-                if (!e.cart.equals(c.getUUID())) continue;
+                if (!e.cart.equals(c.getUUID()) || e.seat < 0) continue;
                 Spawn n = at(c, e.seat);
                 if (n.at.distanceToSqr(e.at) > 1e-4 || n.dim != e.dim) {
                     en.setValue(n);
