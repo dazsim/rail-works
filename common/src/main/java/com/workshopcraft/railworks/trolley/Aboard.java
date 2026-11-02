@@ -62,6 +62,10 @@ public final class Aboard {
                 && (e instanceof LivingEntity || e instanceof ItemEntity || e instanceof ExperienceOrb);
     }
 
+    private static boolean on(Carriage c, Entity e, Vec3 l) {
+        return e.onGround() ? CarriageBody.standsOn(c, l, e.getBbWidth() / 2) : CarriageBody.aboard(l) && Math.abs(l.z) < 1.6;
+    }
+
     static AABB around(Pose p) {
         return new AABB(p.x() - 12, p.y() - 2, p.z() - 12, p.x() + 12, p.y() + 8, p.z() + 12);
     }
@@ -78,7 +82,7 @@ public final class Aboard {
         float turn = Mth.wrapDegrees((float) Math.toDegrees(now.hf() - was.hf()));
         for (Entity e : level.getEntities(c, around(was), Aboard::carried)) {
             Vec3 l = was.local(e.position());
-            if (!CarriageBody.aboard(l)) continue;
+            if (!on(c, e, l)) continue;
             e.setPos(now.world(l));
             if (turn != 0) {
                 e.setYRot(e.getYRot() + turn);
@@ -141,6 +145,10 @@ public final class Aboard {
             long now = sp.level().getGameTime();
             Long t0 = TENTATIVE.putIfAbsent(id, now);
             if (t0 != null && now - t0 > 10) return false;
+            if (p.hasPosition() && to.distanceToSqr(sp.position()) < 2.25) {
+                sp.setPos(to);
+                sp.level().getChunkSource().move(sp);
+            }
         }
         float yr = p.getYRot(sp.getYRot()), xr = p.getXRot(sp.getXRot());
         if (Float.isFinite(yr) && Float.isFinite(xr)) sp.absSnapRotationTo(Mth.wrapDegrees(yr), Mth.wrapDegrees(xr));
@@ -176,7 +184,7 @@ public final class Aboard {
             Pose pose = c.pose();
             for (Entity e : level.getEntities(c, around(pose), Aboard::carried)) {
                 Vec3 l = pose.local(e.position());
-                if (!CarriageBody.aboard(l)) continue;
+                if (!on(c, e, l)) continue;
                 ids.add(new int[] {e.getId(), c.getId()});
                 ls.add(l);
             }

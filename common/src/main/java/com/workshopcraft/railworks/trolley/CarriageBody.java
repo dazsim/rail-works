@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -66,6 +67,20 @@ public final class CarriageBody {
 
     public static boolean aboard(Vec3 l) {
         return Math.abs(l.x) <= ABOARD_A && Math.abs(l.z) <= ABOARD_W && l.y >= ABOARD_Y0 && l.y <= ABOARD_Y1;
+    }
+
+    /** Feet at l, half as wide as hw, resting on a part of c's body. */
+    public static boolean standsOn(Carriage c, Vec3 l, double hw) {
+        if (!aboard(l)) return false;
+        CarriageBody b = c.body();
+        for (int i : b.candidates(l.x - hw, l.x + hw)) {
+            int k = i * 6;
+            double top = b.box[k + 4];
+            if (top < l.y - 0.08 || top > l.y + 0.02) continue;
+            if (b.box[k] >= l.x + hw || b.box[k + 3] <= l.x - hw || b.box[k + 2] >= l.z + hw || b.box[k + 5] <= l.z - hw) continue;
+            return true;
+        }
+        return false;
     }
 
     // ---------------------------------------------------------------- live carriages
@@ -169,7 +184,12 @@ public final class CarriageBody {
     public static Vec3 collide(Entity e, Vec3 move) {
         if (e instanceof RailVehicle || e.noPhysics || e.isPassenger() || e.isSpectator()) return move;
         List<Carriage> cs = near(e.level(), e.position(), 16 + move.length());
-        for (Carriage c : cs) move = c.body().clip(e, c.pose(), move);
+        for (Carriage c : cs) {
+            Pose p = c.pose();
+            // mobs only go in when led
+            boolean shut = e instanceof Mob m && !m.isLeashed() && !aboard(p.local(e.position()));
+            move = (shut ? c.shutBody() : c.body()).clip(e, p, move);
+        }
         return move;
     }
 

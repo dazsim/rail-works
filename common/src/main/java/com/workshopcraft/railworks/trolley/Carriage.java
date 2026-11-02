@@ -69,6 +69,8 @@ public class Carriage extends RailVehicle {
     private @Nullable CarriageBody body;
     private @Nullable String bodySlots;
     private int bodyDoors;
+    private @Nullable CarriageBody shut;
+    private @Nullable String shutSlots;
     private CarriageBody.@Nullable Pose carried;
 
     public Carriage(EntityType<? extends Carriage> type, Level level) {
@@ -196,6 +198,16 @@ public class Carriage extends RailVehicle {
 
     public CarriageBody.Pose pose() {
         return new CarriageBody.Pose(getX(), getY(), getZ(), frontHeading(), tanPitch());
+    }
+
+    /** The body with every door shut, as mobs that are not led see it. */
+    CarriageBody shutBody() {
+        String st = slots();
+        if (shut == null || (st != shutSlots && !st.equals(shutSlots))) {
+            shut = CarriageBody.build(st, 0);
+            shutSlots = st;
+        }
+        return shut;
     }
 
     CarriageBody body() {
