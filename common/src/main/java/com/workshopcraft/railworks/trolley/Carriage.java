@@ -626,6 +626,12 @@ public class Carriage extends RailVehicle {
             return;
         }
         if (player.getVehicle() == this) return;
+        // the end face is for pushing: looking along the body must not reach a bench or door inside
+        Vec3 l = local(loc, false);
+        if (Math.abs(l.x) > eyeReach()) {
+            pushAlong(player);
+            return;
+        }
         int i = aimed(player, j -> {
             Slot s = CarriageLayout.SLOTS.get(j);
             return (s.door() >= 0 || s.group().equals("bench")) && CarriageLayout.secure(st, j);
@@ -665,14 +671,17 @@ public class Carriage extends RailVehicle {
             if (!player.startRiding(this)) pending.remove(player.getUUID());
             return;
         }
-        Vec3 l = local(loc, false);
         if (Math.abs(l.x) > eyeReach() - 1.6) {
-            Vec3 look = player.getLookAngle();
-            double hf = frontHeading();
-            push(player, look.x * Math.cos(hf) + look.z * Math.sin(hf) >= 0 ? 1 : -1);
+            pushAlong(player);
             return;
         }
         say(player, Component.translatable("message.railworks.carriage.how_to_board"));
+    }
+
+    private void pushAlong(Player player) {
+        Vec3 look = player.getLookAngle();
+        double hf = frontHeading();
+        push(player, look.x * Math.cos(hf) + look.z * Math.sin(hf) >= 0 ? 1 : -1);
     }
 
     // ---------------------------------------------------------------- seats
