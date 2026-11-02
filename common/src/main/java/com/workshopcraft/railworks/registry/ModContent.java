@@ -158,6 +158,17 @@ public final class ModContent {
     public static Item LUGGAGE_RACK;
     public static Item CEILING_LAMP;
     public static Item CARRIAGE_SCREEN;
+    public static Item CHAIR_PAIR;
+    public static Item CARRIAGE_TABLE;
+    public static Item BERTH;
+    public static Item CUPBOARD_SEAT;
+    public static Item LOCKER;
+    public static Item TRUNK;
+    public static Item BARREL_FIXTURE;
+    public static Item CARRIAGE_WORKBENCH;
+    public static Item CARRIAGE_STOVE;
+    public static Item STEEL_BLANK_PANEL;
+    public static Item WOOD_BLANK_PANEL;
 
     public static EntityType<HandTrolley> HAND_TROLLEY_ENTITY;
     public static EntityType<Bogie> BOGIE_ENTITY;
@@ -370,6 +381,17 @@ public final class ModContent {
         LUGGAGE_RACK = part(r, "luggage_rack");
         CEILING_LAMP = part(r, "ceiling_lamp");
         CARRIAGE_SCREEN = part(r, "carriage_screen");
+        CHAIR_PAIR = part(r, "chair_pair");
+        CARRIAGE_TABLE = part(r, "carriage_table");
+        BERTH = part(r, "berth");
+        CUPBOARD_SEAT = part(r, "cupboard_seat");
+        LOCKER = part(r, "locker");
+        TRUNK = part(r, "trunk");
+        BARREL_FIXTURE = part(r, "barrel_fixture");
+        CARRIAGE_WORKBENCH = part(r, "carriage_workbench");
+        CARRIAGE_STOVE = part(r, "carriage_stove");
+        STEEL_BLANK_PANEL = part(r, "steel_blank_panel");
+        WOOD_BLANK_PANEL = part(r, "wood_blank_panel");
     }
 
     public static void registerEntities(BiConsumer<Identifier, EntityType<?>> r) {
@@ -518,6 +540,17 @@ public final class ModContent {
                     out.accept(LUGGAGE_RACK);
                     out.accept(CEILING_LAMP);
                     out.accept(CARRIAGE_SCREEN);
+                    out.accept(CHAIR_PAIR);
+                    out.accept(CARRIAGE_TABLE);
+                    out.accept(BERTH);
+                    out.accept(CUPBOARD_SEAT);
+                    out.accept(LOCKER);
+                    out.accept(TRUNK);
+                    out.accept(BARREL_FIXTURE);
+                    out.accept(CARRIAGE_WORKBENCH);
+                    out.accept(CARRIAGE_STOVE);
+                    out.accept(STEEL_BLANK_PANEL);
+                    out.accept(WOOD_BLANK_PANEL);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);

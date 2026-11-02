@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "W": "minecraft:white_wool",
+    "R": "minecraft:red_wool",
+    "C": "minecraft:copper_ingot",
+    "T": "railworks:treated_planks"
+  },
+  "pattern": [
+    "WWR",
+    "TCT",
+    "T T"
+  ],
+  "result": {
+    "id": "railworks:berth"
+  }
+}

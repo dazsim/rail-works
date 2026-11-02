@@ -34,6 +34,17 @@ PARTS = {
     'rack': ('railworks:luggage_rack', 'blow'),
     'lamp': ('railworks:ceiling_lamp', 'blow'),
     'screen': ('railworks:carriage_screen', 'blow'),
+    'chair_pair': ('railworks:chair_pair', 'blow'),
+    'table': ('railworks:carriage_table', 'blow'),
+    'berth': ('railworks:berth', 'blow'),
+    'cupboard': ('railworks:cupboard_seat', 'blow'),
+    'locker': ('railworks:locker', 'blow'),
+    'trunk': ('railworks:trunk', 'blow'),
+    'barrel': ('railworks:barrel_fixture', 'blow'),
+    'workbench': ('railworks:carriage_workbench', 'blow'),
+    'stove': ('railworks:carriage_stove', 'blow'),
+    'steel_blank': ('railworks:steel_blank_panel', 'blow'),
+    'wood_blank': ('railworks:wood_blank_panel', 'blow'),
 }
 PHASES = [
     ('underframe', [], True), ('floor', ['underframe'], True), ('frame', ['floor'], True), ('panels', ['frame'], True),
@@ -61,8 +72,9 @@ POSTS = [(a0 + a1) / 2 for k, a0, a1 in SEGS if k == 'post']
 
 class Model:
     def __init__(self):
-        self.solid, self.glass, self.rivets, self.seats = [], [], [], []
+        self.solid, self.glass, self.rivets, self.seats, self.lit = [], [], [], [], []
         self.leaf = None
+        self.blocks = []
 
     def box(self, zone, cx, cy, cz, sx, sy, sz, rx=0.0, rz=0.0, to=None):
         (to if to is not None else self.solid).append([zone] + [round(v, 4) for v in (cx, cy, cz, sx, sy, sz, rx, 0.0, rz)])
@@ -99,6 +111,10 @@ class Model:
             o['seats'] = self.seats
         if self.leaf:
             o['leaf'] = self.leaf
+        if self.lit:
+            o['lit'] = self.lit
+        if self.blocks:
+            o['blocks'] = self.blocks
         return o
 
 
@@ -299,19 +315,23 @@ def waist(m, s, a0, a1):
     m.span('LINING', a0, LOW_T - 0.042, z0, a1, LOW_T - 0.017, z1)
 
 
-def side_panel(s, pieces, beaded):
-    """pieces: (kind, a0, a1) runs of window and post this panel covers."""
+def side_panel(s, pieces, beaded, blank=False):
+    """pieces: (kind, a0, a1) runs of window and post this panel covers; a blank one has no windows."""
     m = Model()
     a0, a1 = pieces[0][1], pieces[-1][2]
     skin(m, s, a0, a1, FL, LOW_T, 'CHOC')
-    for kind, b0, b1 in pieces:
+    if blank:
+        skin(m, s, a0, a1, LOW_T, TOP_T, 'CREAM')
+        z0, z1 = zs(s, TZ0, TZ1)
+        m.span('TEAK', max(a0, -L / 2 + 0.1), LOW_T, z0, min(a1, L / 2 - 0.1), TOP_T - 0.15, z1)
+    for kind, b0, b1 in pieces if not blank else ():
         if kind == 'post':
             skin(m, s, b0, b1, LOW_T, TOP_T, 'CREAM')
         else:
             glazed(m, s, b0, b1, LOW_T, WIN_T, b1 - b0, LOW_T + 0.08, WIN_T - 0.08)
             glazed(m, s, b0, b1, WIN_T, TOP_T, b1 - b0 - 0.3, WIN_T + 0.08, TOP_T - 0.12)
     waist(m, s, a0, a1)
-    lining(m, s, a0, a1)
+    lining(m, s, a0, a1, posts=not blank)
     if beaded:
         z0, z1 = zs(s, OZ1, OZ1 + 0.015)
         for kind, b0, b1 in pieces:
@@ -438,7 +458,8 @@ assert len(PANELS) == 6, len(PANELS)
 n = 0
 for s in (-1, 1):
     for run in PANELS:
-        slot(f'side_panel_{n}', 'panels', 'side_panel', n, {'steel_panel': side_panel(s, run, False), 'wood_panel': side_panel(s, run, True)}, side=s)
+        slot(f'side_panel_{n}', 'panels', 'side_panel', n, {'steel_panel': side_panel(s, run, False), 'wood_panel': side_panel(s, run, True),
+                                                                  'steel_blank': side_panel(s, run, False, True), 'wood_blank': side_panel(s, run, True, True)}, side=s)
         n += 1
 n = 0
 for s in (-1, 1):
@@ -566,15 +587,170 @@ def screen(xs, s):
     return m
 
 
+IWS, CEIL = 2.1, TOP_T - 0.06
+
+
+def sp(m, zone, a0, y0, w0, a1, y1, w1, s, to=None):
+    """A span with w measured inward from the wall side s."""
+    z0, z1 = zs(s, w0, w1)
+    m.span(zone, min(a0, a1), y0, z0, max(a0, a1), y1, z1, to=to)
+
+
+def chair(m, ac, face, s, wc):
+    for da in (-0.2, 0.17):
+        for w0 in (wc - 0.25, wc + 0.22):
+            sp(m, 'TREATED', ac + face * da, FLT, w0, ac + face * (da + 0.03), FLT + 0.42, w0 + 0.03, s)
+    sp(m, 'TREATED', ac - 0.22, FLT + 0.42, wc - 0.25, ac + 0.22, FLT + 0.46, wc + 0.25, s)
+    sp(m, 'MOQUETTE', ac - face * 0.16, FLT + 0.46, wc - 0.23, ac + face * 0.2, FLT + 0.5, wc + 0.23, s)
+    bx = ac - face * 0.19
+    sp(m, 'TREATED', bx - 0.02, FLT + 0.46, wc - 0.24, bx + 0.02, FLT + 1.05, wc + 0.24, s)
+    m.seats.append([round(ac, 4), round(FLT + 0.5, 4), round(s * wc, 4), face])
+
+
+def chair_pair(back, face, s):
+    m = Model()
+    for f in (0.25, 0.75):
+        chair(m, back + face * 0.36, face, s, 0.45 + SW * f)
+    return m
+
+
+def berth(o, i, s):
+    """Two bunks along the wall the length of the bay, the pillows at the o end."""
+    m = Model()
+    a0, a1 = min(o, i), max(o, i)
+    d = 1 if i > o else -1
+    w0, w1 = 1.2, IWS
+    for e in (a0, a1 - 0.05):
+        sp(m, 'TREATED', e, FLT, w0, e + 0.05, FLT + 1.62, w1, s)
+    sp(m, 'TREATED', a0 + 0.05, FLT, w0, a1 - 0.05, FLT + 0.38, w1, s)
+    sp(m, 'TREATED', a0 + 0.05, FLT + 1.3, w0, a1 - 0.05, FLT + 1.36, w1, s)
+    for y in (FLT + 0.38, FLT + 1.36):
+        sp(m, 'MOQUETTE', a0 + 0.07, y, w0 + 0.04, a1 - 0.07, y + 0.1, w1 - 0.02, s)
+        sp(m, 'CANVAS', o + d * 0.1, y + 0.1, w0 + 0.2, o + d * 0.5, y + 0.18, w1 - 0.1, s)
+        sp(m, 'CREAM', o + d * 0.6, y + 0.1, w0 + 0.06, i - d * 0.1, y + 0.13, w1 - 0.04, s)
+        m.seats.append([round((a0 + a1) / 2, 4), round(y + 0.1, 4), round(s * (w0 + w1) / 2, 4), -2 * d])
+    for a in (a0 + 0.3, a1 - 0.3):
+        sp(m, 'BRASS', a - 0.015, FLT + 1.36, w0, a + 0.015, FLT + 1.56, w0 + 0.03, s)
+    sp(m, 'BRASS', a0 + 0.285, FLT + 1.56, w0, a1 - 0.285, FLT + 1.59, w0 + 0.03, s)
+    la, lb = i - d * 0.45, i - d * 0.15
+    for a in (la, lb):
+        sp(m, 'BRASS', a - 0.015, FLT, w0 - 0.04, a + 0.015, FLT + 1.4, w0 - 0.01, s)
+    for y in (FLT + 0.35, FLT + 0.7, FLT + 1.05):
+        sp(m, 'BRASS', la + d * 0.01, y, w0 - 0.035, lb - d * 0.01, y + 0.03, w0 - 0.015, s)
+    return m
+
+
+def cupboard(o, i, s):
+    m = Model()
+    d = 1 if i > o else -1
+    c = o + d * 0.55
+    sp(m, 'TEAK', o, FLT, 1.45, c, FLT + 0.95, IWS, s)
+    sp(m, 'TREATED', o, FLT + 0.95, 1.4, c + d * 0.04, FLT + 1.0, IWS, s)
+    sp(m, 'BRASS', c - d * 0.1, FLT + 0.6, 1.42, c - d * 0.04, FLT + 0.66, 1.45, s)
+    a = o + d * 0.82
+    sp(m, 'TREATED', a - 0.2, FLT + 0.45, 1.7, a + 0.2, FLT + 0.5, IWS, s)
+    sp(m, 'BRASS', a - 0.02, FLT, 2.05, a + 0.02, FLT + 0.45, 2.09, s)
+    m.seats.append([round(a, 4), round(FLT + 0.5, 4), round(s * 1.9, 4), 0])
+    return m
+
+
+def locker(o, i, s):
+    m = Model()
+    sp(m, 'TEAK', o, FLT, 1.5, i, FLT + 0.9, IWS, s)
+    sp(m, 'TREATED', o, FLT + 0.9, 1.46, i, FLT + 0.95, IWS, s)
+    mid = (o + i) / 2
+    sp(m, 'LINING', mid - 0.005, FLT + 0.05, 1.49, mid + 0.005, FLT + 0.85, 1.5, s)
+    for a in (mid - 0.08, mid + 0.06):
+        sp(m, 'BRASS', a, FLT + 0.55, 1.47, a + 0.02, FLT + 0.65, 1.5, s)
+    return m
+
+
+def trunk(o, i, s):
+    m = Model()
+    d = 1 if i > o else -1
+    a0, a1 = o + d * 0.1, i - d * 0.1
+    sp(m, 'CHOC', a0, FLT, 1.55, a1, FLT + 0.55, 2.05, s)
+    sp(m, 'BLACK', a0 - d * 0.01, FLT + 0.55, 1.54, a1 + d * 0.01, FLT + 0.61, 2.06, s)
+    for a in (a0 + d * 0.15, a1 - d * 0.15):
+        sp(m, 'BLACK', a - 0.03, FLT + 0.04, 1.54, a + 0.03, FLT + 0.55, 1.55, s)
+    sp(m, 'BRASS', (a0 + a1) / 2 - 0.05, FLT + 0.42, 1.53, (a0 + a1) / 2 + 0.05, FLT + 0.53, 1.54, s)
+    for a in (a0, a1):
+        sp(m, 'BRASS', a - d * 0.03 if a == a0 else a, FLT + 0.35, 1.72, a if a == a0 else a + d * 0.03, FLT + 0.39, 1.88, s)
+    return m
+
+
+def barrel(o, i, s):
+    m = Model()
+    ac, wc = (o + i) / 2, 1.78
+    sp(m, 'TREATED', ac - 0.28, FLT, wc - 0.28, ac + 0.28, FLT + 0.86, wc + 0.28, s)
+    sp(m, 'TREATED', ac - 0.31, FLT + 0.2, wc - 0.31, ac + 0.31, FLT + 0.66, wc + 0.31, s)
+    for y in (FLT + 0.06, FLT + 0.76):
+        sp(m, 'BLACK', ac - 0.285, y, wc - 0.285, ac + 0.285, y + 0.04, wc + 0.285, s)
+    for y in (FLT + 0.28, FLT + 0.54):
+        sp(m, 'BLACK', ac - 0.315, y, wc - 0.315, ac + 0.315, y + 0.04, wc + 0.315, s)
+    sp(m, 'TEAK', ac - 0.22, FLT + 0.86, wc - 0.22, ac + 0.22, FLT + 0.875, wc + 0.22, s)
+    return m
+
+
+def workbench(o, i, s):
+    m = Model()
+    d = 1 if i > o else -1
+    for a in (o + d * 0.03, i - d * 0.09):
+        for w in (2.01, 1.57):
+            sp(m, 'TREATED', a, FLT, w, a + d * 0.06, FLT + 0.85, w + 0.06, s)
+    sp(m, 'TREATED', o + d * 0.04, FLT + 0.2, 1.58, i - d * 0.04, FLT + 0.24, 2.06, s)
+    sp(m, 'TEAK', o, FLT + 0.85, 1.52, i, FLT + 0.93, IWS, s)
+    sp(m, 'STEEL', i - d * 0.3, FLT + 0.93, 1.52, i - d * 0.1, FLT + 1.05, 1.6, s)
+    sp(m, 'STEEL', i - d * 0.22, FLT + 0.99, 1.47, i - d * 0.18, FLT + 1.01, 1.52, s)
+    sp(m, 'BRASS', o + d * 0.1, FLT + 0.93, 1.7, o + d * 0.4, FLT + 0.95, 2.0, s)
+    return m
+
+
+def stove(o, i, s):
+    """The flue at the o end clears the luggage rack on its way to the ceiling."""
+    m = Model()
+    d = 1 if i > o else -1
+    sp(m, 'BLACK', o, FLT, 1.5, i, FLT + 0.8, IWS, s)
+    sp(m, 'STEEL', o, FLT + 0.8, 1.46, i, FLT + 0.84, IWS, s)
+    sp(m, 'CAST', o + d * 0.08, FLT + 0.3, 1.48, i - d * 0.3, FLT + 0.7, 1.5, s)
+    sp(m, 'CAST', i - d * 0.25, FLT + 0.12, 1.49, i - d * 0.08, FLT + 0.22, 1.5, s)
+    sp(m, 'BRASS', i - d * 0.36, FLT + 0.48, 1.45, i - d * 0.32, FLT + 0.56, 1.48, s)
+    sp(m, 'STEEL', o + d * 0.15, FLT + 0.84, 1.56, o + d * 0.29, CEIL, 1.7, s)
+    sp(m, 'FIRE', o + d * 0.18, FLT + 0.4, 1.475, i - d * 0.4, FLT + 0.6, 1.48, s, to=m.lit)
+    sp(m, 'FIRE', i - d * 0.23, FLT + 0.14, 1.485, i - d * 0.1, FLT + 0.2, 1.49, s, to=m.lit)
+    return m
+
+
+def table(ac, s):
+    m = Model()
+    sp(m, 'TEAK', ac - 0.3, FLT + 0.72, 1.15, ac + 0.3, FLT + 0.77, IWS, s)
+    sp(m, 'TREATED', ac - 0.06, FLT + 0.04, 1.55, ac + 0.06, FLT + 0.72, 1.67, s)
+    sp(m, 'TREATED', ac - 0.2, FLT, 1.4, ac + 0.2, FLT + 0.04, 1.82, s)
+    return m
+
+
 n = r = 0
 bays = []
 for grp in (WINS[:6], WINS[6:]):
     for i in range(0, 6, 2):
         bays.append((grp[i], grp[i + 1]))
-for w0, w1 in bays:
-    for back, face in ((w0[1] + 0.06, 1), (w1[2] - 0.06, -1)):
+for bi, (w0, w1) in enumerate(bays):
+    ac = (w0[1] + w1[2]) / 2
+    for k, (back, face) in enumerate(((w0[1] + 0.06, 1), (w1[2] - 0.06, -1))):
         for s in (-1, 1):
-            slot(f'bench_{n}', 'interior', 'bench', n, {'bench': bench(back, face, s)}, required=False, side=s)
+            o, i = back + face * 0.04, ac - face * 0.03
+            tid = f'table_{bi * 2 + (s > 0)}'
+            half = {'cupboard': cupboard(o, i, s), 'locker': locker(o, i, s), 'trunk': trunk(o, i, s),
+                    'barrel': barrel(o, i, s), 'workbench': workbench(o, i, s), 'stove': stove(o, i, s)}
+            for mm in half.values():
+                mm.blocks = [tid]
+            ms = {'bench': bench(back, face, s), 'chair_pair': chair_pair(back, face, s)}
+            if k == 0:
+                b = berth(o, w1[2] - 0.1, s)
+                b.blocks = [f'bench_{n + 2}', tid]
+                ms['berth'] = b
+            ms.update(half)
+            slot(f'bench_{n}', 'interior', 'bench', n, ms, required=False, side=s)
             n += 1
 for w0, w1 in bays:
     mid = (w0[2] + w1[1]) / 2
@@ -591,6 +767,17 @@ for xs in ((-(L / 2 - 1.7),), (-0.85, 0.85), (L / 2 - 1.7,)):
     for s in (-1, 1):
         slot(f'screen_{n}', 'interior', 'screen', n, {'screen': screen(xs, s)}, required=False, side=s)
         n += 1
+for bi, (w0, w1) in enumerate(bays):
+    for s in (-1, 1):
+        t = bi * 2 + (s > 0)
+        slot(f'table_{t}', 'interior', 'table', t, {'table': table((w0[1] + w1[2]) / 2, s)}, required=False, side=s)
+
+# the power rail runs along each outer wall under the cornice, through the screens: kept clear for a later part
+RESERVED = []
+for s in (-1, 1):
+    z0, z1 = zs(s, 2.0, PZ0)
+    RESERVED.append({'id': f'power_rail_{len(RESERVED)}', 'kind': 'power_rail', 'side': s,
+                     'box': [round(v, 4) for v in (-L / 2 + 0.25, TOP_T - 0.17, z0, L / 2 - 0.25, TOP_T - 0.07, z1)]})
 
 # ---------------------------------------------------------------- pick boxes, checks and output
 
@@ -609,7 +796,7 @@ def corners(b):
 
 
 def model_boxes(m):
-    out = list(m['solid']) + list(m.get('glass', [])) + [['RIVET'] + r + [0, 0, 0] for r in m.get('rivets', [])]
+    out = list(m['solid']) + list(m.get('glass', [])) + list(m.get('lit', [])) + [['RIVET'] + r + [0, 0, 0] for r in m.get('rivets', [])]
     lf = m.get('leaf')
     if lf:
         p = lf['pivot']
@@ -689,7 +876,7 @@ if __name__ == '__main__':
         json.dump(parts, f, indent=1)
         f.write('\n')
     with open(OUT + 'open_third.json', 'w') as f:
-        json.dump({'phases': [{'id': p, 'needs': n, 'required': r} for p, n, r in PHASES], 'slots': SLOTS}, f, separators=(',', ':'))
+        json.dump({'phases': [{'id': p, 'needs': n, 'required': r} for p, n, r in PHASES], 'slots': SLOTS, 'reserved': RESERVED}, f, separators=(',', ':'))
         f.write('\n')
     rv = {}
     for sl in SLOTS:
@@ -697,11 +884,37 @@ if __name__ == '__main__':
             rv.setdefault(sl['group'], set()).add(len(m.get('rivets', [])))
     total = sum(len(next(iter(sl['models'].values())).get('rivets', [])) for sl in SLOTS)
     print(len(SLOTS), 'slots, rivets', total, {k: sorted(v) for k, v in rv.items() if max(v)})
-    for name, pick in (('steel', lambda sl: next(iter(sl['models']))), ('wood', lambda sl: list(sl['models'])[-1]),
-                       ('underframe', lambda sl: next(iter(sl['models'])) if sl['phase'] in ('underframe', 'ends') else None),
-                       ('bare', lambda sl: next(iter(sl['models'])) if sl['phase'] in ('underframe', 'floor', 'frame', 'roof', 'ends') else None)):
+    def alt(name):
+        """Every slot that can take the named part has it, the ones it blocks stay empty."""
+        blocked = set()
+        for sl in SLOTS:
+            if name in sl['models']:
+                blocked.update(sl['models'][name].get('blocks', []))
+
+        def pick(sl):
+            if sl['id'] in blocked:
+                return None
+            return name if name in sl['models'] else next(iter(sl['models']))
+        return pick
+
+    configs = [('steel', lambda sl: next(iter(sl['models']))), ('wood', lambda sl: 'wood_panel' if 'wood_panel' in sl['models'] else next(iter(sl['models']))),
+               ('underframe', lambda sl: next(iter(sl['models'])) if sl['phase'] in ('underframe', 'ends') else None),
+               ('bare', lambda sl: next(iter(sl['models'])) if sl['phase'] in ('underframe', 'floor', 'frame', 'roof', 'ends') else None)]
+    configs += [(p, alt(p)) for p in ('chair_pair', 'berth', 'cupboard', 'locker', 'trunk', 'barrel', 'workbench', 'stove', 'steel_blank', 'wood_blank')]
+    for name, pick in configs:
         faces, boxes = check(pick)
         with open(f'/tmp/carriage-{name}.txt', 'w') as f:
             f.write('\n'.join(faces) + '\n')
         fl = floating(boxes)
         print(name, len(boxes), 'boxes, floating:', sorted(set(fl)) if fl else 'none')
+    # the reserved power rail clears every part along the walls
+    for rs in RESERVED:
+        b0, b1 = rs['box'][:3], rs['box'][3:]
+        for sl in SLOTS:
+            if sl['group'] in ('screen', 'side_panel', 'door', 'side_frame', 'roof'):
+                continue
+            for p, m in sl['models'].items():
+                for b in model_boxes(m):
+                    lo, hi = aabb(b)
+                    if all(lo[k] < b1[k] - 1e-4 and b0[k] < hi[k] - 1e-4 for k in range(3)):
+                        print('power rail', rs['id'], 'meets', sl['id'], p)

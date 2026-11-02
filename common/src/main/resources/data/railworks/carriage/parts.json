@@ -81,5 +81,49 @@
  "screen": {
   "item": "railworks:carriage_screen",
   "fix": "blow"
+ },
+ "chair_pair": {
+  "item": "railworks:chair_pair",
+  "fix": "blow"
+ },
+ "table": {
+  "item": "railworks:carriage_table",
+  "fix": "blow"
+ },
+ "berth": {
+  "item": "railworks:berth",
+  "fix": "blow"
+ },
+ "cupboard": {
+  "item": "railworks:cupboard_seat",
+  "fix": "blow"
+ },
+ "locker": {
+  "item": "railworks:locker",
+  "fix": "blow"
+ },
+ "trunk": {
+  "item": "railworks:trunk",
+  "fix": "blow"
+ },
+ "barrel": {
+  "item": "railworks:barrel_fixture",
+  "fix": "blow"
+ },
+ "workbench": {
+  "item": "railworks:carriage_workbench",
+  "fix": "blow"
+ },
+ "stove": {
+  "item": "railworks:carriage_stove",
+  "fix": "blow"
+ },
+ "steel_blank": {
+  "item": "railworks:steel_blank_panel",
+  "fix": "blow"
+ },
+ "wood_blank": {
+  "item": "railworks:wood_blank_panel",
+  "fix": "blow"
  }
 }

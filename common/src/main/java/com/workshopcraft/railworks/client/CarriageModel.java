@@ -14,7 +14,7 @@ import org.joml.Vector3f;
 /** Carriage geometry from the layout boxes: each zone is a 336 by 128 patch of the sheet at 16 pixels a block. */
 public final class CarriageModel {
     public static final List<String> ZONES = List.of("CHOC", "CREAM", "BLACK", "RED", "STEEL", "BRIGHT", "PLATE", "CAST", "BRASS",
-            "LINING", "TREATED", "TEAK", "FLOOR", "CANVAS", "CEILING", "MOQUETTE", "GLASS", "LAMP", "RIVET");
+            "LINING", "TREATED", "TEAK", "FLOOR", "CANVAS", "CEILING", "MOQUETTE", "GLASS", "LAMP", "RIVET", "FIRE");
     static final int ZW = 336, ZH = 128, SHEET = 1024;
 
     private CarriageModel() {}

@@ -287,6 +287,112 @@ def screen():
     return s
 
 
+def chairs():
+    s = S()
+    for x0 in (1, 9):
+        s.block(x0, 2, x0 + 1, 12, TREATED)
+        s.block(x0 + 2, 8, x0 + 5, 10, MOQ)
+        s.rect(x0 + 2, 11, x0 + 2, 14, TREATED['c']); s.rect(x0 + 5, 11, x0 + 5, 14, TREATED['c'])
+    return s
+
+
+def table():
+    s = S()
+    s.block(1, 4, 14, 6, WOOD)
+    s.rect(7, 7, 8, 12, TREATED['b']); s.rect(8, 7, 8, 12, TREATED['c'])
+    s.block(4, 13, 11, 14, TREATED)
+    return s
+
+
+def berth():
+    s = S()
+    s.block(1, 1, 2, 14, TREATED); s.block(13, 1, 14, 14, TREATED)
+    for y in (3, 9):
+        s.block(3, y, 12, y + 2, MOQ)
+        s.rect(3, y, 5, y, CANVAS['a'])
+        s.rect(3, y + 3, 12, y + 3, TREATED['c'])
+    for y in (5, 8, 11):
+        s.rect(10, y, 12, y, BRASS['b'])
+    return s
+
+
+def cupboard():
+    s = S()
+    s.block(1, 3, 8, 14, WOOD)
+    s.rect(1, 2, 9, 2, TREATED['a'])
+    s.px(7, 8, BRASS['a'])
+    s.rect(10, 9, 14, 10, TREATED['b']); s.rect(10, 9, 14, 9, TREATED['a'])
+    s.rect(14, 11, 14, 14, BRASS['c'])
+    return s
+
+
+def locker():
+    s = S()
+    s.block(2, 3, 13, 14, WOOD)
+    s.rect(2, 2, 13, 2, TREATED['a'])
+    s.rect(7, 4, 8, 13, BRASS['c'])
+    s.px(6, 8, BRASS['a']); s.px(9, 8, BRASS['a'])
+    return s
+
+
+def trunk():
+    s = S()
+    s.block(1, 6, 14, 14, CHOC)
+    s.block(1, 4, 14, 6, BLACK)
+    for x in (4, 11):
+        s.rect(x, 7, x, 14, BLACK['c'])
+    s.rect(7, 7, 8, 8, BRASS['a'])
+    return s
+
+
+def barrel():
+    s = S()
+    for y in range(2, 15):
+        w = 5 if y in (2, 14) else 6
+        s.rect(8 - w, y, 7 + w, y, WOOD['b'])
+        s.px(8 - w, y, WOOD['a']); s.px(7 + w, y, WOOD['c'])
+    for y in (4, 12):
+        s.rect(2, y, 13, y, BLACK['b'])
+    for x in (5, 9):
+        s.rect(x, 3, x, 13, WOOD['c'])
+    return s
+
+
+def workbench():
+    s = S()
+    s.block(1, 5, 14, 7, WOOD)
+    for x in (2, 12):
+        s.rect(x, 8, x + 1, 14, TREATED['b'])
+    s.rect(3, 11, 12, 11, TREATED['c'])
+    s.block(10, 2, 13, 4, STEEL)
+    s.rect(3, 4, 7, 4, BRASS['b'])
+    return s
+
+
+def stove():
+    s = S()
+    s.rect(6, 0, 8, 6, STEEL['b']); s.rect(6, 0, 6, 6, STEEL['a'])
+    s.block(2, 7, 13, 14, BLACK)
+    s.rect(1, 7, 14, 7, STEEL['b'])
+    s.rect(4, 9, 8, 12, CAST['b'])
+    s.rect(5, 10, 7, 11, (255, 150, 50))
+    s.rect(10, 12, 12, 13, (255, 120, 40))
+    return s
+
+
+def blank(beaded):
+    s = S()
+    s.rect(1, 1, 14, 14, CHOC['b'])
+    s.rect(1, 1, 14, 8, CREAM['b'])
+    s.rect(1, 9, 14, 9, BRASS['b'])
+    if beaded:
+        s.rect(2, 11, 13, 11, CHOC['c']); s.rect(2, 13, 13, 13, CHOC['c'])
+    else:
+        s.rect(1, 14, 14, 14, STEEL['c'])
+    s.rect(1, 1, 1, 14, CHOC['d']); s.rect(14, 1, 14, 14, CHOC['d'])
+    return s
+
+
 ITEMS = {
     'rivets': rivets(),
     'rivet_pattern': pattern(rivet_holes),
@@ -314,6 +420,17 @@ ITEMS = {
     'luggage_rack': rack(),
     'ceiling_lamp': lamp(),
     'carriage_screen': screen(),
+    'chair_pair': chairs(),
+    'carriage_table': table(),
+    'berth': berth(),
+    'cupboard_seat': cupboard(),
+    'locker': locker(),
+    'trunk': trunk(),
+    'barrel_fixture': barrel(),
+    'carriage_workbench': workbench(),
+    'carriage_stove': stove(),
+    'steel_blank_panel': blank(False),
+    'wood_blank_panel': blank(True),
 }
 for name, s in ITEMS.items():
     s.save(name)
@@ -340,7 +457,7 @@ ZONES = [
     ('LINING', 'brass', (214, 172, 70)), ('TREATED', 'wood', None), ('TEAK', 'wood', (150, 92, 50)),
     ('FLOOR', 'wood', (84, 62, 42)), ('CANVAS', 'paint', (214, 212, 202)), ('CEILING', 'paint', (236, 234, 226)),
     ('MOQUETTE', 'red', (130, 36, 38)), ('GLASS', None, (150, 186, 200)), ('LAMP', None, (255, 236, 170)),
-    ('RIVET', 'steel', (214, 214, 206)),
+    ('RIVET', 'steel', (214, 214, 206)), ('FIRE', None, (255, 146, 48)),
 ]
 
 

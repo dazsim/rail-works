@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:steel_plate",
+    "N": "minecraft:brown_dye"
+  },
+  "pattern": [
+    "PNP"
+  ],
+  "result": {
+    "id": "railworks:steel_blank_panel"
+  }
+}

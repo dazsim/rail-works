@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": "minecraft:red_wool",
+    "T": "railworks:treated_planks"
+  },
+  "pattern": [
+    "TR",
+    "T "
+  ],
+  "result": {
+    "id": "railworks:cupboard_seat"
+  }
+}

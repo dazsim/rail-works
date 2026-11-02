@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "L": "minecraft:leather",
+    "C": "minecraft:chest",
+    "I": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "L",
+    "C",
+    "I"
+  ],
+  "result": {
+    "id": "railworks:trunk"
+  }
+}

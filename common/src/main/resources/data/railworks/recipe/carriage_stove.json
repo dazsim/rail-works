@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": "railworks:rail_bar",
+    "F": "minecraft:furnace",
+    "P": "railworks:steel_plate"
+  },
+  "pattern": [
+    "R",
+    "F",
+    "P"
+  ],
+  "result": {
+    "id": "railworks:carriage_stove"
+  }
+}
