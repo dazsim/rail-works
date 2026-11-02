@@ -92,6 +92,15 @@ public final class Aboard {
         }
     }
 
+    private static void echo(String f, Object... a) {
+        if (!RailVehicle.ECHO) return;
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] instanceof ServerPlayer sp) a[i] = sp.getName().getString();
+            else if (a[i] instanceof Vec3 v) a[i] = String.format(Locale.ROOT, "%.2f %.2f %.2f", v.x, v.y, v.z);
+        }
+        RailVehicle.LOG.info("[aboard] " + f, a);
+    }
+
     private static void place(ServerPlayer sp, Vec3 at) {
         sp.setPos(at);
         sp.resetFallDistance();
@@ -111,7 +120,10 @@ public final class Aboard {
         if (!Double.isFinite(p.a()) || !Double.isFinite(p.y()) || !Double.isFinite(p.w())) return;
         Vec3 v = new Vec3(p.a(), p.y(), p.w());
         if (p.carriage() < 0) {
-            if (CLAIMS.remove(id) != null && v.distanceToSqr(sp.position()) < 16) place(sp, v);
+            if (CLAIMS.remove(id) != null) {
+                if (v.distanceToSqr(sp.position()) < 16) place(sp, v);
+                echo("{} off at {}", sp, v);
+            }
             return;
         }
         Claim was = CLAIMS.get(id);
@@ -123,11 +135,13 @@ public final class Aboard {
         boolean ok = was != null && was.carriage == c.getId() ? was.local.distanceToSqr(v) < 6.25 : pose.world(v).distanceToSqr(sp.position()) < 16;
         if (!ok) {
             CLAIMS.remove(id);
+            echo("{} refused at {}", sp, v);
             sp.connection.teleport(sp.getX(), sp.getY(), sp.getZ(), sp.getYRot(), sp.getXRot());
             return;
         }
         CLAIMS.put(id, new Claim(c.getId(), v));
         place(sp, pose.world(v));
+        if (was == null || was.carriage != c.getId()) echo("{} on carriage {} at {}", sp, c.getId(), v);
     }
 
     /** A vanilla move packet from a player standing in a carriage: only its turn and footing count, the payload has its place. */
@@ -225,6 +239,7 @@ public final class Aboard {
         } else if (k != null && sp.level().getEntity(k.carriage) instanceof Carriage v) c = v;
         if (c != null) {
             Vec3 l = c.pose().local(sp.position());
+            echo("{} logged out aboard carriage {} seat {} at {}", sp, c.getId(), seat, l);
             all.put(id, String.format(Locale.ROOT, "%s %d %.4f %.4f %.4f %s", c.getUUID(), seat, l.x, l.y, l.z, sp.level().dimension().identifier()));
         }
         save(sp.level(), all);
@@ -257,6 +272,7 @@ public final class Aboard {
             Saved s = e.getValue();
             if (level.getEntity(s.carriage) instanceof Carriage c && c.done() && c.placed()) {
                 it.remove();
+                echo("{} back to carriage {} seat {} at {}", sp, c.getId(), s.seat, s.local);
                 if (s.seat >= 0 && c.seatAgain(sp, s.seat)) continue;
                 Vec3 l = s.seat >= 0 ? c.aisleBeside(s.seat) : s.local;
                 Vec3 at = c.pose().world(l);
@@ -265,6 +281,7 @@ public final class Aboard {
             }
             if (level.getGameTime() < s.until) continue;
             it.remove();
+            echo("{} carriage gone, safe ground", sp);
             safeGround(sp);
         }
     }
