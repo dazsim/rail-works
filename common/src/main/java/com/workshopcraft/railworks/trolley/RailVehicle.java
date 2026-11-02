@@ -195,18 +195,23 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         double reach = p.entityInteractionRange() + 2, best = Double.MAX_VALUE;
         Picked out = null;
         for (RailVehicle v : level().getEntitiesOfClass(RailVehicle.class, getBoundingBox().inflate(reach + 12), e -> e.isPickable())) {
-            double hf = v.frontHeading(), c = Math.cos(hf), sn = Math.sin(hf), l = v.eyeReach() + 0.15, w = v.halfWidth();
-            Vec3 r = eye.subtract(v.position());
-            Vec3 a = new Vec3(r.x * c + r.z * sn, r.y, -r.x * sn + r.z * c);
-            Vec3 d = new Vec3(look.x * c + look.z * sn, look.y, -look.x * sn + look.z * c);
-            var hit = new AABB(-l, 0, -w, l, v.getBbHeight(), w).clip(a, a.add(d.scale(reach)));
-            double t = new AABB(-l, 0, -w, l, v.getBbHeight(), w).contains(a) ? 0 : hit.map(h -> h.distanceTo(a)).orElse(Double.MAX_VALUE);
+            double t = v.pickDistance(eye, look, reach);
             if (t < best) {
                 best = t;
-                out = new Picked(v, eye.add(look.scale(t)).subtract(v.position()));
+                out = new Picked(v, eye.add(look.scale(t % 1000)).subtract(v.position()));
             }
         }
-        return out;
+        return best == Double.MAX_VALUE ? null : out;
+    }
+
+    /** How far along the look a click meets this vehicle; standing inside its box counts only when nothing else is met. */
+    protected double pickDistance(Vec3 eye, Vec3 look, double reach) {
+        double hf = frontHeading(), c = Math.cos(hf), sn = Math.sin(hf), l = eyeReach() + 0.15, w = halfWidth();
+        Vec3 r = eye.subtract(position());
+        Vec3 a = new Vec3(r.x * c + r.z * sn, r.y, -r.x * sn + r.z * c), d = new Vec3(look.x * c + look.z * sn, look.y, -look.x * sn + look.z * c);
+        AABB box = new AABB(-l, 0, -w, l, getBbHeight(), w);
+        if (box.contains(a)) return 1000;
+        return box.clip(a, a.add(d.scale(reach))).map(h -> h.distanceTo(a)).orElse(Double.MAX_VALUE);
     }
 
     protected @Nullable Picked other(Player p) {

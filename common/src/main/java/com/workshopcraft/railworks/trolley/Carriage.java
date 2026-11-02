@@ -367,6 +367,21 @@ public class Carriage extends RailVehicle {
     }
 
     /** The slot the player's line of sight meets first among those ok accepts, or a near miss, or -1. */
+    @Override
+    protected double pickDistance(Vec3 eye, Vec3 look, double reach) {
+        Vec3 o = local(eye, true), to = o.add(local(look, false).normalize().scale(reach));
+        String st = slots();
+        double best = Double.MAX_VALUE;
+        for (Slot s : CarriageLayout.SLOTS) {
+            if (done() && !CarriageLayout.fitted(st, s.i())) continue;
+            AABB b = s.box().inflate(0.12);
+            if (b.contains(o)) continue;
+            var hit = b.clip(o, to);
+            if (hit.isPresent()) best = Math.min(best, hit.get().distanceTo(o));
+        }
+        return best < Double.MAX_VALUE ? best : super.pickDistance(eye, look, reach);
+    }
+
     int aimed(Player p, IntPredicate ok, boolean direct) {
         Vec3 o = local(p.getEyePosition(), true), d = local(p.getLookAngle(), false).normalize(), to = o.add(d.scale(6));
         int best = -1;
@@ -634,8 +649,7 @@ public class Carriage extends RailVehicle {
         }
         if (player.getVehicle() == this) return;
         // the end face is for pushing: looking along the body must not reach a bench or door inside
-        Vec3 l = local(loc, false);
-        if (Math.abs(l.x) > eyeReach()) {
+        if (Math.abs(local(player.position(), true).x) > eyeReach()) {
             pushAlong(player);
             return;
         }
@@ -678,7 +692,7 @@ public class Carriage extends RailVehicle {
             if (!player.startRiding(this)) pending.remove(player.getUUID());
             return;
         }
-        if (Math.abs(l.x) > eyeReach() - 1.6) {
+        if (Math.abs(local(loc, false).x) > eyeReach() - 1.6) {
             pushAlong(player);
             return;
         }
