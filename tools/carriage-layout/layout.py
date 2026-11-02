@@ -219,7 +219,13 @@ def side_frame(s, j):
             m.span('TREATED', a - 0.07, FLT, z0, a + 0.07, TOP_T, z1)
     r0, r1 = s * (PZ0 + 0.005), s * (PZ1 - 0.005)
     m.span('TREATED', x0 + (0.05 if j == 0 else 0), FLT + 0.005, r0, x1 - (0.05 if j == 4 else 0), FLT + 0.14, r1)
-    m.span('TREATED', x0 + (0.05 if j == 0 else 0), LOW_T - 0.05, s * (PZ0 + 0.01), x1 - (0.05 if j == 4 else 0), LOW_T + 0.05, s * (PZ1 - 0.01))
+    # the waist rail stops at the posts either side of a doorway
+    a = x0 + (0.05 if j == 0 else 0)
+    for k, d0, d1 in DOORS:
+        if x0 <= d0 < x1:
+            m.span('TREATED', a, LOW_T - 0.05, s * (PZ0 + 0.01), max(p for p in POSTS if p < d0), LOW_T + 0.05, s * (PZ1 - 0.01))
+            a = min(p for p in POSTS if p > d1)
+    m.span('TREATED', a, LOW_T - 0.05, s * (PZ0 + 0.01), x1 - (0.05 if j == 4 else 0), LOW_T + 0.05, s * (PZ1 - 0.01))
     m.span('TREATED', x0 + (0.05 if j == 0 else 0), TOP_T - 0.14, r0, x1 - (0.05 if j == 4 else 0), TOP_T - 0.005, r1)
     for f in (0.25, 0.75):
         m.rivet(x0 + 4 * f + 0.15, FLT + 0.07, s * (PZ0 + 0.005), '-z' if s > 0 else '+z')
