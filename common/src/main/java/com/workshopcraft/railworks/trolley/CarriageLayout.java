@@ -24,7 +24,7 @@ import org.jspecify.annotations.Nullable;
  * a set of slots, open once the phases it needs are complete. The build state is a string of one char a slot.
  */
 public final class CarriageLayout {
-    public static final String NONE = "none", BLOW = "blow", RIVETS = "rivets";
+    public static final String NONE = "none", BLOW = "blow", RIVETS = "rivets", BLOCK = "BLOCK";
 
     public record Part(String id, Identifier item, String fix, int rivets) {
         public Item asItem() {
@@ -42,12 +42,17 @@ public final class CarriageLayout {
 
     public record Leaf(char axis, Vec3 pivot, List<Box> solid, List<Box> glass) {}
 
-    public record Model(String name, Part part, List<Box> solid, List<Box> glass, List<float[]> rivets, List<float[]> seats, @Nullable Leaf leaf) {}
+    /**
+     * One way a part can sit in a slot. lit boxes glow when a fixture says it is lit, blocks are slot ids that
+     * must stay empty while it is fitted, and a block model draws that state in place of boxes.
+     */
+    public record Model(String name, Part part, List<Box> solid, List<Box> glass, List<Box> lit, List<float[]> rivets, List<float[]> seats,
+                        @Nullable Leaf leaf, List<String> blocks, java.util.function.@Nullable Supplier<net.minecraft.world.level.block.state.BlockState> block, AABB bounds) {}
 
     public record Phase(String id, List<String> needs, boolean required) {}
 
     public record Slot(int i, String id, String phase, String group, int index, boolean required, boolean chain, List<String> needs,
-                       int side, int end, int door, @Nullable Vec3 at, AABB box, List<Model> models) {
+                       int side, int end, int door, @Nullable Vec3 at, AABB box, List<Model> models, float @Nullable [] halfBay) {
         public @Nullable Model model(Item item) {
             for (Model m : models) if (m.part.asItem() == item) return m;
             return null;
@@ -57,6 +62,11 @@ public final class CarriageLayout {
     public static final Map<String, Part> PARTS = new LinkedHashMap<>();
     public static final List<Phase> PHASES = new ArrayList<>();
     public static final List<Slot> SLOTS = new ArrayList<>();
+
+    /** Space kept clear for a later part, such as the power rail under each cornice. Nothing fits there yet. */
+    public record Reserved(String id, String kind, int side, AABB box) {}
+
+    public static final List<Reserved> RESERVED = new ArrayList<>();
 
     static {
         JsonObject parts = read("parts.json");
@@ -81,15 +91,81 @@ public final class CarriageLayout {
                     JsonObject lo = mo.getAsJsonObject("leaf");
                     leaf = new Leaf(lo.get("axis").getAsString().charAt(0), vec(lo.getAsJsonArray("pivot")), boxes(lo, "solid"), boxes(lo, "glass"));
                 }
-                ms.add(new Model(m.getKey(), p, boxes(mo, "solid"), boxes(mo, "glass"), floats(mo, "rivets"), floats(mo, "seats"), leaf));
+                List<Box> solid = boxes(mo, "solid"), glass = boxes(mo, "glass"), lit = boxes(mo, "lit");
+                ms.add(new Model(m.getKey(), p, solid, glass, lit, floats(mo, "rivets"), floats(mo, "seats"), leaf,
+                        mo.has("blocks") ? strings(mo.getAsJsonArray("blocks")) : List.of(), null, bounds(solid, glass, lit)));
             }
             JsonArray b = o.getAsJsonArray("box");
             AABB box = new AABB(b.get(0).getAsDouble(), b.get(1).getAsDouble(), b.get(2).getAsDouble(), b.get(3).getAsDouble(), b.get(4).getAsDouble(), b.get(5).getAsDouble());
             SLOTS.add(new Slot(SLOTS.size(), o.get("id").getAsString(), o.get("phase").getAsString(), o.get("group").getAsString(), o.get("index").getAsInt(),
                     o.get("required").getAsBoolean(), o.get("chain").getAsBoolean(), o.has("needs") ? strings(o.getAsJsonArray("needs")) : List.of(),
                     o.has("side") ? o.get("side").getAsInt() : 0, o.has("end") ? o.get("end").getAsInt() : 0, o.has("door") ? o.get("door").getAsInt() : -1,
-                    o.has("at") ? vec(o.getAsJsonArray("at")) : null, box, ms));
+                    o.has("at") ? vec(o.getAsJsonArray("at")) : null, box, ms,
+                    o.has("half_bay") ? new float[] {f(o.getAsJsonArray("half_bay"), 0), f(o.getAsJsonArray("half_bay"), 1)} : null));
         }
+        for (JsonElement e : layout.getAsJsonArray("reserved")) {
+            JsonObject o = e.getAsJsonObject();
+            JsonArray b = o.getAsJsonArray("box");
+            RESERVED.add(new Reserved(o.get("id").getAsString(), o.get("kind").getAsString(), o.get("side").getAsInt(),
+                    new AABB(b.get(0).getAsDouble(), b.get(1).getAsDouble(), b.get(2).getAsDouble(), b.get(3).getAsDouble(), b.get(4).getAsDouble(), b.get(5).getAsDouble())));
+        }
+    }
+
+    /** Half-bay space for API fixtures, in pixels: 16 along, 16 up, 10 deep from the aisle face to the wall. */
+    public static final float BAY_X = 16, BAY_Y = 16, BAY_Z = 10, PX = 1 / 16f, WALL = 2.1f, FLOOR = 1.3f;
+
+    /** A box given in half-bay pixels (z 0 is the aisle face, z BAY_Z the wall) in carriage terms for slot s. */
+    public static Box bayBox(Slot s, String zone, float x0, float y0, float z0, float x1, float y1, float z1) {
+        float mid = (s.halfBay[0] + s.halfBay[1]) / 2, k = s.side;
+        float a0 = mid + k * (x0 - BAY_X / 2) * PX, a1 = mid + k * (x1 - BAY_X / 2) * PX;
+        float w0 = k * (WALL - (BAY_Z - z0) * PX), w1 = k * (WALL - (BAY_Z - z1) * PX);
+        return new Box(zone, (a0 + a1) / 2, FLOOR + (y0 + y1) / 2 * PX, (w0 + w1) / 2, Math.abs(a1 - a0), (y1 - y0) * PX, Math.abs(w1 - w0), 0, 0);
+    }
+
+    /**
+     * Adds a fixture part from the API to every half bay of the given slot groups. Models go after the
+     * built in ones, sorted by part id so client and server agree.
+     */
+    public static void addFixture(String partId, Identifier item, List<String> groups, java.util.function.Function<Slot, Model> make) {
+        if (PARTS.containsKey(partId)) throw new IllegalStateException("carriage part " + partId + " is already registered");
+        PARTS.put(partId, new Part(partId, item, BLOW, 0));
+        for (int n = 0; n < SLOTS.size(); n++) {
+            Slot s = SLOTS.get(n);
+            if (!groups.contains(s.group) || s.halfBay == null) continue;
+            Model m = make.apply(s);
+            int at = s.models.size();
+            while (at > 0 && s.models.get(at - 1).part.id.contains(":") && s.models.get(at - 1).part.id.compareTo(partId) > 0) at--;
+            s.models.add(at, m);
+            SLOTS.set(n, new Slot(s.i, s.id, s.phase, s.group, s.index, s.required, s.chain, s.needs, s.side, s.end, s.door, s.at, s.box.minmax(m.bounds), s.models, s.halfBay));
+        }
+    }
+
+    public static AABB bounds(List<Box> solid, List<Box> glass, List<Box> lit) {
+        double[] b = {1e9, 1e9, 1e9, -1e9, -1e9, -1e9};
+        for (List<Box> l : List.of(solid, glass, lit)) {
+            for (Box x : l) {
+                boolean turned = x.rx != 0 || x.rz != 0;
+                double r = turned ? Math.sqrt(x.sx * x.sx + x.sy * x.sy + x.sz * x.sz) / 2 : 0;
+                double[] h = {turned ? r : x.sx / 2, turned ? r : x.sy / 2, turned ? r : x.sz / 2}, c = {x.cx, x.cy, x.cz};
+                for (int k = 0; k < 3; k++) {
+                    b[k] = Math.min(b[k], c[k] - h[k]);
+                    b[k + 3] = Math.max(b[k + 3], c[k] + h[k]);
+                }
+            }
+        }
+        return b[0] > b[3] ? new AABB(0, 0, 0, 0, 0, 0) : new AABB(b[0], b[1], b[2], b[3], b[4], b[5]);
+    }
+
+    public static int index(String slotId) {
+        for (Slot s : SLOTS) if (s.id.equals(slotId)) return s.i;
+        return -1;
+    }
+
+    /** The model index for a part id in slot i, or -1 when that slot has no such part. */
+    public static int modelIndex(int i, String partId) {
+        List<Model> ms = SLOTS.get(i).models;
+        for (int k = 0; k < ms.size(); k++) if (ms.get(k).part.id.equals(partId)) return k;
+        return -1;
     }
 
     private CarriageLayout() {}
@@ -203,6 +279,26 @@ public final class CarriageLayout {
         return false;
     }
 
+    /** Slot i is kept empty by something fitted elsewhere. */
+    public static boolean blocked(String st, int i) {
+        String id = SLOTS.get(i).id;
+        for (Slot o : SLOTS) {
+            Model m = modelAt(st, o.i);
+            if (m != null && m.blocks.contains(id)) return true;
+        }
+        return false;
+    }
+
+    /** Whether slot i could take this model now, with nothing it blocks fitted and nothing blocking it. */
+    public static boolean canFit(String st, int i, @Nullable Model m) {
+        if (m == null || !canFit(st, i) || blocked(st, i)) return false;
+        for (String b : m.blocks) {
+            int j = index(b);
+            if (j >= 0 && fitted(st, j)) return false;
+        }
+        return true;
+    }
+
     /** Everything a finished carriage needs is on and fixed. */
     public static boolean finished(String st) {
         for (Phase p : PHASES) if (p.required && !complete(st, p.id)) return false;
@@ -243,7 +339,7 @@ public final class CarriageLayout {
     /** The slots a held item could go into right now. */
     public static List<Slot> fitsFor(String st, Item item) {
         List<Slot> l = new ArrayList<>();
-        for (Slot s : SLOTS) if (s.model(item) != null && canFit(st, s.i)) l.add(s);
+        for (Slot s : SLOTS) if (canFit(st, s.i, s.model(item))) l.add(s);
         return l;
     }
 

@@ -750,7 +750,7 @@ for bi, (w0, w1) in enumerate(bays):
                 b.blocks = [f'bench_{n + 2}', tid]
                 ms['berth'] = b
             ms.update(half)
-            slot(f'bench_{n}', 'interior', 'bench', n, ms, required=False, side=s)
+            slot(f'bench_{n}', 'interior', 'bench', n, ms, required=False, side=s, half_bay=[round(o, 4), round(i, 4)])
             n += 1
 for w0, w1 in bays:
     mid = (w0[2] + w1[1]) / 2

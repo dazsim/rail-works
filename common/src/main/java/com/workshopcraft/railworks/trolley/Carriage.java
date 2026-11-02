@@ -429,7 +429,7 @@ public class Carriage extends RailVehicle {
         double best = Double.MAX_VALUE;
         for (Slot s : CarriageLayout.SLOTS) {
             if (done() && !CarriageLayout.fitted(st, s.i())) continue;
-            AABB b = s.box().inflate(0.04);
+            AABB b = aimBox(st, s, null).inflate(0.04);
             if (b.contains(o)) continue;
             var hit = b.clip(o, to);
             if (hit.isPresent()) best = Math.min(best, hit.get().distanceTo(o));
@@ -437,13 +437,22 @@ public class Carriage extends RailVehicle {
         return best < Double.MAX_VALUE ? best : super.pickDistance(eye, look, reach);
     }
 
+    /** A half bay is aimed at by what is in it, or by what the held part would be there; other slots by their whole box. */
+    static AABB aimBox(String st, Slot s, net.minecraft.world.item.@Nullable Item holding) {
+        if (s.halfBay() == null) return s.box();
+        Model m = CarriageLayout.fitted(st, s.i()) ? CarriageLayout.modelAt(st, s.i()) : holding == null ? null : s.model(holding);
+        return m == null || m.bounds().getSize() == 0 ? s.box() : m.bounds();
+    }
+
     int aimed(Player p, IntPredicate ok, boolean direct) {
         Vec3 o = local(p.getEyePosition(), true), d = local(p.getLookAngle(), false).normalize(), to = o.add(d.scale(6));
+        String st = slots();
+        net.minecraft.world.item.Item holding = partHand(p) == null ? null : p.getItemInHand(partHand(p)).getItem();
         int best = -1;
         double bs = Double.MAX_VALUE;
         for (Slot s : CarriageLayout.SLOTS) {
             if (!ok.test(s.i())) continue;
-            AABB b = s.box().inflate(0.12);
+            AABB b = aimBox(st, s, holding).inflate(0.12);
             var hit = b.clip(o, to);
             double score;
             if (b.contains(o)) score = 0;
@@ -839,14 +848,23 @@ public class Carriage extends RailVehicle {
     }
 
     private List<Integer> allSeats() {
+        return allSeats(true);
+    }
+
+    /** Seats on secure parts; berths only when lying is true, since a berth is lain in by choice, not given out. */
+    private List<Integer> allSeats(boolean lying) {
         String st = slots();
         List<Integer> l = new ArrayList<>();
         for (Slot s : CarriageLayout.SLOTS) {
             if (!seats(st, s.i()) || !CarriageLayout.secure(st, s.i())) continue;
             Model m = CarriageLayout.modelAt(st, s.i());
-            if (m != null) for (int k = 0; k < m.seats().size(); k++) l.add(s.i() * 4 + k);
+            if (m != null) for (int k = 0; k < m.seats().size(); k++) if (lying || !lying(m.seats().get(k))) l.add(s.i() * 4 + k);
         }
         return l;
+    }
+
+    static boolean lying(float[] seat) {
+        return Math.abs(seat[3]) == 2;
     }
 
     private int seated() {
@@ -864,7 +882,7 @@ public class Carriage extends RailVehicle {
         if (level().isClientSide()) return;
         Integer want = pending.remove(passenger.getUUID());
         int seat = want != null && !taken(want) ? want : -1;
-        if (seat < 0) for (int k : allSeats()) if (!taken(k)) {
+        if (seat < 0) for (int k : allSeats(false)) if (!taken(k)) {
             seat = k;
             break;
         }
@@ -878,7 +896,8 @@ public class Carriage extends RailVehicle {
     private void face(Entity passenger, int seat) {
         float[] p = seat(slots(), seat);
         if (p == null) return;
-        float yaw = getYRot() + (p[3] > 0 ? 0 : 180);
+        // bench seats face along the body, a cupboard seat faces the aisle
+        float yaw = p[3] == 0 ? getYRot() + (p[2] < 0 ? 90 : -90) : getYRot() + (p[3] > 0 ? 0 : 180);
         passenger.forceSetRotation(yaw, false, 0, true);
     }
 
@@ -976,7 +995,7 @@ public class Carriage extends RailVehicle {
             boolean along = Math.abs(da) >= Math.abs(dw);
             int best = -1;
             double bd = Double.MAX_VALUE;
-            for (int k : allSeats()) {
+            for (int k : allSeats(false)) {
                 if (k == mine || taken(k)) continue;
                 float[] q = seat(slots(), k);
                 if (q == null) continue;
@@ -1077,6 +1096,17 @@ public class Carriage extends RailVehicle {
         super.readAdditionalSaveData(in);
         String st = in.getStringOr("slots", CarriageLayout.empty());
         if (st.length() != CarriageLayout.SLOTS.size()) st = (st + CarriageLayout.empty()).substring(0, CarriageLayout.SLOTS.size());
+        // models are saved by part id too, so parts added by other mods keep their place when the list changes
+        String[] parts = in.getStringOr("parts", "").split(",", -1);
+        if (parts.length == st.length()) {
+            char[] c = st.toCharArray();
+            for (int i = 0; i < c.length; i++) {
+                if (c[i] == '.' || parts[i].isEmpty()) continue;
+                int m = CarriageLayout.modelIndex(i, parts[i]);
+                c[i] = m < 0 ? '.' : CarriageLayout.code(m, CarriageLayout.work(st, i));
+            }
+            st = new String(c);
+        }
         entityData.set(DATA_SLOTS, st);
         entityData.set(DATA_DOORS, in.getIntOr("doors", 0));
         order.clear();
@@ -1092,6 +1122,13 @@ public class Carriage extends RailVehicle {
     protected void addAdditionalSaveData(ValueOutput out) {
         super.addAdditionalSaveData(out);
         out.putString("slots", slots());
+        StringBuilder parts = new StringBuilder();
+        for (int i = 0; i < CarriageLayout.SLOTS.size(); i++) {
+            if (i > 0) parts.append(',');
+            Model m = CarriageLayout.modelAt(slots(), i);
+            if (m != null) parts.append(m.part().id());
+        }
+        out.putString("parts", parts.toString());
         out.putInt("doors", doors());
         out.putIntArray("order", order.stream().mapToInt(Integer::intValue).toArray());
         if (bogieA != null) out.putString("bogie_a", bogieA.toString());

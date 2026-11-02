@@ -61,7 +61,8 @@ public final class CarriageModel {
         for (Slot s : CarriageLayout.SLOTS) {
             Model m = CarriageLayout.modelAt(st, s.i());
             if (m == null) continue;
-            for (Box b : m.solid()) box(solid, b, 0, 0, 0);
+            // a block model is drawn by the renderer itself; its box only stands in for collision and aim
+            for (Box b : m.solid()) if (!b.zone().equals(CarriageLayout.BLOCK)) box(solid, b, 0, 0, 0);
             for (Box b : m.glass()) box(glass, b, 0, 0, 0);
             int set = CarriageLayout.work(st, s.i());
             for (int k = 0; k < m.rivets().size(); k++) {
@@ -79,6 +80,7 @@ public final class CarriageModel {
             Model md = item == null ? s.models().getFirst() : s.model(item);
             if (md == null) continue;
             for (Box b : md.solid()) box(m, b, 0, 0, 0);
+            for (Box b : md.lit()) box(m, b, 0, 0, 0);
             if (md.leaf() != null) for (Box b : md.leaf().solid()) box(m, b, (float) md.leaf().pivot().x, (float) md.leaf().pivot().y, (float) md.leaf().pivot().z);
         }
         return new Built(m, new Mesh());
