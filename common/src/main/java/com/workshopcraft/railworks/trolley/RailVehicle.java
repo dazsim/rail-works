@@ -83,6 +83,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
 
     // server only
     protected int stopCooldown;
+    private boolean holding;
     protected boolean endBraking;
     private int lastSync, towLost;
     private @Nullable UUID towId;
@@ -995,8 +996,10 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             LOG.info("[train] {} members at {} b/s over {} sections, gaps{}", n, String.format(java.util.Locale.ROOT, "%.2f", Math.abs(u)), t.steps.size(), b);
         }
         sendTrain(level, t, ds != 0 || u != 0);
-        if (tickCount % 20 == 0 && (ds != 0 || u != 0 || ridden(ms)))
+        boolean keep = ds != 0 || u != 0 || ridden(ms);
+        if (keep && (!holding || tickCount % 20 == 0))
             for (Member x : ms) if (x.v().holdsChunks()) level.getChunkSource().addTicketWithRadius(ModContent.TRAIN_TICKET, ChunkPos.containing(x.v().blockPosition()), 3);
+        holding = keep;
         return ds;
     }
 

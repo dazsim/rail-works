@@ -374,7 +374,7 @@ public class Carriage extends RailVehicle {
         double best = Double.MAX_VALUE;
         for (Slot s : CarriageLayout.SLOTS) {
             if (done() && !CarriageLayout.fitted(st, s.i())) continue;
-            AABB b = s.box().inflate(0.12);
+            AABB b = s.box().inflate(0.04);
             if (b.contains(o)) continue;
             var hit = b.clip(o, to);
             if (hit.isPresent()) best = Math.min(best, hit.get().distanceTo(o));
@@ -575,6 +575,7 @@ public class Carriage extends RailVehicle {
         if (done()) {
             String st = slots();
             int c = aimed(player, j -> CarriageLayout.SLOTS.get(j).group().equals("coupling") && CarriageLayout.fitted(st, j), true);
+            if (c < 0 && Math.abs(local(loc, false).x) > eyeReach() - 1.6) c = CarriageLayout.SLOTS.indexOf(coupling(endAt(loc)));
             if (c >= 0 && coupledAt(CarriageLayout.SLOTS.get(c).end())) {
                 uncoupleEnd(level, player, CarriageLayout.SLOTS.get(c).end());
                 return;
@@ -594,6 +595,11 @@ public class Carriage extends RailVehicle {
             }
         }
         takeLast(level, player);
+    }
+
+    private static @Nullable Slot coupling(int end) {
+        for (Slot s : CarriageLayout.SLOTS) if (s.group().equals("coupling") && s.end() == end) return s;
+        return null;
     }
 
     private void uncoupleEnd(ServerLevel level, Player player, int end) {
