@@ -67,12 +67,13 @@ public final class ClientTrains {
         }
         TRAINS.put(p.root(), t);
         // a vehicle can only be in one train: drop older ones sharing a member
+        trains:
         for (Iterator<Map.Entry<Integer, Live>> it = TRAINS.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Integer, Live> e = it.next();
             if (e.getKey() == p.root()) continue;
             for (int id : e.getValue().ids) for (int o : t.ids) if (id == o) {
                 it.remove();
-                break;
+                continue trains;
             }
         }
     }
