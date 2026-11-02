@@ -178,7 +178,7 @@ def truss(s):
         ln = math.hypot(a1 - a0, hb - ha)
         ang = math.atan2(hb - ha, a1 - a0)
         m.box('STEEL', (a0 + a1) / 2, (ha + hb) / 2, w, ln + 0.03, 0.05, 0.05, rz=ang)
-    m.box('STEEL', 0, hb, w, 5.0, 0.05, 0.05)
+    m.box('STEEL', 0, hb, w, 5.0, 0.044, 0.044)
     for a in (-2.5, 2.5):
         m.span('BLACK', a - 0.04, hb - 0.04, w - 0.04, a + 0.04, BASE, w + 0.04)
         m.rivet(a, BASE - 0.07, w + 0.04 * s, '+z' if s > 0 else '-z')
