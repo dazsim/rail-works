@@ -83,6 +83,12 @@ public final class CarriageBody {
         return false;
     }
 
+    /** Standing in or on any carriage body, so not under the wheels. */
+    static boolean inAny(Entity e) {
+        for (Carriage c : near(e.level(), e.position(), 16)) if (aboard(c.pose().local(e.position()))) return true;
+        return false;
+    }
+
     // ---------------------------------------------------------------- live carriages
 
     static void live(Carriage c) {

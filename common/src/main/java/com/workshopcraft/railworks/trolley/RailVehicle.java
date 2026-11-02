@@ -1075,7 +1075,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         double hf = frontHeading(), speed = Math.abs(v), e = trackReach(), hw = halfWidth();
         int dir = (int) Math.signum(v) * f();
         for (Entity t : level.getEntities(this, getBoundingBox().inflate(1.0, 0.5, 1.0), x -> x instanceof LivingEntity && x.isAlive() && !x.isSpectator()
-                && !(x.getRootVehicle() instanceof TrackRunner) && !ride.safe().contains(x))) {
+                && !(x.getRootVehicle() instanceof TrackRunner) && !ride.safe().contains(x) && !CarriageBody.inAny(x))) {
             double dx = t.getX() - getX(), dz = t.getZ() - getZ();
             double a = dx * Math.cos(hf) + dz * Math.sin(hf), w = -dx * Math.sin(hf) + dz * Math.cos(hf);
             double r = t.getBbWidth() / 2;
