@@ -430,12 +430,20 @@ public class Carriage extends RailVehicle {
             return InteractionResult.SUCCESS;
         }
         if (CarriageLayout.isPart(held.getItem())) {
+            if (hand != partHand(player)) return InteractionResult.PASS;
             if (level() instanceof ServerLevel sl) fit(sl, player, held);
             return InteractionResult.SUCCESS;
         }
-        if (hand != InteractionHand.MAIN_HAND || !held.isEmpty()) return InteractionResult.PASS;
+        if (hand != InteractionHand.MAIN_HAND || !held.isEmpty() || partHand(player) != null) return InteractionResult.PASS;
         if (level() instanceof ServerLevel sl) emptyHand(sl, player, location);
         return InteractionResult.SUCCESS;
+    }
+
+    /** The hand a click fits a part from, the same one the ghost shows: the main hand, else the off hand unless the main one holds a tool. */
+    public static @Nullable InteractionHand partHand(Player p) {
+        ItemStack main = p.getMainHandItem();
+        if (CarriageLayout.isPart(main.getItem())) return InteractionHand.MAIN_HAND;
+        return !main.is(ModContent.HAMMER) && !main.is(ModContent.TOW_BAR) && CarriageLayout.isPart(p.getOffhandItem().getItem()) ? InteractionHand.OFF_HAND : null;
     }
 
     private void fit(ServerLevel level, Player player, ItemStack held) {
@@ -444,7 +452,7 @@ public class Carriage extends RailVehicle {
         if (done()) can.removeIf(Slot::required);
         if (can.isEmpty()) {
             boolean anyFree = CarriageLayout.SLOTS.stream().anyMatch(s -> s.model(held.getItem()) != null && !CarriageLayout.fitted(st, s.i()));
-            say(player, anyFree ? readout(st) : Component.translatable("message.railworks.carriage.all_on", held.getHoverName()));
+            say(player, anyFree ? notYet(st, held.getItem()) : Component.translatable("message.railworks.carriage.all_on", held.getHoverName()));
             return;
         }
         int i = aimed(player, j -> can.stream().anyMatch(s -> s.i() == j), false);
@@ -455,6 +463,7 @@ public class Carriage extends RailVehicle {
         Slot s = CarriageLayout.SLOTS.get(i);
         Model m = s.model(held.getItem());
         if (m == null) return;
+        Component name = held.getHoverName();
         setSlot(i, CarriageLayout.code(s.models().indexOf(m), 0));
         order.add(i);
         if (!player.getAbilities().instabuild) held.shrink(1);
@@ -464,7 +473,6 @@ public class Carriage extends RailVehicle {
             default -> play(level, m.part().id().equals("floor") ? SoundEvents.WOOD_PLACE : SoundEvents.CHAIN_PLACE, 0.8f, 0.9f);
         }
         String nst = slots();
-        Component name = held.getHoverName();
         if (m.part().fix().equals(CarriageLayout.RIVETS)) say(player, Component.translatable("message.railworks.carriage.fitted_rivets", name, m.part().rivets()));
         else if (m.part().fix().equals(CarriageLayout.BLOW)) say(player, Component.translatable("message.railworks.carriage.fitted_blow", name));
         else say(player, readout(nst));
@@ -525,7 +533,9 @@ public class Carriage extends RailVehicle {
             return;
         }
         play(level, SoundEvents.ANVIL_LAND, 0.25f, 1.8f);
-        say(player, readout(st));
+        ItemStack off = player.getOffhandItem();
+        say(player, CarriageLayout.isPart(off.getItem()) && !CarriageLayout.fitsFor(st, off.getItem()).isEmpty()
+                ? Component.translatable("message.railworks.carriage.hammer_hand", off.getHoverName()) : readout(st));
     }
 
     private static boolean takeRivet(Player p) {
@@ -539,6 +549,19 @@ public class Carriage extends RailVehicle {
             }
         }
         return false;
+    }
+
+    /** Why a part with free places cannot go on yet: the stage to finish first, then what that stage still wants. */
+    private Component notYet(String st, net.minecraft.world.item.Item item) {
+        for (Slot s : CarriageLayout.SLOTS) {
+            if (s.model(item) == null || CarriageLayout.fitted(st, s.i())) continue;
+            CarriageLayout.Phase p = CarriageLayout.phase(s.phase());
+            List<String> needs = new ArrayList<>(p == null ? List.of() : p.needs());
+            needs.addAll(s.needs());
+            for (String n : needs) if (!CarriageLayout.complete(st, n))
+                return Component.translatable("message.railworks.carriage.not_yet", new ItemStack(item).getHoverName(), Component.translatable("railworks.carriage.phase." + n), readout(st));
+        }
+        return Component.translatable("message.railworks.carriage.next_to", new ItemStack(item).getHoverName());
     }
 
     /** What the hammer still waits on: the parts that can go on now, then rivets and blows owed. */

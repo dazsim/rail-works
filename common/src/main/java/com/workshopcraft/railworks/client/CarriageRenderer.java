@@ -67,16 +67,16 @@ public class CarriageRenderer extends EntityRenderer<Carriage, CarriageRenderSta
         s.ghost = null;
         Player p = Minecraft.getInstance().player;
         if (p != null && p.distanceToSqr(c) < 24 * 24) {
-            for (InteractionHand h : InteractionHand.values()) {
+            InteractionHand h = Carriage.partHand(p);
+            if (h != null) {
                 Item it = p.getItemInHand(h).getItem();
-                if (!CarriageLayout.isPart(it)) continue;
                 List<Slot> can = CarriageLayout.fitsFor(s.slots, it);
                 if (c.done()) can.removeIf(Slot::required);
-                if (can.isEmpty()) break;
-                String key = s.slots + it;
-                if (GHOSTS.size() > 64) GHOSTS.clear();
-                s.ghost = GHOSTS.computeIfAbsent(key, k -> CarriageModel.ghost(can, it));
-                break;
+                if (!can.isEmpty()) {
+                    String key = s.slots + it;
+                    if (GHOSTS.size() > 64) GHOSTS.clear();
+                    s.ghost = GHOSTS.computeIfAbsent(key, k -> CarriageModel.ghost(can, it));
+                }
             }
         }
     }
