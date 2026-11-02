@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.function.IntPredicate;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -159,6 +160,10 @@ public class Carriage extends RailVehicle {
         return entityData.get(DATA_LOOK);
     }
 
+    public static boolean lit(String look, int i) {
+        return Fittings.lit(look, i);
+    }
+
     void setLook(String v) {
         entityData.set(DATA_LOOK, v);
     }
@@ -256,6 +261,29 @@ public class Carriage extends RailVehicle {
             doorO[i] = door[i];
             float want = (d >> i & 1) != 0 ? 1 : 0;
             door[i] = want > door[i] ? Math.min(want, door[i] + 0.12f) : Math.max(want, door[i] - 0.25f);
+        }
+        if (look().indexOf('1') >= 0) fireParticles();
+    }
+
+    /** Flames behind a burning fixture's door, smoke from its flue top. */
+    private void fireParticles() {
+        String st = slots(), lk = look();
+        var r = getRandom();
+        for (Slot s : CarriageLayout.SLOTS) {
+            if (!lit(lk, s.i())) continue;
+            Model m = CarriageLayout.modelAt(st, s.i());
+            if (m == null) continue;
+            if (!m.lit().isEmpty() && r.nextInt(6) == 0) {
+                CarriageLayout.Box b = m.lit().get(r.nextInt(m.lit().size()));
+                Vec3 p = world(b.cx() + (r.nextFloat() - 0.5f) * b.sx() * 0.8f, b.cy() - b.sy() * 0.3f, b.cz());
+                level().addParticle(ParticleTypes.SMALL_FLAME, p.x, p.y, p.z, 0, 0.005, 0);
+            }
+            CarriageLayout.Box flue = null;
+            for (CarriageLayout.Box b : m.solid()) if (b.zone().equals("STEEL") && (flue == null || b.cy() + b.sy() / 2 > flue.cy() + flue.sy() / 2)) flue = b;
+            if (flue != null && m.block() == null && r.nextInt(3) == 0) {
+                Vec3 p = world(flue.cx(), flue.cy() + flue.sy() / 2 + 0.1, flue.cz());
+                level().addParticle(r.nextInt(4) == 0 ? ParticleTypes.LARGE_SMOKE : ParticleTypes.SMOKE, p.x, p.y, p.z, 0, 0.04, 0);
+            }
         }
     }
 

@@ -73,6 +73,17 @@ public final class CarriageModel {
         return new Built(solid, glass);
     }
 
+    /** The fire boxes of every fixture burning now, to be drawn at full light. */
+    public static Mesh lit(String st, String look) {
+        Mesh out = new Mesh();
+        for (Slot s : CarriageLayout.SLOTS) {
+            Model m = CarriageLayout.modelAt(st, s.i());
+            if (m == null || !com.workshopcraft.railworks.trolley.Carriage.lit(look, s.i())) continue;
+            for (Box b : m.lit()) box(out, b, 0, 0, 0);
+        }
+        return out;
+    }
+
     /** What could go on next for the item held: the first model in each slot it fits. */
     public static Built ghost(List<Slot> slots, net.minecraft.world.item.Item item) {
         Mesh m = new Mesh();
