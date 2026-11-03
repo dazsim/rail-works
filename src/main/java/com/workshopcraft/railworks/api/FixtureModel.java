@@ -15,7 +15,7 @@ public sealed interface FixtureModel {
      * lit boxes.
      */
     List<String> ZONES = List.of("CHOC", "CREAM", "BLACK", "RED", "STEEL", "BRIGHT", "PLATE", "CAST", "BRASS",
-            "LINING", "TREATED", "TEAK", "FLOOR", "CANVAS", "CEILING", "MOQUETTE", "LAMP", "FIRE");
+            "LINING", "TREATED", "TEAK", "FLOOR", "CANVAS", "CEILING", "MOQUETTE", "LAMP", "FIRE", "COPPER", "PORCELAIN");
 
     /** A box in half bay pixels: x along, y up, z from the aisle face (0) to the wall (10). */
     record Box(String zone, float x0, float y0, float z0, float x1, float y1, float z1) {

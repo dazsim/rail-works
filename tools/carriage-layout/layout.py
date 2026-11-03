@@ -52,6 +52,12 @@ PARTS = {
     'gangway_footplate': ('railworks:gangway_footplate', 'rivets'),
     'partition': ('railworks:compartment_partition', 'blow'),
     'corridor_wall': ('railworks:corridor_wall', 'blow'),
+    'lv_cleats': ('railworks:lv_rail_cleats', 'blow'),
+    'lv_rail': ('railworks:lv_rail', 'rivets'),
+    'jumper': ('railworks:jumper_cable', 'blow'),
+    'axle_dynamo': ('railworks:axle_dynamo', 'rivets'),
+    'battery_box': ('railworks:battery_box', 'blow'),
+    'electric_lamp': ('railworks:electric_lamp', 'blow'),
 }
 PHASES = [
     ('underframe', [], True), ('floor', ['underframe'], True), ('frame', ['floor'], True), ('panels', ['frame'], True),
@@ -686,12 +692,27 @@ def lamp(a):
     return m
 
 
+def electric_lamp(a):
+    m = Model()
+    m.span('BRASS', a - 0.02, TOP_T - 0.3, -0.02, a + 0.02, TOP_T - 0.065, 0.02)
+    m.span('PORCELAIN', a - 0.14, TOP_T - 0.34, -0.14, a + 0.14, TOP_T - 0.3, 0.14)
+    m.span('GLASS', a - 0.045, TOP_T - 0.415, -0.045, a + 0.045, TOP_T - 0.34, 0.045, to=m.glass)
+    m.span('LAMP', a - 0.05, TOP_T - 0.42, -0.05, a + 0.05, TOP_T - 0.34, 0.05, to=m.lit)
+    return m
+
+
+NOTCH_Y = 4.52
+
+
 def screen(xs, s):
     m = Model()
     for x in xs:
         z0, z1 = zs(s, 0.45, 0.45 + SW)
         m.span('TREATED', x - 0.035, FLT, z0, x + 0.035, LOW_T, z1)
-        m.span('TREATED', x - 0.035, WIN_T, z0, x + 0.035, TOP_T - 0.06, z1)
+        # notched under the cornice so the LV rail passes
+        m.span('TREATED', x - 0.035, WIN_T, z0, x + 0.035, NOTCH_Y, z1)
+        n0, n1 = zs(s, 0.45, 2.0)
+        m.span('TREATED', x - 0.035, NOTCH_Y, n0, x + 0.035, TOP_T - 0.06, n1)
         g0, g1 = zs(s, 0.5, 0.4 + SW)
         m.span('GLASS', x - 0.015, LOW_T, g0, x + 0.015, WIN_T, g1, to=m.glass)
         e0, e1 = zs(s, 0.45, 0.5)
@@ -820,6 +841,19 @@ def workbench(o, i, s):
     return m
 
 
+def battery_box(o, i, s):
+    m = Model()
+    d = 1 if i > o else -1
+    a0, a1 = o + d * 0.08, i - d * 0.08
+    sp(m, 'STEEL', a0, FLT, 1.55, a1, FLT + 0.7, 2.05, s)
+    sp(m, 'BLACK', a0 + d * 0.03, FLT + 0.7, 1.58, a1 - d * 0.03, FLT + 0.74, 2.02, s)
+    mid = (a0 + a1) / 2
+    for a in (mid - 0.2, mid + 0.2):
+        sp(m, 'COPPER', a - 0.03, FLT + 0.74, 1.7, a + 0.03, FLT + 0.8, 1.76, s)
+    sp(m, 'BRASS', mid - 0.1, FLT + 0.5, 1.53, mid + 0.1, FLT + 0.54, 1.55, s)
+    return m
+
+
 def stove(o, i, s):
     """The flue at the o end clears the luggage rack on its way to the ceiling."""
     m = Model()
@@ -855,7 +889,7 @@ for bi, (w0, w1) in enumerate(bays):
             o, i = back + face * 0.04, ac - face * 0.03
             tid = f'table_{bi * 2 + (s > 0)}'
             half = {'cupboard': cupboard(o, i, s), 'locker': locker(o, i, s), 'trunk': trunk(o, i, s),
-                    'barrel': barrel(o, i, s), 'workbench': workbench(o, i, s), 'stove': stove(o, i, s)}
+                    'barrel': barrel(o, i, s), 'workbench': workbench(o, i, s), 'stove': stove(o, i, s), 'battery_box': battery_box(o, i, s)}
             for mm in half.values():
                 mm.blocks = [tid]
             ms = {'bench': bench(back, face, s), 'chair_pair': chair_pair(back, face, s)}
@@ -874,7 +908,7 @@ for w0, w1 in bays:
 n = 0
 for a in LAMPS:
     if a != 0.0:
-        slot(f'lamp_{n}', 'interior', 'lamp', n, {'lamp': lamp(a)}, required=False, needs=['roof'])
+        slot(f'lamp_{n}', 'interior', 'lamp', n, {'lamp': lamp(a), 'electric_lamp': electric_lamp(a)}, required=False, needs=['roof'])
         n += 1
 n = 0
 for xs in ((-(L / 2 - 1.7),), (-0.85, 0.85), (L / 2 - 1.7,)):
@@ -953,6 +987,77 @@ for i, e in enumerate((-1, 1)):
          after=f'gangway_frame_{i}')
     slot(f'gangway_footplate_{i}', 'ends', 'gangway_footplate', i, {'gangway_footplate': gangway_footplate(e)}, required=False, end=e,
          after=f'gangway_bellows_{i}')
+
+# ---------------------------------------------------------------- M7c power: LV rail, jumpers, dynamo
+
+RY0, RY1, RZW = 4.535, 4.625, 2.105
+
+
+def lv_cleats(s):
+    m = Model()
+    for i in range(13):
+        x = -9.0 + 1.5 * i
+        z0, z1 = zs(s, 2.07, RZW)
+        m.span('TEAK', x - 0.05, RY0, z0, x + 0.05, RY1, z1)
+        z0, z1 = zs(s, 2.045, 2.07)
+        m.span('PORCELAIN', x - 0.025, 4.56, z0, x + 0.025, 4.60, z1)
+    return m
+
+
+def lv_rail(s):
+    """The conductor and a junction box at each end; the lamp shows green when the network is OK, amber when LOW."""
+    m = Model()
+    z0, z1 = zs(s, 2.02, 2.045)
+    m.span('COPPER', -9.55, 4.567, z0, 9.55, 4.593, z1)
+    for e in (-1, 1):
+        xa, xb = sorted((e * 9.55, e * 9.74))
+        z0, z1 = zs(s, 2.025, RZW)
+        m.span('STEEL', xa, RY0, z0, xb, RY1, z1)
+        xc = e * 9.645
+        z0, z1 = zs(s, 2.010, 2.025)
+        m.span('BLACK', xc - 0.028, 4.567, z0, xc + 0.028, 4.593, z1)
+        z0, z1 = zs(s, 2.005, 2.025)
+        m.span('LAMP_OK', xc - 0.03, 4.565, z0, xc + 0.03, 4.595, z1, to=m.lit)
+        m.span('LAMP_LOW', xc - 0.03, 4.565, z0, xc + 0.03, 4.595, z1, to=m.lit)
+        for x in (xc - 0.065, xc + 0.065):
+            m.rivet(x, 4.58, s * 2.025, '-z' if s > 0 else '+z')
+    return m
+
+
+def jumper(e):
+    """Receptacles on both sides of an end panel, each with a dummy socket inboard for the plug at rest."""
+    m = Model()
+    for s in (-1, 1):
+        xa, xb = sorted((e * 10.0005, e * 10.13))
+        m.span('CAST', xa, 1.60, s * 1.75 - 0.11, xb, 1.84, s * 1.75 + 0.11)
+        xa, xb = sorted((e * 10.13, e * 10.15))
+        m.span('BRASS', xa, 1.66, s * 1.75 - 0.06, xb, 1.78, s * 1.75 + 0.06)
+        xa, xb = sorted((e * 10.0005, e * 10.09))
+        z0, z1 = zs(s, 1.40, 1.52)
+        m.span('CAST', xa, 1.62, z0, xb, 1.74, z1)
+    return m
+
+
+def axle_dynamo():
+    """Hung under the floor inboard of the front bogie."""
+    m = Model()
+    m.span('STEEL', 4.7, FL - 0.02, -1.05, 5.1, FL, -0.75)
+    m.span('BLACK', 4.82, 1.0, -0.95, 4.98, FL - 0.02, -0.85)
+    m.disc('CAST', 4.9, 0.82, -0.9, 0.2, 0.6)
+    m.disc('BLACK', 5.23, 0.82, -0.9, 0.11, 0.06)
+    for x in (4.75, 5.05):
+        for z in (-1.0, -0.8):
+            m.rivet(x, FL - 0.02, z, '-y')
+    return m
+
+
+for i, s in enumerate((-1, 1)):
+    slot(f'lv_cleats_{i}', 'interior', 'lv_cleats', i, {'lv_cleats': lv_cleats(s)}, required=False, needs=['roof'], side=s)
+for i, s in enumerate((-1, 1)):
+    slot(f'lv_rail_{i}', 'interior', 'lv_rail', i, {'lv_rail': lv_rail(s)}, required=False, needs=['roof'], side=s, after=f'lv_cleats_{i}')
+for i, e in enumerate((-1, 1)):
+    slot(f'jumper_{i}', 'ends', 'jumper', i, {'jumper': jumper(e)}, required=False, end=e, after=f'end_panel_{i}')
+slot('dynamo_0', 'interior', 'dynamo', 0, {'axle_dynamo': axle_dynamo()}, required=False, side=-1)
 
 # the power rail runs along each outer wall under the cornice, through the screens: kept clear for a later part
 RESERVED = []
@@ -1081,7 +1186,7 @@ if __name__ == '__main__':
             return name if name in sl['models'] else next(iter(sl['models']))
         return pick
 
-    OPT = ('partition', 'corridor', 'gangway_frame', 'gangway_bellows', 'gangway_footplate')
+    OPT = ('partition', 'corridor', 'gangway_frame', 'gangway_bellows', 'gangway_footplate', 'jumper')
 
     def base(f):
         return lambda sl: None if sl['group'] in OPT else f(sl)
@@ -1090,7 +1195,7 @@ if __name__ == '__main__':
                ('underframe', base(lambda sl: first(sl) if sl['phase'] in ('underframe', 'ends') else None)),
                ('bare', base(lambda sl: first(sl) if sl['phase'] in ('underframe', 'floor', 'frame', 'roof', 'ends') else None))]
     configs += [(p, base(alt(p))) for p in ('chair_pair', 'berth', 'cupboard', 'locker', 'trunk', 'barrel', 'workbench', 'stove', 'steel_blank', 'wood_blank',
-                                            'steel_end_door', 'wood_end_door')]
+                                            'steel_end_door', 'wood_end_door', 'battery_box', 'electric_lamp')]
     comp = {b for sl in SLOTS if sl['group'] in ('partition', 'corridor') for m in sl['models'].values() for b in m.get('blocks', [])}
 
     def ends(door, inner):
@@ -1114,7 +1219,7 @@ if __name__ == '__main__':
     for rs in RESERVED:
         b0, b1 = rs['box'][:3], rs['box'][3:]
         for sl in SLOTS:
-            if sl['group'] in ('screen', 'side_panel', 'door', 'side_frame', 'roof'):
+            if sl['group'] in ('side_panel', 'door', 'side_frame', 'roof', 'lv_cleats', 'lv_rail'):
                 continue
             for p, m in sl['models'].items():
                 for b in model_boxes(m):

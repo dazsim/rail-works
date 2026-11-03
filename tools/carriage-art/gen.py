@@ -17,6 +17,8 @@ CREAM = {'a': (246, 232, 196), 'b': (226, 208, 166), 'c': (184, 164, 124), 'd': 
 BRASS = {'a': (240, 206, 120), 'b': (200, 156, 64), 'c': (150, 108, 40), 'd': (90, 62, 22)}
 GLASS = {'a': (220, 236, 240), 'b': (168, 196, 208), 'c': (120, 150, 166), 'd': (70, 90, 104)}
 CANVAS = {'a': (236, 234, 226), 'b': (204, 202, 194), 'c': (160, 158, 150), 'd': (96, 94, 90)}
+COPPER = {'a': (236, 160, 100), 'b': (184, 115, 51), 'c': (136, 80, 34), 'd': (80, 44, 18)}
+PORC = {'a': (250, 250, 246), 'b': (228, 226, 218), 'c': (190, 188, 180), 'd': (130, 128, 122)}
 MOQ = {'a': (196, 70, 62), 'b': (150, 40, 40), 'c': (104, 26, 28), 'd': (56, 14, 16)}
 
 
@@ -458,6 +460,62 @@ def corridor_wall():
     return s
 
 
+def lv_cleats():
+    s = S()
+    for x in (2, 7, 12):
+        s.block(x, 3, x + 2, 12, WOOD)
+        s.rect(x + 1, 6, x + 1, 8, PORC['a'])
+    return s
+
+
+def lv_rail():
+    s = S()
+    s.rect(1, 7, 14, 8, COPPER['b']); s.rect(1, 7, 14, 7, COPPER['a'])
+    for x in (0, 11):
+        s.block(x, 4, x + 4, 11, STEEL)
+    s.px(2, 6, (110, 220, 110)); s.px(13, 6, (110, 220, 110))
+    return s
+
+
+def jumper():
+    s = S()
+    s.block(1, 2, 5, 7, CAST)
+    s.rect(2, 4, 4, 5, BRASS['b'])
+    for i in range(9):
+        y = 8 + int(round(3 * (1 - ((i - 4) / 4) ** 2)))
+        s.rect(4 + i, y, 4 + i, y + 1, BLACK['c'])
+    s.block(11, 9, 14, 13, BLACK)
+    return s
+
+
+def axle_dynamo():
+    s = S()
+    s.block(2, 5, 11, 12, CAST)
+    s.rect(3, 6, 10, 6, CAST['a'])
+    s.block(12, 6, 14, 11, BLACK)
+    s.rect(5, 2, 8, 4, STEEL['b']); s.rect(5, 2, 8, 2, STEEL['a'])
+    s.px(5, 3, STEEL['d']); s.px(8, 3, STEEL['d'])
+    return s
+
+
+def battery_box():
+    s = S()
+    s.block(2, 5, 13, 14, STEEL)
+    s.rect(2, 4, 13, 4, BLACK['b'])
+    s.rect(4, 2, 5, 3, COPPER['a']); s.rect(10, 2, 11, 3, COPPER['b'])
+    s.rect(6, 10, 9, 10, BRASS['a'])
+    return s
+
+
+def electric_lamp():
+    s = S()
+    s.rect(7, 1, 8, 4, BRASS['c'])
+    for y, w in [(5, 2), (6, 4), (7, 5)]:
+        s.rect(7 - w, y, 8 + w, y, PORC['b'] if y < 7 else PORC['c'])
+    s.rect(6, 8, 9, 11, (255, 236, 170)); s.rect(7, 12, 8, 12, (255, 220, 140))
+    return s
+
+
 ITEMS = {
     'rivets': rivets(),
     'rivet_pattern': pattern(rivet_holes),
@@ -503,6 +561,12 @@ ITEMS = {
     'gangway_footplate': gangway_footplate(),
     'compartment_partition': partition(),
     'corridor_wall': corridor_wall(),
+    'lv_rail_cleats': lv_cleats(),
+    'lv_rail': lv_rail(),
+    'jumper_cable': jumper(),
+    'axle_dynamo': axle_dynamo(),
+    'battery_box': battery_box(),
+    'electric_lamp': electric_lamp(),
 }
 for name, s in ITEMS.items():
     s.save(name)
@@ -529,7 +593,8 @@ ZONES = [
     ('LINING', 'brass', (214, 172, 70)), ('TREATED', 'wood', None), ('TEAK', 'wood', (150, 92, 50)),
     ('FLOOR', 'wood', (84, 62, 42)), ('CANVAS', 'paint', (214, 212, 202)), ('CEILING', 'paint', (236, 234, 226)),
     ('MOQUETTE', 'red', (130, 36, 38)), ('GLASS', None, (150, 186, 200)), ('LAMP', None, (255, 236, 170)),
-    ('RIVET', 'steel', (214, 214, 206)), ('FIRE', None, (255, 146, 48)),
+    ('RIVET', 'steel', (214, 214, 206)), ('FIRE', None, (255, 146, 48)), ('COPPER', 'brass', (184, 115, 51)),
+    ('PORCELAIN', None, (236, 234, 226)), ('LAMP_OK', None, (110, 220, 110)), ('LAMP_LOW', None, (255, 176, 40)),
 ]
 
 

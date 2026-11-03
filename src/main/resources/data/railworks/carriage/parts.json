@@ -156,5 +156,31 @@
  "corridor_wall": {
   "item": "railworks:corridor_wall",
   "fix": "blow"
+ },
+ "lv_cleats": {
+  "item": "railworks:lv_rail_cleats",
+  "fix": "blow"
+ },
+ "lv_rail": {
+  "item": "railworks:lv_rail",
+  "fix": "rivets",
+  "rivets": 4
+ },
+ "jumper": {
+  "item": "railworks:jumper_cable",
+  "fix": "blow"
+ },
+ "axle_dynamo": {
+  "item": "railworks:axle_dynamo",
+  "fix": "rivets",
+  "rivets": 4
+ },
+ "battery_box": {
+  "item": "railworks:battery_box",
+  "fix": "blow"
+ },
+ "electric_lamp": {
+  "item": "railworks:electric_lamp",
+  "fix": "blow"
  }
 }
