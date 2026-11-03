@@ -1,0 +1,5 @@
+{
+  "engine.whistle": {"subtitle": "subtitles.railworks.engine.whistle", "sounds": [{"name": "railworks:engine/whistle", "attenuation_distance": 64}]},
+  "engine.chuff": {"subtitle": "subtitles.railworks.engine.chuff", "sounds": [{"name": "railworks:engine/chuff", "attenuation_distance": 32}]},
+  "engine.valves": {"subtitle": "subtitles.railworks.engine.valves", "sounds": [{"name": "railworks:engine/valves", "attenuation_distance": 32}]}
+}
