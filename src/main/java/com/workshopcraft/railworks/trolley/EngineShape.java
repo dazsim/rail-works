@@ -65,23 +65,37 @@ public final class EngineShape {
         return b(z, x0, x1, y0, y1, s[0], s[1]);
     }
 
-    /** A polygon tube of radius r along an axis through c, plates t thick; cap fills both ends.
-     *  No two boxes share a face plane: alternate plates are a hair shorter, and the cap is a
-     *  rosette of slabs stepped back from the rim one after another, so nothing z-fights. */
+    /** A polygon tube of radius r along an axis through c, plates t thick. With cap, each end is
+     *  closed by a stepped disc of flat rows stacked one on another, wide enough to cover the tube;
+     *  alternate plates are a hair shorter, so no two boxes share a face plane. Short ones are all disc. */
     static List<Part> prism(String z, char axis, double cx, double cy, double cz, double r, double l, int n, double t, boolean cap) {
         List<Part> out = new ArrayList<>();
         t = Math.min(t, 0.4 * r);
-        double ch = 2 * r * Math.tan(Math.PI / n) * 1.02, e = Math.min(0.002, l / 20);
-        for (int i = 0; i < n; i++) {
-            float[] m = rot(axis, 2 * Math.PI * i / n);
-            double li = l - (i % 2) * 2 * e;
-            out.add(slab(z, axis, cx, cy, cz, m, r - t / 2, li, t, ch));
+        boolean solid = cap && l <= 0.15;
+        double cd = solid ? l : cap ? 0.04 : 0, tl = l - 2 * cd;
+        if (!solid) {
+            double ch = 2 * r * Math.tan(Math.PI / n) * 1.02, e = Math.min(0.002, tl / 20);
+            for (int i = 0; i < n; i++) {
+                float[] m = rot(axis, 2 * Math.PI * i / n);
+                out.add(slab(z, axis, cx, cy, cz, m, r - t / 2, tl - (i % 2) * 2 * e, t, ch));
+            }
         }
         if (cap) {
-            int k = n % 2 == 0 ? n / 2 : n;
-            double h = r - t / 2, w = 2 * h * Math.tan(Math.PI / n) * 1.08, st = Math.min(0.002, l / (4 * (k + 1)));
-            for (int i = 0; i < k; i++)
-                out.add(slab(z, axis, cx, cy, cz, rot(axis, 2 * Math.PI * i / n), 0, l - 4 * e - 2 * st * i, 2 * h, w));
+            double rc = r / Math.cos(Math.PI / n);
+            int nr = Math.max(3, (int) Math.round(2 * rc / Math.max(0.0625, 2 * rc / 24)));
+            double hr = 2 * rc / nr;
+            for (double end : solid ? new double[] {0} : new double[] {-1, 1}) {
+                double a0 = end * (l - cd) / 2;
+                for (int j = 0; j < nr; j++) {
+                    double y0 = -rc + j * hr, y1 = y0 + hr, in = y0 < 0 && y1 > 0 ? 0 : Math.min(Math.abs(y0), Math.abs(y1));
+                    double w = 2 * Math.sqrt(Math.max(0, rc * rc - in * in)), v = (y0 + y1) / 2;
+                    out.add(switch (axis) {
+                        case 'x' -> c(z, cx + a0, cy + v, cz, cd, hr, w, null);
+                        case 'y' -> c(z, cx, cy + a0, cz + v, w, cd, hr, null);
+                        default -> c(z, cx, cy + v, cz + a0, w, hr, cd, null);
+                    });
+                }
+            }
         }
         return out;
     }
@@ -177,7 +191,7 @@ public final class EngineShape {
         // 3 cylinders and motion
         List<Part> cy = new ArrayList<>();
         for (int s = -1; s <= 1; s += 2) {
-            cy.addAll(prism("CAST", 'x', 3.7, 1.1, s * 0.27, 0.3, s > 0 ? 1.3 : 1.292, 12));
+            cy.addAll(prism("CAST", 'x', 3.7, s > 0 ? 1.103 : 1.1, s * 0.27, 0.3, s > 0 ? 1.3 : 1.292, 12));
             cy.add(b("STEEL", 0.1, 3.05, 0.95, 1.05, s * 0.27 - 0.04, s * 0.27 + 0.04));
         }
         List<Part> mo = new ArrayList<>();
@@ -189,7 +203,7 @@ public final class EngineShape {
                 unit("engine_cylinders", cy, cat(row(4, 3.2, 1.4, -0.27, 4.2, 1.4, -0.27, 'y'), row(4, 3.2, 1.4, 0.27, 4.2, 1.4, 0.27, 'y'))),
                 unit("valve_motion", mo, List.of()))));
         // 4 boiler barrel and dome
-        List<Part> bb = new ArrayList<>(prism("P", 'x', 0.9, 2.6, 0, 0.85, 4.4, 24));
+        List<Part> bb = new ArrayList<>(prism("P", 'x', 0.89, 2.6, 0, 0.85, 4.38, 24));
         bb.addAll(prism("P", 'y', 1.2, 3.58, 0, 0.38, 0.55, 14));
         for (int i = 0; i < 3; i++) bb.add(b("STEEL", -0.5 + i * 1.6, -0.44 + i * 1.6, 1.73, 3.47, -0.02, 0.02));
         st.add(new Stage("boiler", Fix.RIVETS, List.of(unit("boiler_barrel", bb,
