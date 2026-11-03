@@ -158,6 +158,13 @@ public final class ModContent {
     public static Item LUGGAGE_RACK;
     public static Item CEILING_LAMP;
     public static Item CARRIAGE_SCREEN;
+    public static Item STEEL_END_DOOR;
+    public static Item WOOD_END_DOOR;
+    public static Item GANGWAY_FRAME;
+    public static Item GANGWAY_BELLOWS;
+    public static Item GANGWAY_FOOTPLATE;
+    public static Item COMPARTMENT_PARTITION;
+    public static Item CORRIDOR_WALL;
     public static Item CHAIR_PAIR;
     public static Item CARRIAGE_TABLE;
     public static Item BERTH;
@@ -393,6 +400,13 @@ public final class ModContent {
         CARRIAGE_STOVE = part(r, "carriage_stove");
         STEEL_BLANK_PANEL = part(r, "steel_blank_panel");
         WOOD_BLANK_PANEL = part(r, "wood_blank_panel");
+        STEEL_END_DOOR = part(r, "steel_end_door");
+        WOOD_END_DOOR = part(r, "wood_end_door");
+        GANGWAY_FRAME = part(r, "gangway_frame");
+        GANGWAY_BELLOWS = part(r, "gangway_bellows");
+        GANGWAY_FOOTPLATE = part(r, "gangway_footplate");
+        COMPARTMENT_PARTITION = part(r, "compartment_partition");
+        CORRIDOR_WALL = part(r, "corridor_wall");
         if (Boolean.getBoolean("railworks.fixtureTest")) TEST_SMOKER = part(r, "test_smoker");
         com.workshopcraft.railworks.trolley.BuiltinFixtures.register();
     }
@@ -555,6 +569,13 @@ public final class ModContent {
                     if (TEST_SMOKER != null) out.accept(TEST_SMOKER);
                     out.accept(STEEL_BLANK_PANEL);
                     out.accept(WOOD_BLANK_PANEL);
+                    out.accept(STEEL_END_DOOR);
+                    out.accept(WOOD_END_DOOR);
+                    out.accept(GANGWAY_FRAME);
+                    out.accept(GANGWAY_BELLOWS);
+                    out.accept(GANGWAY_FOOTPLATE);
+                    out.accept(COMPARTMENT_PARTITION);
+                    out.accept(CORRIDOR_WALL);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);

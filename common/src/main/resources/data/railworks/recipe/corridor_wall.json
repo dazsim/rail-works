@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "C": "minecraft:copper_ingot",
+    "T": "railworks:treated_planks"
+  },
+  "pattern": [
+    "GCG",
+    "TTT"
+  ],
+  "result": {
+    "id": "railworks:corridor_wall"
+  }
+}

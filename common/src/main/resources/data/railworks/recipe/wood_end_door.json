@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "N": "minecraft:brown_dye",
+    "G": "minecraft:glass_pane",
+    "T": "railworks:treated_planks",
+    "C": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "NG",
+    "TC",
+    "T "
+  ],
+  "result": {
+    "id": "railworks:wood_end_door"
+  }
+}

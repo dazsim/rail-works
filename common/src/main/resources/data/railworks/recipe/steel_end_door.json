@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "N": "minecraft:brown_dye",
+    "G": "minecraft:glass_pane",
+    "P": "railworks:steel_plate",
+    "C": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "NG",
+    "PC"
+  ],
+  "result": {
+    "id": "railworks:steel_end_door"
+  }
+}

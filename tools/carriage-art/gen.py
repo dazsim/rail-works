@@ -393,6 +393,71 @@ def blank(beaded):
     return s
 
 
+
+def end_door(wood):
+    s = S()
+    s.rect(1, 1, 14, 14, CHOC['b'])
+    s.rect(5, 2, 10, 14, CHOC['c'] if not wood else TREATED['b'])
+    s.rect(6, 3, 9, 6, GLASS['b']); s.px(6, 3, GLASS['a'])
+    if wood:
+        for y in (8, 10, 12):
+            s.rect(6, y, 9, y, TREATED['c'])
+    else:
+        for y in (8, 13):
+            s.px(6, y, STEEL['a']); s.px(9, y, STEEL['a'])
+    s.rect(9, 9, 9, 9, BRASS['a'])
+    s.rect(1, 1, 1, 14, CHOC['d']); s.rect(14, 1, 14, 14, CHOC['d'])
+    return s
+
+
+def gangway_frame():
+    s = S()
+    s.rect(3, 1, 12, 2, BLACK['b'])
+    s.rect(3, 1, 4, 14, BLACK['b']); s.rect(11, 1, 12, 14, BLACK['b'])
+    s.rect(3, 1, 12, 1, BLACK['a'])
+    for y in (4, 12):
+        s.px(3, y, STEEL['a']); s.px(12, y, STEEL['a'])
+    return s
+
+
+def gangway_bellows():
+    s = S()
+    for x in range(2, 14):
+        c = BLACK['b'] if x % 2 == 0 else BLACK['c']
+        s.rect(x, 2, x, 13, c)
+    s.rect(2, 1, 13, 1, BLACK['a'])
+    s.rect(13, 1, 14, 14, STEEL['b']); s.rect(14, 1, 14, 14, STEEL['c'])
+    return s
+
+
+def gangway_footplate():
+    s = S()
+    for i in range(6):
+        s.rect(2 + i, 9 - i, 9 + i, 9 - i, STEEL['b'])
+    s.rect(1, 10, 14, 11, STEEL['c']); s.rect(1, 10, 14, 10, STEEL['a'])
+    s.px(5, 7, STEEL['d']); s.px(10, 7, STEEL['d'])
+    return s
+
+
+def partition():
+    s = S()
+    s.rect(2, 1, 13, 14, TREATED['b'])
+    s.rect(4, 2, 11, 6, GLASS['b']); s.px(4, 2, GLASS['a'])
+    s.rect(2, 8, 13, 8, TREATED['c'])
+    s.rect(2, 1, 2, 14, TREATED['a']); s.rect(13, 1, 13, 14, TREATED['d'])
+    return s
+
+
+def corridor_wall():
+    s = S()
+    s.rect(1, 1, 14, 14, TREATED['b'])
+    s.rect(2, 2, 6, 7, GLASS['b']); s.rect(9, 2, 13, 7, GLASS['b'])
+    s.rect(8, 1, 8, 14, TREATED['d'])
+    s.px(10, 10, BRASS['a'])
+    s.rect(1, 14, 14, 14, TREATED['d'])
+    return s
+
+
 ITEMS = {
     'rivets': rivets(),
     'rivet_pattern': pattern(rivet_holes),
@@ -431,6 +496,13 @@ ITEMS = {
     'carriage_stove': stove(),
     'steel_blank_panel': blank(False),
     'wood_blank_panel': blank(True),
+    'steel_end_door': end_door(False),
+    'wood_end_door': end_door(True),
+    'gangway_frame': gangway_frame(),
+    'gangway_bellows': gangway_bellows(),
+    'gangway_footplate': gangway_footplate(),
+    'compartment_partition': partition(),
+    'corridor_wall': corridor_wall(),
 }
 for name, s in ITEMS.items():
     s.save(name)
