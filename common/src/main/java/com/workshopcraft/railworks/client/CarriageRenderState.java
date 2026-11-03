@@ -10,8 +10,10 @@ public class CarriageRenderState extends EntityRenderState {
     /** Fixtures drawn as blocks, with where each sits. */
     public final java.util.List<net.minecraft.client.renderer.block.BlockModelRenderState> blocks = new java.util.ArrayList<>();
     public final java.util.List<Slot> blockSlots = new java.util.ArrayList<>();
-    public final float[] door = new float[6];
-    public int coupled;
+    public final float[] door = new float[14];
+    public int coupled, bolts, joined;
+    /** Joined bellows this carriage draws and its run out footplates, in its own frame. */
+    public CarriageModel.@Nullable Mesh gang;
     /** The slots the held part would go in, empty when nothing is held. */
     public CarriageModel.@Nullable Built ghost;
 }

@@ -69,7 +69,15 @@ public class Carriage extends RailVehicle {
     private final Map<UUID, Integer> stepWait = new HashMap<>();
     private int lost, rumble;
     // client: how far each door stands open, 0 to 1
-    public final float[] door = new float[6], doorO = new float[6];
+    public final float[] door = new float[14], doorO = new float[14];
+    // bits 0 to 13 say which doors stand open, 16 and 17 which end doors are bolted
+    static final int BOLT = 16;
+    private final Gangways.@Nullable Joint[] joints = new Gangways.Joint[2];
+    private final @Nullable Vec3[] jointAt = new Vec3[2];
+    private final long[] jointTime = {-1, -1};
+    private final Gangways.@Nullable Joint[] wasJoined = new Gangways.Joint[2];
+    private @Nullable CarriageBody gang;
+    private @Nullable Object[] gangKey;
     private @Nullable CarriageBody body;
     private @Nullable String bodySlots;
     private int bodyDoors;
@@ -169,9 +177,58 @@ public class Carriage extends RailVehicle {
     }
 
     public int doors() {
-        return entityData.get(DATA_DOORS);
+        return entityData.get(DATA_DOORS) & 0xFFFF;
     }
 
+    /** Which end doors are bolted, bit 0 the rear. */
+    public int bolts() {
+        return entityData.get(DATA_DOORS) >> BOLT & 3;
+    }
+
+    private void setDoors(int open, int bolts) {
+        entityData.set(DATA_DOORS, open & 0xFFFF | (bolts & 3) << BOLT);
+    }
+
+    /** The gangway joint at end e this tick, or null when that end is at rest. */
+    public Gangways.@Nullable Joint joint(int e) {
+        int k = Gangways.k(e);
+        Gangways.Joint j = joints[k];
+        long t = level().getGameTime();
+        if (jointTime[k] == t && position().equals(jointAt[k]) && (j == null || j.o().position().equals(otherAt[k]))) return j;
+        j = Gangways.find(this, e);
+        joints[k] = j;
+        jointAt[k] = position();
+        otherAt[k] = j == null ? null : j.o().position();
+        jointTime[k] = t;
+        return j;
+    }
+
+    private final @Nullable Vec3[] otherAt = new Vec3[2];
+
+    /** Our joint to the carriage with this id, or null. */
+    public Gangways.@Nullable Joint jointTo(int id) {
+        for (int e = -1; e <= 1; e += 2) {
+            Gangways.Joint j = joint(e);
+            if (j != null && j.o().getId() == id) return j;
+        }
+        return null;
+    }
+
+    public boolean joinedTo(int id) {
+        return id >= 0 && jointTo(id) != null;
+    }
+
+    /** The gangway boxes as they stand now. */
+    CarriageBody gangBody() {
+        Gangways.Joint a = joint(-1), b = joint(1);
+        String st = slots();
+        Object[] key = {st, a, b, position()};
+        if (gang == null || !java.util.Arrays.equals(key, gangKey)) {
+            gang = Gangways.body(this);
+            gangKey = key;
+        }
+        return gang;
+    }
     private void setSlot(int i, char c) {
         char[] a = slots().toCharArray();
         a[i] = c;
@@ -409,6 +466,11 @@ public class Carriage extends RailVehicle {
         if (order.isEmpty()) dissolve(level);
     }
 
+    /** The bolt bit of an end door, or 0 for any other door. */
+    static int endBit(int door) {
+        return door == 6 ? 1 : door == 7 ? 2 : 0;
+    }
+
     /** Takes one part off, handing it back and dropping whatever a fixture there held. */
     private void removeAt(ServerLevel level, @Nullable Player player, int i) {
         String st = slots();
@@ -418,7 +480,7 @@ public class Carriage extends RailVehicle {
         Model m = CarriageLayout.modelAt(st, i);
         Slot s = CarriageLayout.SLOTS.get(i);
         setSlot(i, '.');
-        if (s.door() >= 0) entityData.set(DATA_DOORS, doors() & ~(1 << s.door()));
+        if (s.door() >= 0) setDoors(doors() & ~(1 << s.door()), bolts() & ~endBit(s.door()));
         if (m != null && !m.seats().isEmpty()) for (Entity p : List.copyOf(getPassengers())) if (seatOf(p) / 4 == i) p.stopRiding();
         if (m != null) give(level, player, new ItemStack(m.part().asItem()), position());
         play(level, SoundEvents.ANVIL_PLACE, 0.4f, 1.3f);
@@ -440,6 +502,10 @@ public class Carriage extends RailVehicle {
         if (!level().isClientSide() && reason.shouldDestroy() && level() instanceof ServerLevel sl) {
             fittings.dropAll();
             Berths.gone(sl, this, -1);
+            for (int e = -1; e <= 1; e += 2) {
+                Gangways.Joint j = wasJoined[Gangways.k(e)];
+                if (j != null && j.o().isAlive()) Gangways.part(sl, this, e, j, j.o(), j.oe());
+            }
             for (int e = -1; e <= 1; e += 2) {
                 Bogie b = bogie(e);
                 if (b != null && b.mounted()) b.setTow(null, 1, 1);
@@ -477,7 +543,7 @@ public class Carriage extends RailVehicle {
         String st = slots();
         double best = Double.MAX_VALUE;
         for (Slot s : CarriageLayout.SLOTS) {
-            if (done() && !CarriageLayout.fitted(st, s.i())) continue;
+            if (done() && !CarriageLayout.fitted(st, s.i()) && !CarriageLayout.lateFit(s)) continue;
             AABB b = aimBox(st, s, null).inflate(0.04);
             if (b.contains(o)) continue;
             var hit = b.clip(o, to);
@@ -570,7 +636,7 @@ public class Carriage extends RailVehicle {
     private void fit(ServerLevel level, Player player, ItemStack held) {
         String st = slots();
         List<Slot> can = CarriageLayout.fitsFor(st, held.getItem());
-        if (done()) can.removeIf(Slot::required);
+        if (done()) can.removeIf(s -> !CarriageLayout.lateFit(s));
         int door = done() && player.getVehicle() != this ? doorClick(player) : -1;
         if (can.isEmpty() && door >= 0) {
             toggleDoor(level, player, door);
@@ -737,6 +803,7 @@ public class Carriage extends RailVehicle {
         if (done()) {
             String st = slots();
             int c = aimed(player, j -> CarriageLayout.SLOTS.get(j).group().equals("coupling") && CarriageLayout.fitted(st, j), true);
+            if (c < 0 && detach(level, player)) return;
             if (c < 0 && Math.abs(local(loc, false).x) > eyeReach() - 1.6) c = CarriageLayout.SLOTS.indexOf(coupling(endAt(loc)));
             if (c >= 0 && coupledAt(CarriageLayout.SLOTS.get(c).end())) {
                 uncoupleEnd(level, player, CarriageLayout.SLOTS.get(c).end());
@@ -758,8 +825,12 @@ public class Carriage extends RailVehicle {
                 return;
             }
             uncoupleAll(level, player);
+            for (int e = -1; e <= 1; e += 2) if (joint(e) != null) {
+                say(player, Component.translatable("message.railworks.carriage.gangway_joined"));
+                return;
+            }
             entityData.set(DATA_STAGE, 0);
-            entityData.set(DATA_DOORS, 0);
+            setDoors(0, 0);
             u = 0;
             for (int e = -1; e <= 1; e += 2) {
                 Bogie b = bogie(e);
@@ -767,6 +838,30 @@ public class Carriage extends RailVehicle {
             }
         }
         takeLast(level, player);
+    }
+
+    /** A gangway part, partition, corridor wall or end panel aimed at on a finished carriage comes off, outermost first. */
+    private boolean detach(ServerLevel level, Player player) {
+        String st = slots();
+        int i = aimed(player, j -> CarriageLayout.detachable(CarriageLayout.SLOTS.get(j)) && CarriageLayout.fitted(st, j), true);
+        if (i < 0) return false;
+        Slot s = CarriageLayout.SLOTS.get(i);
+        int dep = CarriageLayout.dependent(st, i);
+        if (dep >= 0) {
+            Model m = CarriageLayout.modelAt(st, dep);
+            say(player, Component.translatable("message.railworks.carriage.off_first", m == null ? Component.empty() : new ItemStack(m.part().asItem()).getHoverName()));
+            return true;
+        }
+        if (s.group().startsWith("gangway_") && joint(s.end()) != null) {
+            say(player, Component.translatable("message.railworks.carriage.gangway_joined"));
+            return true;
+        }
+        if (s.door() >= 0 && (doors() >> s.door() & 1) != 0 && s.group().equals("end_panel") && doorway(s.end())) {
+            say(player, Component.translatable("message.railworks.carriage.doorway"));
+            return true;
+        }
+        removeAt(level, player, i);
+        return true;
     }
 
     private static @Nullable Slot coupling(int end) {
@@ -829,16 +924,25 @@ public class Carriage extends RailVehicle {
             if (player instanceof ServerPlayer sp && !sp.isSleeping() && Berths.berth(this, seatOf(sp))) Berths.lieDown(this, sp, seatOf(sp));
             return;
         }
+        if (player.isSecondaryUseActive()) {
+            int d = doorClick(player);
+            if (d >= 0 && endBit(CarriageLayout.SLOTS.get(d).door()) != 0) {
+                bolt(level, player, d);
+                return;
+            }
+        }
+        Vec3 pl = local(player.position(), true);
+        boolean inGangway = Math.abs(pl.x) > Gangways.IN_A && joint(pl.x > 0 ? 1 : -1) != null;
         // the end face is for pushing: only a door the look meets on the way is worked from there
-        if (Math.abs(local(player.position(), true).x) > eyeReach()) {
+        if (Math.abs(pl.x) > eyeReach() || inGangway) {
             int d = doorClick(player);
             if (d >= 0) toggleDoor(level, player, d);
-            else pushAlong(player);
+            else if (!inGangway) pushAlong(player);
             return;
         }
         int i = aimed(player, j -> usable(st, j), true);
         Slot s = i < 0 ? null : CarriageLayout.SLOTS.get(i);
-        if (s != null && s.door() >= 0) {
+        if (s != null && CarriageLayout.isDoor(st, i)) {
             toggleDoor(level, player, i);
             return;
         }
@@ -871,25 +975,73 @@ public class Carriage extends RailVehicle {
 
     private boolean usable(String st, int j) {
         Slot s = CarriageLayout.SLOTS.get(j);
-        return (s.door() >= 0 || seats(st, j) || Fittings.typeAt(st, j) != null) && CarriageLayout.secure(st, j);
+        return (CarriageLayout.isDoor(st, j) || seats(st, j) || Fittings.typeAt(st, j) != null) && CarriageLayout.secure(st, j);
     }
 
     /** The door slot a click works, or -1: the nearest thing the look meets, or from beyond an end only a door. */
     int doorClick(Player player) {
         String st = slots();
-        boolean end = Math.abs(local(player.position(), true).x) > eyeReach();
-        int i = aimed(player, j -> end ? CarriageLayout.SLOTS.get(j).door() >= 0 && CarriageLayout.secure(st, j) : usable(st, j), true);
-        return i >= 0 && CarriageLayout.SLOTS.get(i).door() >= 0 ? i : -1;
+        boolean end = Math.abs(local(player.position(), true).x) > Gangways.IN_A;
+        int i = aimed(player, j -> end ? CarriageLayout.isDoor(st, j) && CarriageLayout.secure(st, j) : usable(st, j), true);
+        return i >= 0 && CarriageLayout.isDoor(st, i) ? i : -1;
+    }
+
+    /** Someone or something standing in the end doorway at end e. */
+    boolean doorway(int e) {
+        CarriageBody.Pose p = pose();
+        Vec3 c = p.world(new Vec3(e * 9.95, Gangways.FLT + 1, 0));
+        for (Entity o : level().getEntities(this, new AABB(c, c).inflate(2.5), x -> !(x instanceof RailVehicle) && !x.isPassenger() && !x.isSpectator())) {
+            Vec3 l = p.local(o.position());
+            double r = o.getBbWidth() / 2;
+            if (Math.abs(l.z) < 0.38 + r && e * l.x > 9.6 - r && e * l.x < 10.3 + r && l.y > Gangways.FLT - 0.5 && l.y < Gangways.FLT + 2.25) return true;
+        }
+        return false;
+    }
+
+    /** Sliding the bolt on an end door, from either side, never while open or with anyone in the doorway. */
+    private void bolt(ServerLevel level, Player player, int i) {
+        Slot s = CarriageLayout.SLOTS.get(i);
+        int bit = endBit(s.door());
+        boolean bolted = (bolts() & bit) != 0;
+        if (!bolted && (doors() >> s.door() & 1) != 0) {
+            say(player, Component.translatable("message.railworks.carriage.bolt_open"));
+            return;
+        }
+        if (!bolted && doorway(s.end())) {
+            say(player, Component.translatable("message.railworks.carriage.doorway"));
+            return;
+        }
+        setDoors(doors(), bolts() ^ bit);
+        Vec3 at = world(s.end() * 9.95, 2.3, 0);
+        level.playSound(null, at.x, at.y, at.z, bolted ? SoundEvents.IRON_TRAPDOOR_OPEN : SoundEvents.IRON_TRAPDOOR_CLOSE, net.minecraft.sounds.SoundSource.NEUTRAL, 0.6f, 1.6f);
+        say(player, Component.translatable(bolted ? "message.railworks.carriage.unbolted" : "message.railworks.carriage.bolted"));
+    }
+
+    /** In the joined gangway at end e with our door and the far door both bolted. */
+    private boolean shutIn(Player player, int e) {
+        Gangways.Joint j = joint(e);
+        if (j == null || (j.o().bolts() & (j.oe() < 0 ? 1 : 2)) == 0) return false;
+        Vec3 l = local(player.position(), true), lo = j.o().pose().local(player.position());
+        return Gangways.holds(this, l, 0.05) || Gangways.holds(j.o(), lo, 0.05);
     }
 
     private void toggleDoor(ServerLevel level, Player player, int i) {
         Slot s = CarriageLayout.SLOTS.get(i);
         boolean open = (doors() >> s.door() & 1) != 0;
-        if (!open && Math.abs(u) >= DOOR_TOP) {
+        int bit = endBit(s.door());
+        if ((bolts() & bit) != 0) {
+            if (shutIn(player, s.end())) {
+                setDoors(doors(), bolts() & ~bit);
+                say(player, Component.translatable("message.railworks.carriage.unbolted"));
+            } else say(player, Component.translatable("message.railworks.carriage.door_bolted"));
+            return;
+        }
+        boolean free = s.door() >= 8 || bit != 0 && joint(s.end()) != null;
+        if (!open && !free && Math.abs(u) >= DOOR_TOP) {
             say(player, Component.translatable("message.railworks.carriage.door_moving"));
             return;
         }
-        entityData.set(DATA_DOORS, doors() ^ (1 << s.door()));
+        setDoors(doors() ^ (1 << s.door()), bolts());
         Vec3 at = world(s.box().getCenter().x, 2, s.box().getCenter().z);
         level.playSound(null, at.x, at.y, at.z, open ? SoundEvents.WOODEN_DOOR_CLOSE : SoundEvents.WOODEN_DOOR_OPEN, net.minecraft.sounds.SoundSource.NEUTRAL, 0.9f, 0.8f);
     }
@@ -1176,9 +1328,22 @@ public class Carriage extends RailVehicle {
             else if (e instanceof ServerPlayer sp && sp.isSleeping()) awake.remove(sp.getUUID());
         awake.keySet().removeIf(id -> getPassengers().stream().noneMatch(e -> e.getUUID().equals(id)));
         if (doors() != 0 && Math.abs(trainSpeed()) > DOOR_TOP) {
-            entityData.set(DATA_DOORS, 0);
-            play(level, SoundEvents.WOODEN_DOOR_CLOSE, 1.0f, 0.6f);
-            play(level, SoundEvents.IRON_DOOR_CLOSE, 0.6f, 0.8f);
+            int d = doors() & ~0x3F;
+            for (int e = -1; e <= 1; e += 2) {
+                int bit = 1 << (e < 0 ? 6 : 7);
+                if ((d & bit) != 0 && joint(e) == null && !doorway(e)) d &= ~bit;
+            }
+            if (d != doors()) {
+                setDoors(d, bolts());
+                play(level, SoundEvents.WOODEN_DOOR_CLOSE, 1.0f, 0.6f);
+                play(level, SoundEvents.IRON_DOOR_CLOSE, 0.6f, 0.8f);
+            }
+        }
+        for (int e = -1; e <= 1; e += 2) {
+            int k = Gangways.k(e);
+            Gangways.Joint j = joint(e), was = wasJoined[k];
+            if (was != null && j == null) Gangways.part(level, this, e, was, this, e);
+            wasJoined[k] = j;
         }
         if (towTick(level)) return;
         Train t = train(level);
@@ -1219,9 +1384,9 @@ public class Carriage extends RailVehicle {
         if (st.length() != CarriageLayout.SLOTS.size()) st = (st + CarriageLayout.empty()).substring(0, CarriageLayout.SLOTS.size());
         // models are saved by part id too, so parts added by other mods keep their place when the list changes
         String[] parts = in.getStringOr("parts", "").split(",", -1);
-        if (parts.length == st.length()) {
+        if (parts.length <= st.length()) {
             char[] c = st.toCharArray();
-            for (int i = 0; i < c.length; i++) {
+            for (int i = 0; i < parts.length; i++) {
                 if (c[i] == '.' || parts[i].isEmpty()) continue;
                 int m = CarriageLayout.modelIndex(i, parts[i]);
                 c[i] = m < 0 ? '.' : CarriageLayout.code(m, CarriageLayout.work(st, i));
@@ -1251,7 +1416,7 @@ public class Carriage extends RailVehicle {
             if (m != null) parts.append(m.part().id());
         }
         out.putString("parts", parts.toString());
-        out.putInt("doors", doors());
+        out.putInt("doors", entityData.get(DATA_DOORS));
         fittings.save(out);
         out.putIntArray("order", order.stream().mapToInt(Integer::intValue).toArray());
         if (bogieA != null) out.putString("bogie_a", bogieA.toString());

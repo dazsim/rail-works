@@ -69,7 +69,7 @@ public final class ClientAboard {
         Vec3 l = null;
         for (Carriage c : CarriageBody.near(level, p.position(), 16)) {
             Vec3 v = c.pose().local(p.position());
-            if (CarriageBody.standsOn(c, v, p.getBbWidth() / 2) || aboard == c.getId() && !p.onGround() && CarriageBody.aboard(v)) {
+            if (CarriageBody.standsOn(c, v, p.getBbWidth() / 2) || !p.onGround() && (aboard == c.getId() || c.joinedTo(aboard)) && CarriageBody.in(c, v, 0)) {
                 in = c;
                 l = v;
                 break;

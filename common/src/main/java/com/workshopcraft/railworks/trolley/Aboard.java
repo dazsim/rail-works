@@ -63,7 +63,7 @@ public final class Aboard {
     }
 
     private static boolean on(Carriage c, Entity e, Vec3 l) {
-        return e.onGround() ? CarriageBody.standsOn(c, l, e.getBbWidth() / 2) : CarriageBody.aboard(l) && Math.abs(l.z) < 1.6;
+        return e.onGround() ? CarriageBody.standsOn(c, l, e.getBbWidth() / 2) : CarriageBody.in(c, l, 0) && Math.abs(l.z) < 1.6;
     }
 
     static AABB around(Pose p) {
@@ -127,12 +127,15 @@ public final class Aboard {
             return;
         }
         Claim was = CLAIMS.get(id);
-        if (!(sp.level().getEntity(p.carriage()) instanceof Carriage c) || !CarriageBody.aboard(v)) {
+        if (!(sp.level().getEntity(p.carriage()) instanceof Carriage c) || !CarriageBody.in(c, v, 0.5)) {
             CLAIMS.remove(id);
             return;
         }
         Pose pose = c.pose();
-        boolean ok = was != null && was.carriage == c.getId() ? was.local.distanceToSqr(v) < 6.25 : pose.world(v).distanceToSqr(sp.position()) < 16;
+        Gangways.Joint across = was == null || was.carriage == c.getId() ? null : c.jointTo(was.carriage);
+        boolean ok = was != null && was.carriage == c.getId() ? was.local.distanceToSqr(v) < 6.25
+                : across != null ? Math.abs(across.past(v)) <= 1.0 && pose.world(v).distanceToSqr(sp.position()) < 16
+                : pose.world(v).distanceToSqr(sp.position()) < 16;
         if (!ok) {
             CLAIMS.remove(id);
             echo("{} refused at {}", sp, v);
@@ -144,6 +147,15 @@ public final class Aboard {
         if (was == null || was.carriage != c.getId()) echo("{} on carriage {} at {}", sp, c.getId(), v);
     }
 
+    /** Put back into c at local l facing yaw, as when a gangway parts under them. */
+    static void putBack(ServerPlayer sp, Carriage c, Vec3 l, float yaw) {
+        CLAIMS.put(sp.getUUID(), new Claim(c.getId(), l));
+        Vec3 w = c.pose().world(l);
+        sp.connection.teleport(w.x, w.y, w.z, yaw, sp.getXRot());
+        sp.resetFallDistance();
+        echo("{} put back in carriage {} at {}", sp, c.getId(), l);
+    }
+
     /** A vanilla move packet from a player standing in a carriage: only its turn and footing count, the payload has its place. */
     public static boolean swallow(ServerPlayer sp, ServerboundMovePlayerPacket p) {
         if (sp.isPassenger() || sp.isSpectator()) return false;
@@ -151,7 +163,7 @@ public final class Aboard {
         if (!CLAIMS.containsKey(id)) {
             Vec3 to = new Vec3(p.getX(sp.getX()), p.getY(sp.getY()), p.getZ(sp.getZ()));
             boolean inside = false;
-            for (Carriage c : CarriageBody.near(sp.level(), to, 16)) if (CarriageBody.aboard(c.pose().local(to))) inside = true;
+            for (Carriage c : CarriageBody.near(sp.level(), to, 16)) if (CarriageBody.in(c, c.pose().local(to), 0.5)) inside = true;
             if (!inside) {
                 TENTATIVE.remove(id);
                 return false;

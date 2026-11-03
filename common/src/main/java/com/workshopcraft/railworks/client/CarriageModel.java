@@ -2,7 +2,10 @@ package com.workshopcraft.railworks.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.workshopcraft.railworks.trolley.CarriageBody.Pose;
 import com.workshopcraft.railworks.trolley.CarriageLayout;
+import com.workshopcraft.railworks.trolley.Gangways;
+import net.minecraft.world.phys.Vec3;
 import com.workshopcraft.railworks.trolley.CarriageLayout.Box;
 import com.workshopcraft.railworks.trolley.CarriageLayout.Model;
 import com.workshopcraft.railworks.trolley.CarriageLayout.Slot;
@@ -56,11 +59,13 @@ public final class CarriageModel {
     /** The solid and glass meshes for one build state, leaves left out. */
     public record Built(Mesh solid, Mesh glass) {}
 
-    public static Built build(String st) {
+    /** joined has bit 0 set when the rear gangway is joined, bit 1 the front: their rest bellows and footplate are left out. */
+    public static Built build(String st, int joined) {
         Mesh solid = new Mesh(), glass = new Mesh();
         for (Slot s : CarriageLayout.SLOTS) {
             Model m = CarriageLayout.modelAt(st, s.i());
             if (m == null) continue;
+            if (Gangways.moving(s) && (joined >> (s.end() > 0 ? 1 : 0) & 1) != 0) continue;
             // a block model is drawn by the renderer itself; its box only stands in for collision and aim
             for (Box b : m.solid()) if (!b.zone().equals(CarriageLayout.BLOCK)) box(solid, b, 0, 0, 0);
             for (Box b : m.glass()) box(glass, b, 0, 0, 0);
@@ -147,12 +152,13 @@ public final class CarriageModel {
         return new float[]{x, y2, z};
     }
 
-    /** A door or coupling leaf, turned about its pivot. */
-    static void leaf(Mesh solid, Mesh glass, CarriageLayout.Leaf l, float angle) {
-        float px = (float) l.pivot().x, py = (float) l.pivot().y, pz = (float) l.pivot().z;
-        for (int g = 0; g < 2; g++) {
-            Mesh out = g == 0 ? solid : glass;
-            for (Box b : g == 0 ? l.solid() : l.glass()) {
+    /** A door or coupling leaf, turned about its pivot, or for a sliding leaf moved along by slide; the bolt shown when bolted. */
+    static void leaf(Mesh solid, Mesh glass, CarriageLayout.Leaf l, float angle, float slide, boolean bolted) {
+        float px = (float) l.pivot().x + slide, py = (float) l.pivot().y, pz = (float) l.pivot().z;
+        for (int g = 0; g < 3; g++) {
+            if (g == 2 && !bolted) break;
+            Mesh out = g == 1 ? glass : solid;
+            for (Box b : g == 0 ? l.solid() : g == 1 ? l.glass() : l.bolt()) {
                 Mesh tmp = new Mesh();
                 box(tmp, b, 0, 0, 0);
                 float c = (float) Math.cos(angle), s = (float) Math.sin(angle);
@@ -167,5 +173,74 @@ public final class CarriageModel {
                 }
             }
         }
+    }
+
+    // ---------------------------------------------------------------- joined gangways
+
+    static final int FOLDS = 8;
+
+    /** A six sided cell from eight corners, c[t * 4 + y * 2 + w], each face facing away from the cell's middle. */
+    static void cell(Mesh out, String zone, Vec3[] c) {
+        int zi = Math.max(0, ZONES.indexOf(zone));
+        float u0 = (zi % 3) * ZW / (float) SHEET, v0 = (zi / 3) * ZH / (float) SHEET, du = 48f / SHEET, dv = 48f / SHEET;
+        Vec3 mid = Vec3.ZERO;
+        for (Vec3 v : c) mid = mid.add(v);
+        mid = mid.scale(1 / 8.0);
+        int[][] faces = {{0, 1, 3, 2}, {4, 5, 7, 6}, {0, 1, 5, 4}, {2, 3, 7, 6}, {0, 2, 6, 4}, {1, 3, 7, 5}};
+        for (int[] f : faces) {
+            Vec3 a = c[f[0]], b = c[f[1]], d = c[f[2]], e = c[f[3]];
+            Vec3 n = d.subtract(a).cross(e.subtract(b));
+            if (n.lengthSqr() < 1e-12) continue;
+            n = n.normalize();
+            Vec3 fc = a.add(b).add(d).add(e).scale(0.25);
+            boolean flip = n.dot(fc.subtract(mid)) < 0;
+            if (flip) n = n.scale(-1);
+            Vec3[] q = flip ? new Vec3[] {e, d, b, a} : new Vec3[] {a, b, d, e};
+            float[][] uv = {{u0, v0}, {u0 + du, v0}, {u0 + du, v0 + dv}, {u0, v0 + dv}};
+            // the winding of a, b, d, e has its normal along (d - a) x (e - b); put() takes them counterclockwise from outside
+            for (int i = 0; i < 4; i++) out.put((float) q[i].x, (float) q[i].y, (float) q[i].z, uv[i][0], uv[i][1], (float) n.x, (float) n.y, (float) n.z);
+        }
+    }
+
+    /** The bellows of a joined gangway as a ruled surface from our end face at e to the other's at oe, face plates meeting halfway. */
+    public static void bellows(Mesh out, Pose me, int e, Pose other, int oe) {
+        double ws = Math.signum(me.worldVec(new Vec3(0, 0, 1)).dot(other.worldVec(new Vec3(0, 0, 1))));
+        if (ws == 0) ws = 1;
+        double fws = ws;
+        java.util.function.BiFunction<double[], Double, Vec3> at = (yw, t) -> {
+            Vec3 a = new Vec3(e * Gangways.GR, yw[0], yw[1]);
+            Vec3 b = me.local(other.world(new Vec3(oe * Gangways.GR, yw[0], yw[1] * fws)));
+            return a.lerp(b, t);
+        };
+        double len = at.apply(new double[] {Gangways.FLT, 0}, 0.0).distanceTo(at.apply(new double[] {Gangways.FLT, 0}, 1.0));
+        double plate = Math.min(0.2, 0.04 / Math.max(len, 0.1));
+        double y0 = Gangways.FLT - 0.04, y1 = Gangways.HEAD, gin = Gangways.GIN + 0.005;
+        for (int k = 0; k < 2 * FOLDS; k++) {
+            double t0 = k < FOLDS ? (0.5 - plate) * k / FOLDS : 0.5 + plate + (0.5 - plate) * (k - FOLDS) / FOLDS;
+            double t1 = k < FOLDS ? (0.5 - plate) * (k + 1) / FOLDS : 0.5 + plate + (0.5 - plate) * (k - FOLDS + 1) / FOLDS;
+            double ow = k % 2 == 0 ? 0.58 : 0.55;
+            String zone = k % 2 == 0 ? "BLACK" : "CAST";
+            for (int sd = -1; sd <= 1; sd += 2) ring(out, zone, at, t0, t1, y0, y1, sd * gin, sd * ow);
+            ring(out, zone, at, t0, t1, y1, y1 + ow - Gangways.GIN, -ow, ow);
+        }
+        double t0 = 0.5 - plate, t1 = 0.5 + plate;
+        for (int sd = -1; sd <= 1; sd += 2) ring(out, "STEEL", at, t0, t1, y0, y1, sd * gin, sd * Gangways.GOUT);
+        ring(out, "STEEL", at, t0, t1, y1, Gangways.CROWN, -Gangways.GOUT, Gangways.GOUT);
+    }
+
+    private static void ring(Mesh out, String zone, java.util.function.BiFunction<double[], Double, Vec3> at, double t0, double t1, double y0, double y1, double w0, double w1) {
+        Vec3[] c = new Vec3[8];
+        for (int t = 0; t < 2; t++)
+            for (int y = 0; y < 2; y++)
+                for (int w = 0; w < 2; w++) c[t * 4 + y * 2 + w] = at.apply(new double[] {y == 0 ? y0 : y1, w == 0 ? w0 : w1}, t == 0 ? t0 : t1);
+        cell(out, zone, c);
+    }
+
+    /** Our footplate run out from the end at e to past the middle plane at far, the second carriage's a little higher and narrower. */
+    public static void footplate(Mesh out, int e, double far, boolean upper) {
+        float lift = upper ? 0.03f : 0, hw = (float) Gangways.GIN - (upper ? 0.01f : 0);
+        float a0 = (float) (e * Gangways.GF), a1 = (float) (e * far);
+        float cx = (a0 + a1) / 2, sx = Math.abs(a1 - a0);
+        box(out, new Box("STEEL", cx, (float) Gangways.FLT - 0.02f + lift, 0, sx, 0.04f, 2 * hw, 0, 0), 0, 0, 0);
     }
 }

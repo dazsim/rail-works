@@ -59,26 +59,36 @@ public final class CarriageBody {
     // min a, y, w then max a, y, w for each box
     final double[] box;
     final int[][] bucket;
+    final double reach;
 
-    private CarriageBody(String key, double[] box, int[][] bucket) {
+    private CarriageBody(String key, double[] box, int[][] bucket, double reach) {
         this.key = key;
         this.box = box;
         this.bucket = bucket;
+        this.reach = reach;
     }
 
     public static boolean aboard(Vec3 l) {
         return Math.abs(l.x) <= ABOARD_A && Math.abs(l.z) <= ABOARD_W && l.y >= ABOARD_Y0 && l.y <= ABOARD_Y1;
     }
 
-    /** Feet at l, half as wide as hw, resting on a part of c's body. */
+    /** In c's body or its half of a gangway; tol lets a point that far past the middle plane still count. */
+    public static boolean in(Carriage c, Vec3 l, double tol) {
+        return aboard(l) || Gangways.holds(c, l, tol);
+    }
+
+    /** Feet at l, half as wide as hw, resting on a part of c's body or gangway. */
     public static boolean standsOn(Carriage c, Vec3 l, double hw) {
-        if (!aboard(l)) return false;
-        CarriageBody b = c.body();
-        for (int i : b.candidates(l.x - hw, l.x + hw)) {
+        if (!in(c, l, 0)) return false;
+        return c.body().under(l, hw) || c.gangBody().under(l, hw);
+    }
+
+    private boolean under(Vec3 l, double hw) {
+        for (int i : candidates(l.x - hw, l.x + hw)) {
             int k = i * 6;
-            double top = b.box[k + 4];
+            double top = box[k + 4];
             if (top < l.y - 0.08 || top > l.y + 0.02) continue;
-            if (b.box[k] >= l.x + hw || b.box[k + 3] <= l.x - hw || b.box[k + 2] >= l.z + hw || b.box[k + 5] <= l.z - hw) continue;
+            if (box[k] >= l.x + hw || box[k + 3] <= l.x - hw || box[k + 2] >= l.z + hw || box[k + 5] <= l.z - hw) continue;
             return true;
         }
         return false;
@@ -86,7 +96,7 @@ public final class CarriageBody {
 
     /** Standing in or on any carriage body, so not under the wheels. */
     static boolean inAny(Entity e) {
-        for (Carriage c : near(e.level(), e.position(), 16)) if (aboard(c.pose().local(e.position()))) return true;
+        for (Carriage c : near(e.level(), e.position(), 16)) if (in(c, c.pose().local(e.position()), 0.05)) return true;
         return false;
     }
 
@@ -121,22 +131,34 @@ public final class CarriageBody {
 
     // ---------------------------------------------------------------- the boxes
 
+    /** How far a leaf is turned (y) or slid (s) when open, from its swing or the side door rule. */
+    public static float swing(Slot s, CarriageLayout.Leaf f) {
+        if (!Float.isNaN(f.swing())) return f.swing();
+        double lx = f.solid().isEmpty() ? 0 : f.solid().getFirst().cx();
+        return -Math.signum(s.side()) * Math.signum((float) lx) * DOOR_SWING;
+    }
+
     static CarriageBody build(String st, int doors) {
         List<double[]> l = new ArrayList<>();
         for (Slot s : CarriageLayout.SLOTS) {
             Model m = CarriageLayout.modelAt(st, s.i());
-            if (m == null) continue;
+            if (m == null || Gangways.moving(s)) continue;
             for (Box b : m.solid()) add(l, b, 0, 0, 0, 0);
             for (Box b : m.glass()) add(l, b, 0, 0, 0, 0);
-            if (m.leaf() != null && m.leaf().axis() == 'y') {
-                boolean open = s.door() >= 0 && (doors >> s.door() & 1) != 0;
-                double lx = m.leaf().solid().isEmpty() ? 0 : m.leaf().solid().getFirst().cx();
-                float ang = open ? -Math.signum(s.side()) * Math.signum((float) lx) * DOOR_SWING : 0;
-                Vec3 pv = m.leaf().pivot();
-                for (Box b : m.leaf().solid()) add(l, b, pv.x, pv.y, pv.z, ang);
-                for (Box b : m.leaf().glass()) add(l, b, pv.x, pv.y, pv.z, ang);
+            CarriageLayout.Leaf f = m.leaf();
+            if (f != null && (f.axis() == 'y' || f.axis() == 's')) {
+                float open = s.door() >= 0 && (doors >> s.door() & 1) != 0 ? swing(s, f) : 0;
+                float ang = f.axis() == 'y' ? open : 0;
+                Vec3 pv = f.pivot().add(f.axis() == 's' ? open : 0, 0, 0);
+                for (Box b : f.solid()) add(l, b, pv.x, pv.y, pv.z, ang);
+                for (Box b : f.glass()) add(l, b, pv.x, pv.y, pv.z, ang);
             }
         }
+        return of(st + doors, l, ABOARD_A + 0.5);
+    }
+
+    /** Boxes given as min a, y, w then max a, y, w, met by anything within reach of the centre along a. */
+    static CarriageBody of(String key, List<double[]> l, double reach) {
         double[] out = new double[l.size() * 6];
         List<List<Integer>> bk = new ArrayList<>();
         for (int k = 0; k < BUCKETS; k++) bk.add(new ArrayList<>());
@@ -147,7 +169,7 @@ public final class CarriageBody {
         }
         int[][] bucket = new int[BUCKETS][];
         for (int k = 0; k < BUCKETS; k++) bucket[k] = bk.get(k).stream().mapToInt(Integer::intValue).toArray();
-        return new CarriageBody(st + doors, out, bucket);
+        return new CarriageBody(key, out, bucket, reach);
     }
 
     private static int bucketOf(double a) {
@@ -194,8 +216,9 @@ public final class CarriageBody {
         for (Carriage c : cs) {
             Pose p = c.pose();
             // mobs only go in when led
-            boolean shut = e instanceof Mob m && !m.isLeashed() && !aboard(p.local(e.position()));
+            boolean shut = e instanceof Mob m && !m.isLeashed() && !in(c, p.local(e.position()), 0.05);
             move = (shut ? c.shutBody() : c.body()).clip(e, p, move);
+            move = c.gangBody().clip(e, p, move);
         }
         return move;
     }
@@ -207,7 +230,7 @@ public final class CarriageBody {
         Vec3 m = pose.localVec(move);
         double step = e.maxUpStep() <= 0 ? 0 : e instanceof Player ? Math.max(e.maxUpStep(), PLAYER_STEP) : e.maxUpStep();
         double r = Math.abs(m.x) + Math.abs(m.y) + Math.abs(m.z) + step + 0.1;
-        if (b[3] + r < -ABOARD_A - 0.5 || b[0] - r > ABOARD_A + 0.5 || b[5] + r < -3 || b[2] - r > 3 || b[4] + r < -0.5 || b[1] - r > 7) return move;
+        if (box.length == 0 || b[3] + r < -reach || b[0] - r > reach || b[5] + r < -3 || b[2] - r > 3 || b[4] + r < -0.5 || b[1] - r > 7) return move;
         int[] cand = candidates(b[0] - r, b[3] + r);
         if (cand.length == 0) return move;
         double dy = clipAxis(1, b, m.y, cand);
