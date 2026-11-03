@@ -26,6 +26,7 @@ import com.workshopcraft.railworks.item.TrackItems;
 import com.workshopcraft.railworks.item.TrolleyItem;
 import com.workshopcraft.railworks.trolley.Bogie;
 import com.workshopcraft.railworks.trolley.Carriage;
+import com.workshopcraft.railworks.trolley.Engine;
 import com.workshopcraft.railworks.trolley.HandTrolley;
 import com.workshopcraft.railworks.menu.BrickFurnaceMenu;
 import com.workshopcraft.railworks.menu.CokeOvenMenu;
@@ -36,6 +37,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.TicketType;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.flag.FeatureFlags;
@@ -187,6 +189,14 @@ public final class ModContent {
     public static EntityType<HandTrolley> HAND_TROLLEY_ENTITY;
     public static EntityType<Bogie> BOGIE_ENTITY;
     public static EntityType<Carriage> CARRIAGE_ENTITY;
+    public static EntityType<Engine> ENGINE_ENTITY;
+    public static Item ENGINE_FRAMES;
+    public static final java.util.Map<String, Item> ENGINE_ITEMS = new java.util.LinkedHashMap<>();
+    static final String[] ENGINE_PARTS = {"engine_wheel_pattern", "cylinder_pattern", "chimney_pattern", "smokebox_door_pattern",
+            "rough_engine_wheel", "engine_wheel", "rough_cylinder", "bored_cylinder", "coupling_rod", "rolled_plate",
+            "engine_wheelset", "engine_cylinders", "valve_motion", "boiler_ring", "boiler_tubes", "boiler_barrel", "engine_firebox",
+            "smokebox", "smokebox_door", "engine_chimney", "pannier_tank", "engine_cab", "coal_bunker", "engine_controls"};
+    public static SoundEvent ENGINE_WHISTLE, ENGINE_CHUFF, ENGINE_VALVES;
     public static final TicketType TROLLEY_TICKET = new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
     public static final TicketType TRAIN_TICKET = new TicketType(600L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
 
@@ -398,6 +408,9 @@ public final class ModContent {
         CHAIR_PAIR = part(r, "chair_pair");
         CARRIAGE_TABLE = part(r, "carriage_table");
         BERTH = part(r, "berth");
+        ENGINE_FRAMES = new TrolleyItem(item("engine_frames").stacksTo(1), (l, pl, at, s) -> Engine.place(l, pl, at, s));
+        r.accept(RailWorks.id("engine_frames"), ENGINE_FRAMES);
+        for (String n : ENGINE_PARTS) ENGINE_ITEMS.put(n, n.endsWith("_pattern") ? pattern(r, n) : part(r, n));
         CUPBOARD_SEAT = part(r, "cupboard_seat");
         LOCKER = part(r, "locker");
         TRUNK = part(r, "trunk");
@@ -436,6 +449,22 @@ public final class ModContent {
         CARRIAGE_ENTITY = EntityType.Builder.<Carriage>of(Carriage::new, MobCategory.MISC).noLootTable()
                 .sized(4.8F, 5.4F).clientTrackingRange(10).updateInterval(3).build(carriage);
         r.accept(carriage.identifier(), CARRIAGE_ENTITY);
+        ResourceKey<EntityType<?>> engine = ResourceKey.create(Registries.ENTITY_TYPE, RailWorks.id("pannier_tank_engine"));
+        ENGINE_ENTITY = EntityType.Builder.<Engine>of(Engine::new, MobCategory.MISC).noLootTable()
+                .sized(4.4F, 5.5F).clientTrackingRange(10).updateInterval(3).build(engine);
+        r.accept(engine.identifier(), ENGINE_ENTITY);
+    }
+
+    public static void registerSounds(BiConsumer<Identifier, SoundEvent> r) {
+        ENGINE_WHISTLE = sound(r, "engine.whistle");
+        ENGINE_CHUFF = sound(r, "engine.chuff");
+        ENGINE_VALVES = sound(r, "engine.valves");
+    }
+
+    private static SoundEvent sound(BiConsumer<Identifier, SoundEvent> r, String name) {
+        SoundEvent e = SoundEvent.createVariableRangeEvent(RailWorks.id(name));
+        r.accept(RailWorks.id(name), e);
+        return e;
     }
 
     public static void registerTicketTypes(BiConsumer<Identifier, TicketType> r) {
@@ -594,6 +623,8 @@ public final class ModContent {
                     out.accept(AXLE_DYNAMO);
                     out.accept(BATTERY_BOX);
                     out.accept(ELECTRIC_LAMP);
+                    out.accept(ENGINE_FRAMES);
+                    ENGINE_ITEMS.values().forEach(out::accept);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);
@@ -609,6 +640,7 @@ public final class ModContent {
         registerItems(direct(BuiltInRegistries.ITEM));
         registerBlockEntities(direct(BuiltInRegistries.BLOCK_ENTITY_TYPE));
         registerEntities(direct(BuiltInRegistries.ENTITY_TYPE));
+        registerSounds(direct(BuiltInRegistries.SOUND_EVENT));
         registerTicketTypes(direct(BuiltInRegistries.TICKET_TYPE));
         registerMenus(direct(BuiltInRegistries.MENU));
         registerCreativeTabs(direct(BuiltInRegistries.CREATIVE_MODE_TAB));

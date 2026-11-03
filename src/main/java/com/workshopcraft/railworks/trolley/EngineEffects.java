@@ -1,0 +1,45 @@
+package com.workshopcraft.railworks.trolley;
+
+import com.workshopcraft.railworks.registry.ModContent;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+
+/** Client side smoke, steam and beats: four chuffs a turn of the wheels while there is steam on. */
+final class EngineEffects {
+    static final Vec3 CHIMNEY = new Vec3(3.72, 5.3, 0), VALVE = new Vec3(-0.6, 3.95, 0), WHISTLE = new Vec3(-1.0, 3.98, 0.3);
+
+    private EngineEffects() {}
+
+    static void tick(Engine e) {
+        Level level = e.level();
+        CarriageBody.Pose pose = e.pose();
+        Vec3 ch = pose.world(CHIMNEY);
+        int beat = (int) Math.floor(e.spin / (Math.PI / 2));
+        boolean beatNow = beat != e.beat;
+        e.beat = beat;
+        int reg = e.regulator();
+        if (beatNow && reg > 0 && e.steam() > 0.05f) {
+            float vol = 0.35f + 0.05f * reg;
+            level.playLocalSound(ch.x, ch.y, ch.z, ModContent.ENGINE_CHUFF, SoundSource.NEUTRAL, vol, 0.9f + e.getRandom().nextFloat() * 0.2f, false);
+            for (int i = 0; i < 3 + reg / 2; i++)
+                level.addParticle(ParticleTypes.LARGE_SMOKE, ch.x + jitter(e), ch.y, ch.z + jitter(e), jitter(e) * 0.1, 0.25 + 0.03 * reg, jitter(e) * 0.1);
+        }
+        if (e.lit() && e.tickCount % 6 == 0)
+            level.addParticle(ParticleTypes.SMOKE, ch.x + jitter(e), ch.y, ch.z + jitter(e), 0, 0.08, 0);
+        if (e.lifting()) {
+            Vec3 v = pose.world(VALVE);
+            for (int i = 0; i < 2; i++) level.addParticle(ParticleTypes.CLOUD, v.x + jitter(e) * 0.3, v.y, v.z + jitter(e) * 0.3, 0, 0.3, 0);
+            if (e.tickCount % 30 == 0) level.playLocalSound(v.x, v.y, v.z, ModContent.ENGINE_VALVES, SoundSource.NEUTRAL, 0.6f, 1f, false);
+        }
+        if (e.whistling()) {
+            Vec3 w = pose.world(WHISTLE);
+            level.addParticle(ParticleTypes.CLOUD, w.x, w.y, w.z, 0, 0.2, 0);
+        }
+    }
+
+    static double jitter(Engine e) {
+        return (e.getRandom().nextDouble() - 0.5) * 0.3;
+    }
+}

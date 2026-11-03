@@ -25,6 +25,7 @@ import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 @Mod(RailWorks.MOD_ID)
 public class RailWorksNeoForge {
     public RailWorksNeoForge(IEventBus modBus, ModContainer container) {
+        com.workshopcraft.railworks.RailWorksConfig.load(net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get());
         modBus.addListener(RailWorksNeoForge::onRegister);
         modBus.addListener(RailWorksNeoForge::onCapabilities);
         modBus.addListener((RegisterPayloadHandlersEvent e) -> e.registrar("1").playToClient(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC).playToClient(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, com.workshopcraft.railworks.trolley.TrainSyncPayload.CODEC)
@@ -55,6 +56,7 @@ public class RailWorksNeoForge {
         e.register(Registries.BLOCK_ENTITY_TYPE, h -> ModContent.registerBlockEntities(h::register));
         e.register(Registries.MENU, h -> ModContent.registerMenus(h::register));
         e.register(Registries.ENTITY_TYPE, h -> ModContent.registerEntities(h::register));
+        e.register(Registries.SOUND_EVENT, h -> ModContent.registerSounds(h::register));
         e.register(Registries.TICKET_TYPE, h -> ModContent.registerTicketTypes(h::register));
         e.register(Registries.CREATIVE_MODE_TAB, h -> ModContent.registerCreativeTabs(h::register));
     }

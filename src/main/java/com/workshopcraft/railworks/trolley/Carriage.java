@@ -310,7 +310,7 @@ public class Carriage extends RailVehicle {
     }
 
     /** Takes whatever stands in the body along with it since it was last placed. */
-    private void carry() {
+    void carry() {
         CarriageBody.Pose now = pose(), was = carried;
         carried = now;
         if (was == null || was.same(now)) return;
@@ -535,7 +535,7 @@ public class Carriage extends RailVehicle {
 
     // ---------------------------------------------------------------- aiming at slots
 
-    private double tanPitch() {
+    double tanPitch() {
         return Math.tan(Math.toRadians(-getXRot()));
     }
 
@@ -889,7 +889,7 @@ public class Carriage extends RailVehicle {
         return null;
     }
 
-    private void uncoupleEnd(ServerLevel level, Player player, int end) {
+    void uncoupleEnd(ServerLevel level, Player player, int end) {
         if (towed() && !mounted() && towEnd() == end) {
             uncouple(level, player);
             return;
@@ -898,7 +898,7 @@ public class Carriage extends RailVehicle {
     }
 
     /** The screw coupling at one end, hammered home on the carriage standing buffer to buffer there. */
-    private void screw(ServerLevel level, Player player, int e) {
+    void screw(ServerLevel level, Player player, int e) {
         if (coupledAt(e)) {
             say(player, Component.translatable("message.railworks.tow.taken"));
             return;
@@ -923,7 +923,8 @@ public class Carriage extends RailVehicle {
             say(player, Component.translatable("message.railworks.tow." + why).withStyle(ChatFormatting.YELLOW));
             return;
         }
-        boolean oLeads = o.consist().stream().anyMatch(m -> m.v().isTrolley());
+        int mine = leads(consist()), theirs = leads(o.consist());
+        boolean oLeads = theirs > 0 && theirs >= mine;
         RailVehicle leader = oLeads ? o : this, follower = oLeads ? this : o;
         int le = oLeads ? eo : e, fe = oLeads ? e : eo;
         reroot(follower);
@@ -932,6 +933,23 @@ public class Carriage extends RailVehicle {
         level.playSound(null, at.x, at.y, at.z, SoundEvents.ANVIL_LAND, net.minecraft.sounds.SoundSource.NEUTRAL, 0.5f, 1.2f);
         level.playSound(null, at.x, at.y, at.z, SoundEvents.CHAIN_PLACE, net.minecraft.sounds.SoundSource.NEUTRAL, 1.0f, 0.7f);
         say(player, Component.translatable("message.railworks.carriage.coupled").withStyle(ChatFormatting.GREEN));
+    }
+
+    /** How strongly a consist wants to lead when coupled: an engine over a trolley over plain stock. */
+    static int leads(List<Member> ms) {
+        int best = 0;
+        for (Member m : ms) best = Math.max(best, m.v() instanceof Engine en && en.done() ? 2 : m.v().isTrolley() ? 1 : 0);
+        return best;
+    }
+
+    /** Within the space where standing counts as aboard, in the body's frame. */
+    boolean aboardBox(Vec3 l) {
+        return CarriageBody.aboard(l);
+    }
+
+    /** Whether riders take the carriage's seats; an engine places its own. */
+    boolean seatsRiders() {
+        return true;
     }
 
     private void emptyHand(ServerLevel level, Player player, Vec3 loc) {
@@ -1158,7 +1176,7 @@ public class Carriage extends RailVehicle {
     @Override
     protected void addPassenger(Entity passenger) {
         super.addPassenger(passenger);
-        if (level().isClientSide()) return;
+        if (level().isClientSide() || !seatsRiders()) return;
         Integer want = pending.remove(passenger.getUUID());
         int seat = want != null && !taken(want) ? want : -1;
         if (seat < 0) for (int k : allSeats(false)) if (!taken(k)) {
@@ -1371,6 +1389,7 @@ public class Carriage extends RailVehicle {
         if (towTick(level)) return;
         Train t = train(level);
         if (t == null) return;
+        if (Engine.drives(level, this, t)) return;
         List<Member> ms = t.members;
         double m = mass(ms);
         boolean pushed = anyPushed(ms);

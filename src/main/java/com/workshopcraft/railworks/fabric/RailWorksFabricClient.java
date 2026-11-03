@@ -33,6 +33,7 @@ public class RailWorksFabricClient implements ClientModInitializer {
         EntityRenderers.register(ModContent.HAND_TROLLEY_ENTITY, TrolleyRenderer::new);
         EntityRenderers.register(ModContent.BOGIE_ENTITY, com.workshopcraft.railworks.client.BogieRenderer::new);
         EntityRenderers.register(ModContent.CARRIAGE_ENTITY, com.workshopcraft.railworks.client.CarriageRenderer::new);
+        EntityRenderers.register(ModContent.ENGINE_ENTITY, com.workshopcraft.railworks.client.EngineRenderer::new);
         TrolleyClient.init();
         FluidRenderingRegistry.register(ModContent.CREOSOTE, ModContent.FLOWING_CREOSOTE, RailWorksClient.CREOSOTE_MODEL);
         FluidRenderingRegistry.register(ModContent.MOLTEN_STEEL, ModContent.FLOWING_MOLTEN_STEEL, RailWorksClient.MOLTEN_STEEL_MODEL);

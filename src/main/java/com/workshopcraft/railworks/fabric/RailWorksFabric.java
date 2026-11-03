@@ -13,6 +13,7 @@ import net.fabricmc.fabric.api.registry.FuelValueEvents;
 public class RailWorksFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        com.workshopcraft.railworks.RailWorksConfig.load(net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir());
         ModContent.registerAllDirect(new CreosoteFluid.Source(), new CreosoteFluid.Flowing(), new MoltenSteelFluid.Source(), new MoltenSteelFluid.Flowing());
         PayloadTypeRegistry.clientboundPlay().register(TrackSyncPayload.TYPE, TrackSyncPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(com.workshopcraft.railworks.trolley.TrainSyncPayload.TYPE, com.workshopcraft.railworks.trolley.TrainSyncPayload.CODEC);

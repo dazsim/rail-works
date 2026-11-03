@@ -74,7 +74,7 @@ public final class CarriageBody {
 
     /** In c's body or its half of a gangway; tol lets a point that far past the middle plane still count. */
     public static boolean in(Carriage c, Vec3 l, double tol) {
-        return aboard(l) || Gangways.holds(c, l, tol);
+        return c.aboardBox(l) || Gangways.holds(c, l, tol);
     }
 
     /** Feet at l, half as wide as hw, resting on a part of c's body or gangway. */
