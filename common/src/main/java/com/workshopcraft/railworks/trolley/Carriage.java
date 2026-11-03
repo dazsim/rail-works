@@ -894,6 +894,8 @@ public class Carriage extends RailVehicle {
         level.playSound(null, at.x, at.y, at.z, open ? SoundEvents.WOODEN_DOOR_CLOSE : SoundEvents.WOODEN_DOOR_OPEN, net.minecraft.sounds.SoundSource.NEUTRAL, 0.9f, 0.8f);
     }
 
+    private final Map<UUID, int[]> awake = new HashMap<>();
+
     private void pushAlong(Player player) {
         Vec3 look = player.getLookAngle();
         double hf = frontHeading();
@@ -1168,6 +1170,11 @@ public class Carriage extends RailVehicle {
         seatKeys(level);
         fittings.tick();
         if (tickCount % 20 == 0) Berths.track(level, this);
+        // awake on a berth the head is in the bunk above: up into the aisle
+        for (Entity e : List.copyOf(getPassengers()))
+            if (e instanceof ServerPlayer sp && !sp.isSleeping() && Berths.berth(this, seatOf(sp)) && ++awake.computeIfAbsent(sp.getUUID(), k -> new int[1])[0] > 2) sp.stopRiding();
+            else if (e instanceof ServerPlayer sp && sp.isSleeping()) awake.remove(sp.getUUID());
+        awake.keySet().removeIf(id -> getPassengers().stream().noneMatch(e -> e.getUUID().equals(id)));
         if (doors() != 0 && Math.abs(trainSpeed()) > DOOR_TOP) {
             entityData.set(DATA_DOORS, 0);
             play(level, SoundEvents.WOODEN_DOOR_CLOSE, 1.0f, 0.6f);
