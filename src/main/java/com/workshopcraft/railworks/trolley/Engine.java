@@ -48,7 +48,8 @@ public class Engine extends Carriage {
     public static final int DONE = EngineShape.STAGES.size();
     static final double OWN_MASS = 10, TANK = 24000, PSI = 200;
     static final int BUNKER = 256, GREEN = 4, BLACK_COATS = 2;
-    static final Vec3 DRIVER = new Vec3(-3.2, 1.7, 1.1);
+    // the driver leans out of the cab side opening to see ahead; bit 14 of ctrl picks the left side
+    static final Vec3 DRIVER = new Vec3(-2.7, 1.7, 2.4);
     static final EntityDataAccessor<Integer> DATA_FIT = SynchedEntityData.defineId(Engine.class, EntityDataSerializers.INT);
     static final EntityDataAccessor<Integer> DATA_WORK = SynchedEntityData.defineId(Engine.class, EntityDataSerializers.INT);
     static final EntityDataAccessor<Integer> DATA_PAINT = SynchedEntityData.defineId(Engine.class, EntityDataSerializers.INT);
@@ -337,6 +338,10 @@ public class Engine extends Carriage {
         int c = Mth.clamp(reg, 0, 10) | (Mth.clamp(rev, -5, 5) + 5) << 4 | (brake ? 1 : 0) << 8 | (hand ? 1 : 0) << 9
                 | (whistle ? 1 : 0) << 10 | (lit ? 1 : 0) << 11 | (slip ? 1 : 0) << 12 | (lift ? 1 : 0) << 13;
         if (c != ctrl()) entityData.set(DATA_CTRL, c);
+    }
+
+    boolean lookLeft() {
+        return (ctrl() & 1 << 14) != 0;
     }
 
     private void setBit(int bit, boolean on) {
@@ -631,7 +636,11 @@ public class Engine extends Carriage {
         }
         if (hand != InteractionHand.MAIN_HAND || !held.isEmpty()) return InteractionResult.PASS;
         if (sl != null) {
-            if (player.getVehicle() == this) return InteractionResult.PASS;
+            if (player.getVehicle() == this) {
+                setBit(14, !lookLeft());
+                say(player, Component.translatable(lookLeft() ? "message.railworks.engine.look_left" : "message.railworks.engine.look_right"));
+                return InteractionResult.SUCCESS;
+            }
             if (!getPassengers().isEmpty()) say(player, Component.translatable("message.railworks.engine.taken"));
             else say(player, status());
         }
@@ -917,7 +926,7 @@ public class Engine extends Carriage {
 
     @Override
     protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dims, float scale) {
-        double hf = frontHeading(), a = DRIVER.x, z = DRIVER.z;
+        double hf = frontHeading(), a = DRIVER.x, z = lookLeft() ? -DRIVER.z : DRIVER.z;
         double y = DRIVER.y + (passenger instanceof Player ? 0.6 : 0) + a * tanPitch();
         return new Vec3(a * Math.cos(hf) - z * Math.sin(hf), y, a * Math.sin(hf) + z * Math.cos(hf));
     }
@@ -941,7 +950,7 @@ public class Engine extends Carriage {
         entityData.set(DATA_FIT, st >= DONE ? 0 : Mth.clamp(in.getIntOr("fit", 1), 0, units(st).size()));
         entityData.set(DATA_WORK, Math.max(0, in.getIntOr("work", 0)));
         entityData.set(DATA_PAINT, in.getIntOr("paint", 0));
-        entityData.set(DATA_CTRL, in.getIntOr("ctrl", 5 << 4) & 0xBFF);
+        entityData.set(DATA_CTRL, in.getIntOr("ctrl", 5 << 4) & 0x4BFF);
         entityData.set(DATA_STEAM, in.getFloatOr("steam", 0));
         entityData.set(DATA_HEAT, in.getFloatOr("heat", 0));
         entityData.set(DATA_WATER, Mth.clamp(in.getIntOr("water", 0), 0, (int) TANK));

@@ -22,8 +22,8 @@ public final class TrolleyClient {
         };
     }
 
-    /** Pumpers stand on the deck instead of sitting. */
+    /** Pumpers and engine drivers stand instead of sitting. */
     public static boolean standing(Entity e) {
-        return e.getVehicle() instanceof HandTrolley t && t.isPumper(e);
+        return e.getVehicle() instanceof HandTrolley t && t.isPumper(e) || e.getVehicle() instanceof com.workshopcraft.railworks.trolley.Engine;
     }
 }
