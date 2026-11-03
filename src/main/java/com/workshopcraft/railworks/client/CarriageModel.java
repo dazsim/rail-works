@@ -206,6 +206,26 @@ public final class CarriageModel {
     }
 
     /** The bellows of a joined gangway as a ruled surface from our end face at e to the other's at oe, face plates meeting halfway. */
+    /** A round-ish black cable from a to b hanging sag at the middle, in sixteen pieces. */
+    public static void cable(Mesh out, Vec3 a, Vec3 b, double sag) {
+        int n = 16;
+        double h = 0.025;
+        Vec3[] p = new Vec3[n + 1];
+        for (int i = 0; i <= n; i++) {
+            double t = i / (double) n;
+            p[i] = a.lerp(b, t).subtract(0, sag * 4 * t * (1 - t), 0);
+        }
+        for (int i = 0; i < n; i++) {
+            Vec3 d = p[i + 1].subtract(p[i]).normalize(), u = d.cross(new Vec3(0, 1, 0));
+            if (u.lengthSqr() < 1e-9) u = new Vec3(1, 0, 0);
+            u = u.normalize();
+            Vec3 w = u.cross(d).normalize();
+            Vec3[] c = new Vec3[8];
+            for (int k = 0; k < 8; k++) c[k] = p[i + (k >> 2)].add(u.scale((k >> 1 & 1) == 0 ? -h : h)).add(w.scale((k & 1) == 0 ? -h : h));
+            cell(out, "BLACK", c);
+        }
+    }
+
     public static void bellows(Mesh out, Pose me, int e, Pose other, int oe) {
         double ws = Math.signum(me.worldVec(new Vec3(0, 0, 1)).dot(other.worldVec(new Vec3(0, 0, 1))));
         if (ws == 0) ws = 1;

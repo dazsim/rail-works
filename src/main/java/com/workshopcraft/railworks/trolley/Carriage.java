@@ -207,6 +207,18 @@ public class Carriage extends RailVehicle {
 
     private final @Nullable Vec3[] otherAt = new Vec3[2];
 
+    /** Whether a jumper cable is fitted at end e. */
+    public boolean jumperAt(int e) {
+        return Power.jumper(slots(), e);
+    }
+
+    /** The carriage our jumper at end e is plugged into: screw coupled with a jumper on its facing end too. */
+    public Gangways.@Nullable Partner jumpered(int e) {
+        if (!jumperAt(e)) return null;
+        Gangways.Partner p = Gangways.partner(this, e);
+        return p != null && p.o().jumperAt(p.oe()) ? p : null;
+    }
+
     /** Our joint to the carriage with this id, or null. */
     public Gangways.@Nullable Joint jointTo(int id) {
         for (int e = -1; e <= 1; e += 2) {

@@ -99,7 +99,7 @@ public final class Gangways {
     }
 
     /** A carriage screw coupled at one of our ends, and its end there. */
-    record Partner(Carriage o, int oe) {}
+    public record Partner(Carriage o, int oe) {}
 
     /** The finished carriage screw coupled to c at end e, or null. */
     static @Nullable Partner partner(Carriage c, int e) {

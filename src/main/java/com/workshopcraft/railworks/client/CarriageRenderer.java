@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import com.workshopcraft.railworks.RailWorks;
 import com.workshopcraft.railworks.trolley.Carriage;
 import com.workshopcraft.railworks.trolley.CarriageBody;
+import net.minecraft.world.phys.Vec3;
 import com.workshopcraft.railworks.trolley.CarriageLayout;
 import com.workshopcraft.railworks.trolley.Gangways;
 import com.workshopcraft.railworks.trolley.CarriageLayout.Model;
@@ -112,6 +113,17 @@ public class CarriageRenderer extends EntityRenderer<Carriage, CarriageRenderSta
                 boolean first = c.getId() < j.o().getId();
                 CarriageModel.footplate(g, e, e * j.reach(Gangways.GIN) + 0.12, !first);
                 if (first) CarriageModel.bellows(g, pose(c, pt), e, pose(j.o(), pt), j.oe());
+            }
+            for (int e = -1; e <= 1; e += 2) {
+                if (!c.jumperAt(e)) continue;
+                Vec3 from = new Vec3(e * 10.15, 1.72, 1.75);
+                Gangways.Partner jp = c.jumpered(e);
+                if (jp == null) CarriageModel.cable(g, from, new Vec3(e * 10.09, 1.68, 1.46), 0.22);
+                else if (c.getId() < jp.o().getId()) {
+                    CarriageBody.Pose me = pose(c, pt), op = pose(jp.o(), pt);
+                    double ws = Math.signum(me.worldVec(new Vec3(0, 0, 1)).dot(op.worldVec(new Vec3(0, 0, 1))));
+                    CarriageModel.cable(g, from, me.local(op.world(new Vec3(jp.oe() * 10.15, 1.72, 1.75 * (ws == 0 ? 1 : ws)))), 0.32);
+                }
             }
             if (!g.empty()) s.gang = g;
         }
