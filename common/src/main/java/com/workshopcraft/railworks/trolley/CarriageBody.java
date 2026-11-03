@@ -19,6 +19,7 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class CarriageBody {
     // what counts as aboard: feet over the body, from the footboards up to the roof
+    static final double FUNNEL = 0.8, FUNNEL_STEP = 0.12;
     static final double ABOARD_A = 10.1, ABOARD_W = 2.62, ABOARD_Y0 = 0.45, ABOARD_Y1 = 6.4;
     static final float DOOR_SWING = (float) Math.toRadians(100);
     static final double PLAYER_STEP = 0.9;
@@ -245,6 +246,18 @@ public final class CarriageBody {
                 dw = sw;
                 dy = (base[1] - b[1]) + up + down;
                 cutA = cutW = false;
+            }
+        }
+        // a player walking at a partition gap off centre is eased into it rather than stopped on the post
+        if (cutA && e instanceof Player && Math.abs(m.x) > 1e-4 && Math.abs(p.z) < FUNNEL && Math.abs(p.z) > 1e-3) {
+            double[] q = shift(g, 0, 0, clipAxis(2, g, -p.z, cand));
+            if (Math.abs(clipAxis(0, q, m.x, cand)) > Math.abs(da) + 1e-4) {
+                double nw = clipAxis(2, g, -Math.signum(p.z) * Math.min(FUNNEL_STEP, Math.abs(p.z)), cand);
+                double na = clipAxis(0, shift(g, 0, 0, nw), m.x, cand);
+                if (nw != 0 || Math.abs(na) > Math.abs(da)) {
+                    dw = nw;
+                    da = na;
+                }
             }
         }
         if (dy == m.y && da == m.x && dw == m.z) return move;
