@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:steel_plate",
+    "R": "railworks:rolled_plate"
+  },
+  "pattern": [
+    "RRR",
+    "R R",
+    "PPP"
+  ],
+  "result": {
+    "id": "railworks:smokebox"
+  }
+}

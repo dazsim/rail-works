@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:steel_plate",
+    "Y": "railworks:bored_cylinder"
+  },
+  "pattern": [
+    "YPY"
+  ],
+  "result": {
+    "id": "railworks:engine_cylinders"
+  }
+}

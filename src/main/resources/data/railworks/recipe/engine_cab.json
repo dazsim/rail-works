@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:steel_plate",
+    "G": "minecraft:glass_pane",
+    "T": "railworks:treated_planks"
+  },
+  "pattern": [
+    "PPP",
+    "G G",
+    "PTP"
+  ],
+  "result": {
+    "id": "railworks:engine_cab"
+  }
+}

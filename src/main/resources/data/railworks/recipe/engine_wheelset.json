@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "X": "railworks:axle_box",
+    "S": "railworks:bogie_spring",
+    "W": "railworks:engine_wheel",
+    "A": "railworks:carriage_axle"
+  },
+  "pattern": [
+    "XSX",
+    "WAW"
+  ],
+  "result": {
+    "id": "railworks:engine_wheelset"
+  }
+}

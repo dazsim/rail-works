@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "railworks:steel_plate",
+    "C": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "PCP",
+    "CCC",
+    "PCP"
+  ],
+  "result": {
+    "id": "railworks:engine_firebox"
+  }
+}
