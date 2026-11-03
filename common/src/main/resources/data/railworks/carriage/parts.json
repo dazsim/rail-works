@@ -125,5 +125,36 @@
  "wood_blank": {
   "item": "railworks:wood_blank_panel",
   "fix": "blow"
+ },
+ "steel_end_door": {
+  "item": "railworks:steel_end_door",
+  "fix": "rivets",
+  "rivets": 4
+ },
+ "wood_end_door": {
+  "item": "railworks:wood_end_door",
+  "fix": "blow"
+ },
+ "gangway_frame": {
+  "item": "railworks:gangway_frame",
+  "fix": "rivets",
+  "rivets": 4
+ },
+ "gangway_bellows": {
+  "item": "railworks:gangway_bellows",
+  "fix": "blow"
+ },
+ "gangway_footplate": {
+  "item": "railworks:gangway_footplate",
+  "fix": "rivets",
+  "rivets": 2
+ },
+ "partition": {
+  "item": "railworks:compartment_partition",
+  "fix": "blow"
+ },
+ "corridor_wall": {
+  "item": "railworks:corridor_wall",
+  "fix": "blow"
  }
 }

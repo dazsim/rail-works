@@ -40,7 +40,8 @@ public final class CarriageLayout {
     /** A textured box: zone, centre, size, then turns in degrees about x and z. */
     public record Box(String zone, float cx, float cy, float cz, float sx, float sy, float sz, float rx, float rz) {}
 
-    public record Leaf(char axis, Vec3 pivot, List<Box> solid, List<Box> glass) {}
+    /** A door leaf: 'y' turns about the pivot by swing radians (100 degrees out when absent), 's' slides along by swing. */
+    public record Leaf(char axis, Vec3 pivot, float swing, List<Box> solid, List<Box> glass, List<Box> bolt) {}
 
     /**
      * One way a part can sit in a slot. lit boxes glow when a fixture says it is lit, blocks are slot ids that
@@ -52,7 +53,8 @@ public final class CarriageLayout {
     public record Phase(String id, List<String> needs, boolean required) {}
 
     public record Slot(int i, String id, String phase, String group, int index, boolean required, boolean chain, List<String> needs,
-                       int side, int end, int door, @Nullable Vec3 at, AABB box, List<Model> models, float @Nullable [] halfBay) {
+                       int side, int end, int door, @Nullable Vec3 at, AABB box, List<Model> models, float @Nullable [] halfBay,
+                       @Nullable String after, List<String> afterModels) {
         public @Nullable Model model(Item item) {
             for (Model m : models) if (m.part.asItem() == item) return m;
             return null;
@@ -89,7 +91,8 @@ public final class CarriageLayout {
                 Leaf leaf = null;
                 if (mo.has("leaf")) {
                     JsonObject lo = mo.getAsJsonObject("leaf");
-                    leaf = new Leaf(lo.get("axis").getAsString().charAt(0), vec(lo.getAsJsonArray("pivot")), boxes(lo, "solid"), boxes(lo, "glass"));
+                    leaf = new Leaf(lo.get("axis").getAsString().charAt(0), vec(lo.getAsJsonArray("pivot")), lo.has("swing") ? lo.get("swing").getAsFloat() : Float.NaN,
+                            boxes(lo, "solid"), boxes(lo, "glass"), boxes(lo, "bolt"));
                 }
                 List<Box> solid = boxes(mo, "solid"), glass = boxes(mo, "glass"), lit = boxes(mo, "lit");
                 ms.add(new Model(m.getKey(), p, solid, glass, lit, floats(mo, "rivets"), floats(mo, "seats"), leaf,
@@ -101,7 +104,8 @@ public final class CarriageLayout {
                     o.get("required").getAsBoolean(), o.get("chain").getAsBoolean(), o.has("needs") ? strings(o.getAsJsonArray("needs")) : List.of(),
                     o.has("side") ? o.get("side").getAsInt() : 0, o.has("end") ? o.get("end").getAsInt() : 0, o.has("door") ? o.get("door").getAsInt() : -1,
                     o.has("at") ? vec(o.getAsJsonArray("at")) : null, box, ms,
-                    o.has("half_bay") ? new float[] {f(o.getAsJsonArray("half_bay"), 0), f(o.getAsJsonArray("half_bay"), 1)} : null));
+                    o.has("half_bay") ? new float[] {f(o.getAsJsonArray("half_bay"), 0), f(o.getAsJsonArray("half_bay"), 1)} : null,
+                    o.has("after") ? o.get("after").getAsString() : null, o.has("after_models") ? strings(o.getAsJsonArray("after_models")) : List.of()));
         }
         for (JsonElement e : layout.getAsJsonArray("reserved")) {
             JsonObject o = e.getAsJsonObject();
@@ -136,7 +140,7 @@ public final class CarriageLayout {
             int at = s.models.size();
             while (at > 0 && s.models.get(at - 1).part.id.contains(":") && s.models.get(at - 1).part.id.compareTo(partId) > 0) at--;
             s.models.add(at, m);
-            SLOTS.set(n, new Slot(s.i, s.id, s.phase, s.group, s.index, s.required, s.chain, s.needs, s.side, s.end, s.door, s.at, s.box.minmax(m.bounds), s.models, s.halfBay));
+            SLOTS.set(n, new Slot(s.i, s.id, s.phase, s.group, s.index, s.required, s.chain, s.needs, s.side, s.end, s.door, s.at, s.box.minmax(m.bounds), s.models, s.halfBay, s.after, s.afterModels));
         }
     }
 
@@ -271,12 +275,43 @@ public final class CarriageLayout {
         if (fitted(st, i)) return false;
         Phase p = phase(s.phase);
         if (p == null || !open(st, p.needs) || !open(st, s.needs)) return false;
+        if (s.after != null) {
+            int j = index(s.after);
+            if (j < 0 || !secure(st, j)) return false;
+            if (!s.afterModels.isEmpty() && !s.afterModels.contains(SLOTS.get(j).models.get(model(st, j)).name)) return false;
+        }
         if (!s.chain) return true;
         int n = 0;
         for (Slot o : SLOTS) if (o.group.equals(s.group)) n++;
         if (s.index == 0 || s.index == n - 1) return true;
         for (Slot o : SLOTS) if (o.group.equals(s.group) && Math.abs(o.index - s.index) == 1 && fitted(st, o.i)) return true;
         return false;
+    }
+
+    /** A fitted slot that must come off before slot i, such as the bellows on a gangway frame. */
+    public static int dependent(String st, int i) {
+        String id = SLOTS.get(i).id;
+        for (Slot o : SLOTS) if (id.equals(o.after) && fitted(st, o.i)) return o.i;
+        return -1;
+    }
+
+    /** Can be fitted or taken off a finished carriage: not structure, so gangways, end panels and doors, partitions and the corridor. */
+    public static boolean lateFit(Slot s) {
+        return !s.required() || s.group().equals("end_panel");
+    }
+
+    /** Taken off a finished carriage by a sneak hammer blow. */
+    public static boolean detachable(Slot s) {
+        String g = s.group();
+        return g.startsWith("gangway_") || g.equals("partition") || g.equals("corridor") || g.equals("end_panel");
+    }
+
+    /** Slot i holds a part that is a door: a hinged or sliding leaf. */
+    public static boolean isDoor(String st, int i) {
+        Slot s = SLOTS.get(i);
+        if (s.door < 0) return false;
+        Model m = modelAt(st, i);
+        return m != null && m.leaf != null && (m.leaf.axis == 'y' || m.leaf.axis == 's');
     }
 
     /** Slot i is kept empty by something fitted elsewhere. */

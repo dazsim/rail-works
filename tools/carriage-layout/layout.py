@@ -45,6 +45,13 @@ PARTS = {
     'stove': ('railworks:carriage_stove', 'blow'),
     'steel_blank': ('railworks:steel_blank_panel', 'blow'),
     'wood_blank': ('railworks:wood_blank_panel', 'blow'),
+    'steel_end_door': ('railworks:steel_end_door', 'rivets'),
+    'wood_end_door': ('railworks:wood_end_door', 'blow'),
+    'gangway_frame': ('railworks:gangway_frame', 'rivets'),
+    'gangway_bellows': ('railworks:gangway_bellows', 'blow'),
+    'gangway_footplate': ('railworks:gangway_footplate', 'rivets'),
+    'partition': ('railworks:compartment_partition', 'blow'),
+    'corridor_wall': ('railworks:corridor_wall', 'blow'),
 }
 PHASES = [
     ('underframe', [], True), ('floor', ['underframe'], True), ('frame', ['floor'], True), ('panels', ['frame'], True),
@@ -467,8 +474,64 @@ for s in (-1, 1):
         dk, d0, d1 = [r for r in run if r[0] == 'door'][0]
         slot(f'door_{n}', 'panels', 'door', n, {'door': door_slot(s, run)}, side=s, door=n, at=[round((d0 + d1) / 2, 4), 0.0, s * (HW + 0.6)])
         n += 1
+DW, DH = 0.38, FLT + 0.14 + 2.25   # end doorway half width and head
+
+
+def end_door(e, wood):
+    """An end panel with a doorway on the centre line, its leaf hinged on the left seen from inside, swinging in."""
+    m = Model()
+    x0, x1 = e * (L / 2 - 0.075), e * L / 2
+    xa, xb = min(x0, x1), max(x0, x1)
+    w = HW - 0.085
+    m.span('CHOC', xa, FL, -w, xb, FLT + 0.135, w)
+    for s in (-1, 1):
+        z0, z1 = zs(s, DW, w)
+        m.span('CHOC', xa, FLT + 0.135, z0, xb, TOP_T, z1)
+        z0, z1 = zs(s, 0.63, w)
+        lx = xb if e > 0 else xa
+        m.span('LINING', lx if e > 0 else lx - 0.005, LOW_T - 0.042, z0, lx + 0.005 if e > 0 else lx, LOW_T - 0.017, z1)
+    m.span('CHOC', xa, DH, -DW, xb, TOP_T, DW)
+    ox = xb if e > 0 else xa
+    if wood:
+        for s in (-1, 1):
+            for wb in (0.7, 2.1):
+                z0, z1 = zs(s, wb - 0.01, wb + 0.01)
+                m.span('CHOC', ox, FL + 0.15, z0, ox + e * 0.015, LOW_T - 0.12, z1)
+            for y in (FL + 0.15, LOW_T - 0.12):
+                z0, z1 = zs(s, 0.7, 2.1)
+                m.span('CHOC', ox, y - 0.01, z0, ox + e * 0.015, y + 0.01, z1)
+    else:
+        for z in (-1.9, 1.9):
+            for y in (FL + 0.12, TOP_T - 0.12):
+                m.rivet(ox, y, z, '+x' if e > 0 else '-x')
+    px, pz = x0, -e * (DW - 0.005)
+    leaf, bolt = Model(), Model()
+
+    def rel(model, zone, ax0, y0, w0, ax1, y1, w1, glass=False):
+        """ax measured outward from the inner face, w from the hinge toward the free edge."""
+        a, b = sorted((e * ax0, e * ax1))
+        c, d = sorted((e * w0, e * w1))
+        (model.pane if glass else (lambda *q: model.span(zone, *q)))(a, y0, c, b, y1, d)
+
+    y0, y1, lw = FLT + 0.145, DH - 0.005, 2 * DW - 0.02
+    g0, g1, gw0, gw1 = LOW_T + 0.15, DH - 0.25, 0.18, lw - 0.18
+    rel(leaf, 'CHOC', 0.01, y0, 0.005, 0.065, g0, lw)
+    rel(leaf, 'CHOC', 0.01, g1, 0.005, 0.065, y1, lw)
+    rel(leaf, 'CHOC', 0.01, g0, 0.005, 0.065, g1, gw0)
+    rel(leaf, 'CHOC', 0.01, g0, gw1, 0.065, g1, lw)
+    rel(leaf, None, 0.0225, g0, gw0, 0.0525, g1, gw1, glass=True)
+    for f0, f1 in ((-0.02, 0.01), (0.065, 0.095)):
+        rel(leaf, 'BRASS', f0, FLT + 1.0, lw - 0.15, f1, FLT + 1.06, lw - 0.06)
+    rel(leaf, 'BRASS', -0.02, FLT + 1.6, lw - 0.2, 0.01, FLT + 1.68, lw - 0.06)
+    rel(bolt, 'BRASS', -0.015, FLT + 1.62, lw - 0.06, 0.005, FLT + 1.66, lw + 0.065)
+    m.leaf = {'axis': 'y', 'pivot': [round(px, 4), 0.0, round(pz, 4)], 'swing': round(-math.pi / 2, 5), 'solid': leaf.solid, 'glass': leaf.glass,
+              'bolt': bolt.solid}
+    return m
+
+
 for i, e in enumerate((-1, 1)):
-    slot(f'end_panel_{i}', 'panels', 'end_panel', i, {'end_panel': end_panel(e)}, end=e)
+    slot(f'end_panel_{i}', 'panels', 'end_panel', i, {'end_panel': end_panel(e), 'steel_end_door': end_door(e, False), 'wood_end_door': end_door(e, True)},
+         end=e, door=6 + i, at=[e * (L / 2 + 0.6), 0.0, 0.0])
 
 # ---------------------------------------------------------------- roof
 
@@ -535,6 +598,57 @@ for e in (-1, 1):
         n += 1
 for i, e in enumerate((-1, 1)):
     slot(f'coupling_{i}', 'ends', 'coupling', i, {'screw_coupling': coupling(e)}, end=e)
+
+# the gangway: a face frame round the end doorway, the bellows on it and a footplate, each staged in its own slot
+GF, GR, GO, GIN, GOUT = L / 2, L / 2 + 0.06, L / 2 + 0.5, 0.47, 0.62
+FOLDS = 8
+
+
+def gx(m, zone, x0, y0, z0, x1, y1, z1, e, to=None):
+    m.span(zone, e * x0, y0, z0, e * x1, y1, z1, to=to)
+
+
+def gangway_frame(e):
+    m = Model()
+    for s in (-1, 1):
+        z0, z1 = zs(s, GIN, GOUT)
+        gx(m, 'BLACK', GF, FLT - 0.1, z0, GR, FLT + 2.45, z1, e)
+        for y in (FLT + 0.3, FLT + 2.2):
+            m.rivet(e * (GF + 0.03), y, s * GOUT, '+z' if s > 0 else '-z')
+    gx(m, 'BLACK', GF, FLT + 2.45, -GOUT, GR, FLT + 2.6, GOUT, e)
+    return m
+
+
+def bellows_rest(m, e, x0, x1):
+    """The folds from x0 out to x1, then the face plate and the bar across it."""
+    st = (x1 - x0) / FOLDS
+    for k in range(FOLDS):
+        ow, zone = (0.58, 'BLACK') if k % 2 == 0 else (0.55, 'CAST')
+        a, b = x0 + k * st, x0 + (k + 1) * st
+        for s in (-1, 1):
+            z0, z1 = zs(s, GIN, ow)
+            gx(m, zone, a, FLT - 0.04, z0, b, FLT + 2.4, z1, e)
+        gx(m, zone, a, FLT + 2.4, -ow, b, FLT + 2.4 + ow - GIN, ow, e)
+
+
+def gangway_bellows(e):
+    m = Model()
+    bellows_rest(m, e, GR, GO - 0.04)
+    for s in (-1, 1):
+        z0, z1 = zs(s, GIN, GOUT)
+        gx(m, 'STEEL', GO - 0.04, FLT - 0.04, z0, GO, FLT + 2.4, z1, e)
+    gx(m, 'STEEL', GO - 0.04, FLT + 2.4, -GOUT, GO, FLT + 2.6, GOUT, e)
+    gx(m, 'STEEL', GO - 0.035, FLT + 0.98, -GIN, GO - 0.005, FLT + 1.04, GIN, e)
+    return m
+
+
+def gangway_footplate(e):
+    m = Model()
+    gx(m, 'STEEL', GF, FLT - 0.04, -GIN, GO, FLT, GIN, e)
+    for z in (-0.3, 0.3):
+        m.rivet(e * (GF + 0.25), FLT, z, '+y')
+    return m
+
 
 # ---------------------------------------------------------------- interior: the open third
 
@@ -772,6 +886,74 @@ for bi, (w0, w1) in enumerate(bays):
         t = bi * 2 + (s > 0)
         slot(f'table_{t}', 'interior', 'table', t, {'table': table((w0[1] + w1[2]) / 2, s)}, required=False, side=s)
 
+# compartments: partitions across from the far wall to a corridor along the +w side, the corridor wall between them
+CW0, CW1 = 0.94, 1.0
+PARTS_AT = (8.42, 5.875, 3.275, 0.72)
+
+
+def partition(a):
+    m = Model()
+    a0, a1 = a - 0.035, a + 0.035
+    rail = TOP_T - 0.18
+    m.span('TEAK', a0, FLT, -IWS, a1, rail, -1.99)
+    m.span('TEAK', a0, FLT, -1.99, a1, WIN_T, CW1)
+    m.span('TEAK', a0, TOP_T - 0.2, -1.99, a1, CEIL, CW1)
+    m.span('TEAK', a0, WIN_T, -1.99, a1, TOP_T - 0.2, -1.6)
+    m.span('TEAK', a0, WIN_T, 0.6, a1, TOP_T - 0.2, CW1)
+    m.span('GLASS', a - 0.015, WIN_T, -1.6, a + 0.015, TOP_T - 0.2, 0.6, to=m.glass)
+    return m
+
+
+def corridor_wall(pl, pr, c):
+    m = Model()
+    p0, p1 = min(pl, pr) + 0.035, max(pl, pr) - 0.035
+    mid = (p0 + p1) / 2
+    d0, d1, dh = mid - 0.25, mid + 0.55, FLT + 2.1
+    for a0, a1 in ((p0, d0), (d1, p1)):
+        m.span('TEAK', a0, FLT, CW0, a1, LOW_T, CW1)
+        m.span('TEAK', a0, WIN_T, CW0, a1, CEIL, CW1)
+        m.span('GLASS', a0, LOW_T, CW0 + 0.015, a1, WIN_T, CW1 - 0.015, to=m.glass)
+    m.span('TEAK', d0, dh, CW0, d1, CEIL, CW1)
+    leaf = Model()
+    l0, l1, z0, z1 = d0 - 0.02, d1 + 0.02, CW1 + 0.005, CW1 + 0.045
+    leaf.span('TEAK', l0, FLT + 0.01, z0, l1, LOW_T, z1)
+    leaf.span('TEAK', l0, LOW_T, z0, l0 + 0.1, dh - 0.01, z1)
+    leaf.span('TEAK', l1 - 0.1, LOW_T, z0, l1, dh - 0.01, z1)
+    leaf.span('TEAK', l0 + 0.1, dh - 0.15, z0, l1 - 0.1, dh - 0.01, z1)
+    leaf.span('GLASS', l0 + 0.1, LOW_T, z0 + 0.01, l1 - 0.1, dh - 0.15, z1 - 0.01, to=leaf.glass)
+    leaf.span('BRASS', l1 - 0.09, FLT + 0.95, z1, l1 - 0.06, FLT + 1.15, z1 + 0.03)
+    m.leaf = {'axis': 's', 'pivot': [0.0, 0.0, 0.0], 'swing': round(-(d1 - d0 + 0.02), 4), 'solid': leaf.solid, 'glass': leaf.glass}
+    return m
+
+
+n = 0
+for h in (-1, 1):
+    for a in PARTS_AT:
+        sc = [f'screen_{2 * (0 if h < 0 else 2) + k}' for k in (0, 1)] if a > 8 else ['screen_2', 'screen_3'] if a < 1 else []
+        p = partition(h * a)
+        p.blocks = sc
+        slot(f'partition_{n}', 'interior', 'partition', n, {'partition': p}, required=False, needs=['frame'], side=-1)
+        n += 1
+for bi, (w0, w1) in enumerate(bays):
+    h = -1 if bi < 3 else 1
+    k = bi if h < 0 else 5 - bi
+    pl, pr = h * PARTS_AT[k], h * PARTS_AT[k + 1]
+    cw = corridor_wall(pl, pr, bi)
+    cw.blocks = [f'bench_{bi * 4 + 1}', f'bench_{bi * 4 + 3}', f'table_{bi * 2 + 1}']
+    mid = (min(pl, pr) + max(pl, pr)) / 2
+    slot(f'corridor_{bi}', 'interior', 'corridor', bi, {'corridor_wall': cw}, required=False, needs=['frame'], side=1, door=8 + bi,
+         at=[round(mid + 0.15, 4), 0.0, round(CW1 + 0.5, 4)])
+
+# gangway slots go last so saved build states keep their order
+for i, e in enumerate((-1, 1)):
+    doors = ['steel_end_door', 'wood_end_door']
+    slot(f'gangway_frame_{i}', 'ends', 'gangway_frame', i, {'gangway_frame': gangway_frame(e)}, required=False, end=e,
+         after=f'end_panel_{i}', after_models=doors)
+    slot(f'gangway_bellows_{i}', 'ends', 'gangway_bellows', i, {'gangway_bellows': gangway_bellows(e)}, required=False, end=e,
+         after=f'gangway_frame_{i}')
+    slot(f'gangway_footplate_{i}', 'ends', 'gangway_footplate', i, {'gangway_footplate': gangway_footplate(e)}, required=False, end=e,
+         after=f'gangway_bellows_{i}')
+
 # the power rail runs along each outer wall under the cornice, through the screens: kept clear for a later part
 RESERVED = []
 for s in (-1, 1):
@@ -801,6 +983,8 @@ def model_boxes(m):
     if lf:
         p = lf['pivot']
         for b in lf['solid'] + lf['glass']:
+            out.append([b[0], b[1] + p[0], b[2] + p[1], b[3] + p[2]] + b[4:])
+        for b in lf.get('bolt', []):
             out.append([b[0], b[1] + p[0], b[2] + p[1], b[3] + p[2]] + b[4:])
     return out
 
@@ -897,10 +1081,29 @@ if __name__ == '__main__':
             return name if name in sl['models'] else next(iter(sl['models']))
         return pick
 
-    configs = [('steel', lambda sl: next(iter(sl['models']))), ('wood', lambda sl: 'wood_panel' if 'wood_panel' in sl['models'] else next(iter(sl['models']))),
-               ('underframe', lambda sl: next(iter(sl['models'])) if sl['phase'] in ('underframe', 'ends') else None),
-               ('bare', lambda sl: next(iter(sl['models'])) if sl['phase'] in ('underframe', 'floor', 'frame', 'roof', 'ends') else None)]
-    configs += [(p, alt(p)) for p in ('chair_pair', 'berth', 'cupboard', 'locker', 'trunk', 'barrel', 'workbench', 'stove', 'steel_blank', 'wood_blank')]
+    OPT = ('partition', 'corridor', 'gangway_frame', 'gangway_bellows', 'gangway_footplate')
+
+    def base(f):
+        return lambda sl: None if sl['group'] in OPT else f(sl)
+    first = lambda sl: next(iter(sl['models']))
+    configs = [('steel', base(first)), ('wood', base(lambda sl: 'wood_panel' if 'wood_panel' in sl['models'] else first(sl))),
+               ('underframe', base(lambda sl: first(sl) if sl['phase'] in ('underframe', 'ends') else None)),
+               ('bare', base(lambda sl: first(sl) if sl['phase'] in ('underframe', 'floor', 'frame', 'roof', 'ends') else None))]
+    configs += [(p, base(alt(p))) for p in ('chair_pair', 'berth', 'cupboard', 'locker', 'trunk', 'barrel', 'workbench', 'stove', 'steel_blank', 'wood_blank',
+                                            'steel_end_door', 'wood_end_door')]
+    comp = {b for sl in SLOTS if sl['group'] in ('partition', 'corridor') for m in sl['models'].values() for b in m.get('blocks', [])}
+
+    def ends(door, inner):
+        def pick(sl):
+            if sl['group'] == 'end_panel':
+                return door
+            if sl['group'] in ('partition', 'corridor'):
+                return first(sl) if inner else None
+            if inner and sl['id'] in comp:
+                return None
+            return first(sl)
+        return pick
+    configs += [('gangway', ends('steel_end_door', False)), ('compartments', ends('wood_end_door', True))]
     for name, pick in configs:
         faces, boxes = check(pick)
         with open(f'/tmp/carriage-{name}.txt', 'w') as f:
