@@ -280,8 +280,10 @@ public final class EngineShape {
         }
         ct.add(b("BRASS", -2.45, -2.3, 2.95, 3.03, -0.05, 0.05));
         ct.add(b("BRASS", -2.4, -2.3, 2.75, 2.85, 1.05, 1.25));
-        ct.add(b("BLACK", -2.85, -2.55, 1.7, 1.95, 1.55, 1.85));
-        ct.add(b("STEEL", -2.95, -2.5, 1.95, 2.05, 1.85, 1.9));
+        ct.add(b("BLACK", -4.2, -3.98, 1.7, 2.8, 1.66, 1.88));
+        ct.add(b("STEEL", -4.25, -3.93, 2.8, 2.86, 1.62, 1.92));
+        ct.add(b("BLACK", -1.95, -1.6, 1.7, 2.82, 1.62, 1.9));
+        ct.add(b("STEEL", -2.2, -1.48, 2.82, 2.98, 1.68, 1.84));
         ct.add(b("STEEL", -2.42, -2.36, 4.1, 4.5, 0.9, 0.93));
         ct.add(b("BRASS", -2.45, -2.33, 4.08, 4.12, 0.85, 0.98));
         ct.add(b("BRASS", -2.42, -2.36, 4.5, 4.62, 0.86, 0.97));
@@ -308,9 +310,17 @@ public final class EngineShape {
         List<Part> o = new ArrayList<>();
         o.add(c("STEEL", -2.55, 2.99, 0.38, 0.06, 0.06, 0.8, rot('y', 0.35 - 0.09 * reg)));
         o.add(c("BLACK", -2.55, 2.8, 1.18, 0.4, 0.06, 0.06, rot('y', -0.3 - 1.2 * brake)));
-        float[] m = rot('z', -0.05 * rev);
-        float[] top = apply(m, 0, 0.65, 0);
-        o.add(c("STEEL", -2.7 + top[0], 1.8 + top[1], 1.7, 0.07, 1.3, 0.07, m));
+        for (int i = 0; i < 8; i++) {
+            float[] m = rot('x', 0.7 * rev + Math.PI * i / 4);
+            float[] at = apply(m, 0, 0.15, 0);
+            o.add(c("STEEL", -2.27 + (i % 2) * 0.004, 2.9 + at[1], 1.76 + at[2], 0.03, 0.03, 0.125, m));
+            if (i % 2 == 0) {
+                float[] mid = apply(m, 0, 0.085, 0);
+                o.add(c("STEEL", -2.255, 2.9 + mid[1], 1.76 + mid[2], 0.03, 0.13, 0.02, m));
+            }
+        }
+        o.add(c("BRASS", -2.235, 2.9, 1.76, 0.09, 0.06, 0.06, null));
+        o.add(c("BRASS", -1.84 + 0.03 * rev, 3.0, 1.76, 0.05, 0.04, 0.1, null));
         return o;
     }
 

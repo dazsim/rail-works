@@ -62,9 +62,9 @@ public class Engine extends Carriage {
     static final double[][] HANDLES = {
             {-2.75, -2.35, 2.9, 3.1, -0.05, 0.8},   // regulator
             {-2.8, -2.35, 2.7, 2.9, 1.0, 1.4},      // brake valve
-            {-2.85, -2.55, 1.7, 1.95, 1.55, 1.85},  // hand brake
+            {-4.25, -3.93, 1.7, 2.86, 1.62, 1.92},  // hand brake
             {-2.5, -2.33, 4.05, 4.65, 0.82, 1.0},   // whistle
-            {-2.8, -2.6, 1.8, 3.2, 1.6, 1.8},       // reverser
+            {-2.3, -1.48, 2.7, 3.06, 1.58, 1.94},   // reverser
             {-2.45, -2.3, 2.05, 2.6, -0.3, 0.3},    // firehole
     };
     static final int REGULATOR = 0, BRAKE_VALVE = 1, HAND_BRAKE = 2, WHISTLE = 3, REVERSER = 4, FIREHOLE = 5;
