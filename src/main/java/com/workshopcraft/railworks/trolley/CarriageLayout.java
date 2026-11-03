@@ -303,7 +303,10 @@ public final class CarriageLayout {
     /** Taken off a finished carriage by a sneak hammer blow. */
     public static boolean detachable(Slot s) {
         String g = s.group();
-        return g.startsWith("gangway_") || g.equals("partition") || g.equals("corridor") || g.equals("end_panel");
+        return g.startsWith("gangway_") || g.startsWith("lv_") || switch (g) {
+            case "partition", "corridor", "end_panel", "jumper", "dynamo", "lamp" -> true;
+            default -> false;
+        };
     }
 
     /** Slot i holds a part that is a door: a hinged or sliding leaf. */

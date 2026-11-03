@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "P": "railworks:steel_plate",
+    "W": "minecraft:black_wool"
+  },
+  "pattern": [
+    "CWC",
+    " P "
+  ],
+  "result": {
+    "id": "railworks:jumper_cable"
+  }
+}

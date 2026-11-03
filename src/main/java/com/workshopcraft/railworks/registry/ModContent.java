@@ -165,6 +165,12 @@ public final class ModContent {
     public static Item GANGWAY_FOOTPLATE;
     public static Item COMPARTMENT_PARTITION;
     public static Item CORRIDOR_WALL;
+    public static Item LV_RAIL_CLEATS;
+    public static Item LV_RAIL;
+    public static Item JUMPER_CABLE;
+    public static Item AXLE_DYNAMO;
+    public static Item BATTERY_BOX;
+    public static Item ELECTRIC_LAMP;
     public static Item CHAIR_PAIR;
     public static Item CARRIAGE_TABLE;
     public static Item BERTH;
@@ -407,6 +413,12 @@ public final class ModContent {
         GANGWAY_FOOTPLATE = part(r, "gangway_footplate");
         COMPARTMENT_PARTITION = part(r, "compartment_partition");
         CORRIDOR_WALL = part(r, "corridor_wall");
+        LV_RAIL_CLEATS = part(r, "lv_rail_cleats");
+        LV_RAIL = part(r, "lv_rail");
+        JUMPER_CABLE = part(r, "jumper_cable");
+        AXLE_DYNAMO = part(r, "axle_dynamo");
+        BATTERY_BOX = part(r, "battery_box");
+        ELECTRIC_LAMP = part(r, "electric_lamp");
         if (Boolean.getBoolean("railworks.fixtureTest")) TEST_SMOKER = part(r, "test_smoker");
         com.workshopcraft.railworks.trolley.BuiltinFixtures.register();
     }
@@ -576,6 +588,12 @@ public final class ModContent {
                     out.accept(GANGWAY_FOOTPLATE);
                     out.accept(COMPARTMENT_PARTITION);
                     out.accept(CORRIDOR_WALL);
+                    out.accept(LV_RAIL_CLEATS);
+                    out.accept(LV_RAIL);
+                    out.accept(JUMPER_CABLE);
+                    out.accept(AXLE_DYNAMO);
+                    out.accept(BATTERY_BOX);
+                    out.accept(ELECTRIC_LAMP);
                 })
                 .build();
         r.accept(RailWorks.id("main"), TAB);

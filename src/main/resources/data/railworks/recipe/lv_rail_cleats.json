@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "T": "railworks:treated_planks"
+  },
+  "pattern": [
+    "T",
+    "T"
+  ],
+  "result": {
+    "id": "railworks:lv_rail_cleats"
+  }
+}

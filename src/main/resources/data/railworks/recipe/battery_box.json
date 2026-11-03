@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "P": "railworks:steel_plate",
+    "R": "minecraft:redstone_block"
+  },
+  "pattern": [
+    "C C",
+    "PRP",
+    "PPP"
+  ],
+  "result": {
+    "id": "railworks:battery_box"
+  }
+}
