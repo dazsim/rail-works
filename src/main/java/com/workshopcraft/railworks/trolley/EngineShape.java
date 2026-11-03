@@ -65,36 +65,39 @@ public final class EngineShape {
         return b(z, x0, x1, y0, y1, s[0], s[1]);
     }
 
-    /** A polygon tube of radius r along an axis through c, plates t thick; cap fills both ends. */
+    /** A polygon tube of radius r along an axis through c, plates t thick; cap fills both ends.
+     *  No two boxes share a face plane: alternate plates are a hair shorter, and the cap is a
+     *  rosette of slabs stepped back from the rim one after another, so nothing z-fights. */
     static List<Part> prism(String z, char axis, double cx, double cy, double cz, double r, double l, int n, double t, boolean cap) {
         List<Part> out = new ArrayList<>();
-        double ch = 2 * r * Math.tan(Math.PI / n) * 1.02;
+        t = Math.min(t, 0.4 * r);
+        double ch = 2 * r * Math.tan(Math.PI / n) * 1.02, e = Math.min(0.002, l / 20);
         for (int i = 0; i < n; i++) {
-            double a = 2 * Math.PI * i / n;
-            float[] m = rot(axis, a);
-            float[] off;
-            if (axis == 'x') {
-                off = apply(m, 0, r - t / 2, 0);
-                out.add(c(z, cx + off[0], cy + off[1], cz + off[2], l, t, ch, m));
-            } else if (axis == 'y') {
-                off = apply(m, r - t / 2, 0, 0);
-                out.add(c(z, cx + off[0], cy + off[1], cz + off[2], t, l, ch, m));
-            } else {
-                off = apply(m, 0, r - t / 2, 0);
-                out.add(c(z, cx + off[0], cy + off[1], cz + off[2], ch, t, l, m));
-            }
+            float[] m = rot(axis, 2 * Math.PI * i / n);
+            double li = l - (i % 2) * 2 * e;
+            out.add(slab(z, axis, cx, cy, cz, m, r - t / 2, li, t, ch));
         }
         if (cap) {
-            int k = Math.max(2, n / 4);
-            double w = 2 * r * Math.cos(Math.PI / n) * 0.98, d = w * Math.tan(Math.PI / (2 * k)) * 1.05;
-            for (int i = 0; i < k; i++) {
-                float[] m = rot(axis, Math.PI * i / k);
-                if (axis == 'x') out.add(c(z, cx, cy, cz, l * 0.999, w, d, m));
-                else if (axis == 'y') out.add(c(z, cx, cy, cz, w, l * 0.999, d, m));
-                else out.add(c(z, cx, cy, cz, w, d, l * 0.999, m));
-            }
+            int k = n % 2 == 0 ? n / 2 : n;
+            double h = r - t / 2, w = 2 * h * Math.tan(Math.PI / n) * 1.08, st = Math.min(0.002, l / (4 * (k + 1)));
+            for (int i = 0; i < k; i++)
+                out.add(slab(z, axis, cx, cy, cz, rot(axis, 2 * Math.PI * i / n), 0, l - 4 * e - 2 * st * i, 2 * h, w));
         }
         return out;
+    }
+
+    /** A box turned by m about the axis, its centre pushed out by off along the turned radius. */
+    private static Part slab(String z, char axis, double cx, double cy, double cz, float[] m, double off, double len, double rad, double tan) {
+        if (axis == 'x') {
+            float[] o = apply(m, 0, off, 0);
+            return c(z, cx + o[0], cy + o[1], cz + o[2], len, rad, tan, m);
+        }
+        if (axis == 'y') {
+            float[] o = apply(m, off, 0, 0);
+            return c(z, cx + o[0], cy + o[1], cz + o[2], rad, len, tan, m);
+        }
+        float[] o = apply(m, 0, off, 0);
+        return c(z, cx + o[0], cy + o[1], cz + o[2], tan, rad, len, m);
     }
 
     static List<Part> prism(String z, char axis, double cx, double cy, double cz, double r, double l, int n) {
@@ -154,11 +157,11 @@ public final class EngineShape {
         for (int s = -1; s <= 1; s += 2) {
             f.add(bs("PB", -4.75, 4.75, 0.42, 1.55, s * 0.52, s * 0.6));
             for (double x : AXLES) f.add(bs("PB", x - 0.22, x + 0.22, 0.45, 0.95, s * 0.6, s * 0.66));
-            f.add(bs("PB", -4.9, 4.9, 1.38, 1.55, s * 2.14, s * 2.2));
-            f.add(bs("PB", -3.05, -2.45, 1.0, 1.06, s * 1.98, s * 2.2));
-            f.add(bs("PB", -3.05, -2.45, 0.55, 0.61, s * 1.98, s * 2.2));
-            f.add(bs("PB", -3.02, -2.98, 0.55, 1.38, s * 2.14, s * 2.2));
-            f.add(bs("PB", -2.52, -2.48, 0.55, 1.38, s * 2.14, s * 2.2));
+            f.add(bs("PB", -4.78, 4.78, 1.38, 1.55, s * 2.14, s * 2.2));
+            f.add(bs("PB", -3.05, -2.45, 1.0, 1.06, s * 1.98, s * 2.196));
+            f.add(bs("PB", -3.05, -2.45, 0.55, 0.61, s * 1.98, s * 2.196));
+            f.add(bs("PB", -3.02, -2.98, 0.61, 1.38, s * 2.14, s * 2.2));
+            f.add(bs("PB", -2.52, -2.48, 0.61, 1.38, s * 2.14, s * 2.2));
         }
         for (int e = -1; e <= 1; e += 2) {
             double[] x = side(e * 4.78, e * 4.92);
@@ -174,7 +177,7 @@ public final class EngineShape {
         // 3 cylinders and motion
         List<Part> cy = new ArrayList<>();
         for (int s = -1; s <= 1; s += 2) {
-            cy.addAll(prism("CAST", 'x', 3.7, 1.1, s * 0.27, 0.3, 1.3, 12));
+            cy.addAll(prism("CAST", 'x', 3.7, 1.1, s * 0.27, 0.3, s > 0 ? 1.3 : 1.292, 12));
             cy.add(b("STEEL", 0.1, 3.05, 0.95, 1.05, s * 0.27 - 0.04, s * 0.27 + 0.04));
         }
         List<Part> mo = new ArrayList<>();
@@ -193,10 +196,10 @@ public final class EngineShape {
                 cat(row(8, -1.2, 3.47, 0.05, 3.0, 3.47, 0.05, 'y'), row(8, -1.2, 2.6, 0.87, 3.0, 2.6, 0.87, 'z'))))));
         // 5 firebox: casing outside, copper backhead in the cab, brass safety valve bonnet
         List<Part> fb = new ArrayList<>();
-        fb.add(b("P", -2.3, -1.3, 1.65, 3.55, -0.95, 0.95));
+        fb.add(b("P", -2.3, -1.296, 1.65, 3.55, -0.95, 0.95));
         fb.add(b("COPPER", -2.33, -2.3, 1.7, 3.5, -0.9, 0.9));
         fb.addAll(prism("BRASS", 'y', -0.6, 3.62, 0, 0.24, 0.55, 12));
-        fb.addAll(prism("BRASS", 'y', -1.0, 3.75, 0.3, 0.07, 0.35, 8));
+        fb.addAll(prism("BRASS", 'y', -1.0, 3.75, 0.3, 0.07, 0.35, 8, 0.03, true));
         st.add(new Stage("firebox", Fix.RIVETS, List.of(unit("engine_firebox", fb,
                 cat(row(6, -2.2, 3.57, -0.6, -1.4, 3.57, -0.6, 'y'), row(6, -2.2, 3.57, 0.6, -1.4, 3.57, 0.6, 'y'))))));
         // 6 smokebox and saddle
@@ -204,8 +207,8 @@ public final class EngineShape {
         sb.add(b("PB", 3.1, 4.34, 1.65, 2.0, -0.72, 0.72));
         st.add(new Stage("smokebox", Fix.RIVETS, List.of(unit("smokebox", sb, row(8, 3.15, 3.53, 0, 4.3, 3.53, 0, 'y')))));
         // 7 door and chimney
-        List<Part> dr = new ArrayList<>(prism("PB", 'x', 4.385, 2.6, 0, 0.8, 0.07, 20));
-        dr.add(b("STEEL", 4.42, 4.48, 2.55, 2.65, -0.25, 0.25));
+        List<Part> dr = new ArrayList<>(prism("PB", 'x', 4.382, 2.6, 0, 0.8, 0.07, 20));
+        dr.add(b("STEEL", 4.419, 4.48, 2.55, 2.65, -0.25, 0.25));
         List<Part> ch = new ArrayList<>(prism("PB", 'y', 3.72, 4.15, 0, 0.26, 1.5, 14));
         ch.addAll(prism("COPPER", 'y', 3.72, 5.07, 0, 0.34, 0.35, 14));
         st.add(new Stage("chimney", Fix.BLOW, List.of(unit("smokebox_door", dr, List.of()), unit("engine_chimney", ch, List.of()))));
@@ -226,7 +229,7 @@ public final class EngineShape {
             cab.add(bs("P", -4.3, -3.1, 1.65, 4.9, s * 2.07, s * 2.15));
             cab.add(bs("P", -3.1, -2.3, 3.6, 4.9, s * 2.07, s * 2.15));
             cab.add(bs("BRASS", -4.0, -3.35, 2.9, 3.25, s * 2.15, s * 2.17));
-            cab.add(bs("P", -1.38, -1.3, 3.9, 4.6, s * 1.55, s * 2.15));
+            cab.add(bs("P", -1.38, -1.3, 3.9, 4.6, s * 1.55, s * 2.07));
             cab.add(bs("P", -1.38, -1.3, 3.9, 4.6, s * 0.25, s * 0.95));
             cab.add(bs("GLASS", -1.37, -1.31, 3.9, 4.6, s * 0.95, s * 1.55));
             cab.add(bs("P", -4.38, -4.3, 3.6, 4.9, s * 1.4, s * 2.15));
@@ -236,13 +239,13 @@ public final class EngineShape {
             cab.add(bs("P", -4.38, -4.3, 3.6, 3.75, s * 0.6, s * 1.4));
             cab.add(bs("TEAK", -3.9, -3.4, 2.55, 2.62, s * 1.6, s * 2.06));
         }
-        cab.add(b("P", -1.38, -1.3, 1.65, 3.9, -2.15, 2.15));
-        cab.add(b("P", -1.38, -1.3, 4.6, 4.9, -2.15, 2.15));
+        cab.add(b("P", -1.38, -1.3, 1.65, 3.9, -2.07, 2.07));
+        cab.add(b("P", -1.38, -1.3, 4.6, 4.9, -2.07, 2.07));
         cab.add(b("P", -1.38, -1.3, 3.9, 4.6, -0.25, 0.25));
         for (int i = 0; i < 8; i++) {
             double a0 = -0.42 + 0.84 * i / 8, a1 = -0.42 + 0.84 * (i + 1) / 8, am = (a0 + a1) / 2, r = 6.0;
             double y = 4.9 - r * Math.cos(0.42) + r * Math.cos(am);
-            cab.add(c("BLACK", -2.85, y + 0.03, r * Math.sin(am), 3.25, 0.06, r * (a1 - a0) * 1.03, rot('x', am)));
+            cab.add(c("BLACK", -2.85, y + 0.03, r * Math.sin(am), 3.25 - (i % 2) * 0.004, 0.06, r * (a1 - a0) * 1.03, rot('x', am)));
         }
         cab.add(b("TREATED", -4.3, -2.3, 1.65, 1.7, -2.07, 2.07));
         cab.add(b("TREATED", -2.3, -1.38, 1.65, 1.7, -2.07, -0.95));
@@ -273,7 +276,7 @@ public final class EngineShape {
         List<Unit> bf = new ArrayList<>();
         for (int e = -1; e <= 1; e += 2)
             for (int s = -1; s <= 1; s += 2) {
-                List<Part> p = new ArrayList<>(prism("STEEL", 'x', e * 5.03, 0.98, s * 1.5, 0.08, 0.22, 8));
+                List<Part> p = new ArrayList<>(prism("STEEL", 'x', e * 5.035, 0.98, s * 1.5, 0.08, 0.22, 8));
                 p.addAll(prism("BLACK", 'x', e * 5.27, 0.98, s * 1.5, 0.19, 0.22, 12));
                 p.add(b("BLACK", Math.min(e * 4.92, e * 4.98), Math.max(e * 4.92, e * 4.98), 0.75, 1.21, s * 1.5 - 0.23, s * 1.5 + 0.23));
                 bf.add(unit("carriage_buffer", p, List.of()));
