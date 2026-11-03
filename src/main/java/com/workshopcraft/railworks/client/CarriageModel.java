@@ -84,8 +84,10 @@ public final class CarriageModel {
         Mesh out = new Mesh();
         for (Slot s : CarriageLayout.SLOTS) {
             Model m = CarriageLayout.modelAt(st, s.i());
-            if (m == null || !com.workshopcraft.railworks.trolley.Carriage.lit(look, s.i())) continue;
-            for (Box b : m.lit()) box(out, b, 0, 0, 0);
+            char c = s.i() < look.length() ? look.charAt(s.i()) : '0';
+            if (m == null || c == '0') continue;
+            // '2' is a junction lamp's amber
+            for (Box b : m.lit()) if (b.zone().equals("LAMP_LOW") == (c == '2')) box(out, b, 0, 0, 0);
         }
         return out;
     }

@@ -53,12 +53,66 @@ public final class BuiltinFixtures {
         layout("locker", 27, c -> new Storage(SoundEvents.IRON_TRAPDOOR_OPEN, SoundEvents.IRON_TRAPDOOR_CLOSE));
         layout("trunk", 27, c -> new Storage(SoundEvents.CHEST_OPEN, SoundEvents.CHEST_CLOSE));
         layout("barrel", 27, c -> new Storage(SoundEvents.BARREL_OPEN, SoundEvents.BARREL_CLOSE));
+        layout("axle_dynamo", 0, FixturePower.producer(PowerTier.LV, Dynamo.RATE), c -> new Dynamo());
+        layout("battery_box", 0, FixturePower.storage(100_000), c -> new Battery());
+        layout("electric_lamp", 0, FixturePower.consumer(PowerTier.LV, ElectricLamp.RATE), c -> new ElectricLamp());
         if (Boolean.getBoolean("railworks.fixtureTest")) registerTest();
     }
 
     private static void layout(String part, int size, java.util.function.Function<FixtureContext, Fixture> f) {
-        CarriageFixtures.register(FixtureType.builder(RailWorks.id(part), CarriageLayout.PARTS.get(part).item())
-                .model(new FixtureModel.Layout(part)).inventorySize(size).factory(f).build());
+        layout(part, size, null, f);
+    }
+
+    private static void layout(String part, int size, @Nullable FixturePower power, java.util.function.Function<FixtureContext, Fixture> f) {
+        var b = FixtureType.builder(RailWorks.id(part), CarriageLayout.PARTS.get(part).item()).model(new FixtureModel.Layout(part)).inventorySize(size).factory(f);
+        if (power != null) b.power(power);
+        CarriageFixtures.register(b.build());
+    }
+
+    /** Charges from the wheels: full rate at line speed, nothing at rest. */
+    static final class Dynamo implements Fixture {
+        static final int RATE = 20;
+
+        @Override
+        public void tick(FixtureContext ctx) {
+            long fe = Math.round(RATE * Math.min(1, Math.abs(ctx.speed()) / RailVehicle.CAP));
+            if (fe > 0) ctx.power().offer(fe, false);
+        }
+
+        @Override
+        public boolean use(FixtureContext ctx, Player p) {
+            return Battery.readout(ctx, p);
+        }
+    }
+
+    /** A buffer on the network; using it shows the readout. */
+    static final class Battery implements Fixture {
+        @Override
+        public boolean use(FixtureContext ctx, Player p) {
+            return readout(ctx, p);
+        }
+
+        static boolean readout(FixtureContext ctx, Player p) {
+            if (!(ctx.carriage() instanceof Carriage c)) return false;
+            RailVehicle.say(p, c.powerReadout());
+            return true;
+        }
+    }
+
+    /** Lit only while the network is OK and it gets its draw. */
+    static final class ElectricLamp implements Fixture {
+        static final int RATE = 2;
+
+        @Override
+        public void tick(FixtureContext ctx) {
+            var net = ctx.power();
+            ctx.setLit(net.state() == com.workshopcraft.railworks.api.CarriagePowerNetwork.State.OK && net.draw(RATE, false) == RATE);
+        }
+
+        @Override
+        public boolean use(FixtureContext ctx, Player p) {
+            return Battery.readout(ctx, p);
+        }
     }
 
     /**
