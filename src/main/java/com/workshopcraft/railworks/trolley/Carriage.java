@@ -3,6 +3,7 @@ package com.workshopcraft.railworks.trolley;
 import com.workshopcraft.railworks.registry.ModContent;
 import com.workshopcraft.railworks.track.TrackGraph;
 import com.workshopcraft.railworks.track.TrackRunner;
+import com.workshopcraft.railworks.api.CarriagePowerNetwork;
 import com.workshopcraft.railworks.trolley.CarriageLayout.Model;
 import com.workshopcraft.railworks.trolley.CarriageLayout.Slot;
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ public class Carriage extends RailVehicle {
 
     private final List<Integer> order = new ArrayList<>();
     final Fittings fittings = new Fittings(this);
+    final Power power = new Power(this);
     // A under the rear end, B under the front
     private @Nullable UUID bogieA, bogieB;
     private final Map<UUID, Integer> pending = new HashMap<>();
@@ -233,6 +235,7 @@ public class Carriage extends RailVehicle {
         char[] a = slots().toCharArray();
         a[i] = c;
         entityData.set(DATA_SLOTS, new String(a));
+        power.epoch++;
     }
 
     /** The bogie under one end, +1 the front. */
@@ -329,7 +332,7 @@ public class Carriage extends RailVehicle {
         for (Slot s : CarriageLayout.SLOTS) {
             if (!lit(lk, s.i())) continue;
             Model m = CarriageLayout.modelAt(st, s.i());
-            if (m == null) continue;
+            if (m == null || m.lit().stream().noneMatch(b -> b.zone().equals("FIRE"))) continue;
             if (!m.lit().isEmpty() && r.nextInt(6) == 0) {
                 CarriageLayout.Box b = m.lit().get(r.nextInt(m.lit().size()));
                 Vec3 p = world(b.cx() + (r.nextFloat() - 0.5f) * b.sx() * 0.8f, b.cy() - b.sy() * 0.3f, b.cz());
@@ -690,6 +693,11 @@ public class Carriage extends RailVehicle {
             int o = aimed(player, j -> owes(st, j), false);
             if (o >= 0) {
                 blow(level, player, st, o);
+                return;
+            }
+            if (aimed(player, j -> CarriageLayout.SLOTS.get(j).group().startsWith("lv_") && CarriageLayout.secure(st, j), true) >= 0) {
+                play(level, SoundEvents.COPPER_HIT, 0.4f, 1.6f);
+                say(player, powerReadout());
                 return;
             }
             play(level, SoundEvents.ANVIL_LAND, 0.2f, 2.0f);
@@ -1320,7 +1328,10 @@ public class Carriage extends RailVehicle {
             return;
         }
         seatKeys(level);
+        power.tick();
+        power.net();
         fittings.tick();
+        lamps();
         if (tickCount % 20 == 0) Berths.track(level, this);
         // awake on a berth the head is in the bunk above: up into the aisle
         for (Entity e : List.copyOf(getPassengers()))
@@ -1360,6 +1371,26 @@ public class Carriage extends RailVehicle {
         drive(level, t, force, drag, false, new Ride(driver, 0.5f, safe), false);
     }
 
+    /** Junction box lamps: green when the network is OK, amber when LOW, dark otherwise. */
+    private void lamps() {
+        String st = slots();
+        CarriagePowerNetwork.State state = power.state();
+        for (int i : Power.railSlots()) {
+            if (i < 0) continue;
+            char want = !CarriageLayout.secure(st, i) ? '0' : state == CarriagePowerNetwork.State.OK ? '1' : state == CarriagePowerNetwork.State.LOW ? '2' : '0';
+            fittings.setLook(i, want);
+        }
+    }
+
+    /** The hammer readout for the LV rail. */
+    Component powerReadout() {
+        Power.Net n = power.net();
+        CarriagePowerNetwork.State state = power.state();
+        long stored = n.tp() == null ? 0 : n.tp().stored(), cap = n.tp() == null ? 0 : stored + n.tp().space();
+        return Component.translatable("message.railworks.carriage.power", stored, cap,
+                Component.translatable("message.railworks.power." + state.name().toLowerCase(java.util.Locale.ROOT)), power.lastIn, power.lastOut, n.cars().size());
+    }
+
     private double trainSpeed() {
         return root().u;
     }
@@ -1396,6 +1427,7 @@ public class Carriage extends RailVehicle {
         entityData.set(DATA_SLOTS, st);
         entityData.set(DATA_DOORS, in.getIntOr("doors", 0));
         fittings.load(in);
+        power.stored = in.getIntOr("power_v", 0) == Power.VERSION ? Math.max(0, in.getLongOr("power", 0)) : 0;
         order.clear();
         in.getIntArray("order").ifPresent(a -> {
             for (int i : a) if (i >= 0 && i < CarriageLayout.SLOTS.size()) order.add(i);
@@ -1418,6 +1450,8 @@ public class Carriage extends RailVehicle {
         out.putString("parts", parts.toString());
         out.putInt("doors", entityData.get(DATA_DOORS));
         fittings.save(out);
+        out.putLong("power", power.stored);
+        out.putInt("power_v", Power.VERSION);
         out.putIntArray("order", order.stream().mapToInt(Integer::intValue).toArray());
         if (bogieA != null) out.putString("bogie_a", bogieA.toString());
         if (bogieB != null) out.putString("bogie_b", bogieB.toString());

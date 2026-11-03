@@ -115,14 +115,18 @@ final class Fittings {
         }
     }
 
-    // ---------------------------------------------------------------- lit flags, synced as a string of 0 and 1
+    // ---------------------------------------------------------------- lit flags, synced as a string of 0 and 1, 2 for a junction lamp's amber
 
     private void setLit(int i, boolean on) {
+        setLook(i, on ? '1' : '0');
+    }
+
+    void setLook(int i, char ch) {
         String v = c.look();
         if (v.length() != CarriageLayout.SLOTS.size()) v = "0".repeat(CarriageLayout.SLOTS.size());
-        if ((v.charAt(i) == '1') == on) return;
+        if (v.charAt(i) == ch) return;
         char[] a = v.toCharArray();
-        a[i] = on ? '1' : '0';
+        a[i] = ch;
         c.setLook(new String(a));
     }
 
@@ -145,6 +149,8 @@ final class Fittings {
         final Fixture impl;
         final SimpleContainer items;
         final Map<Player, AbstractContainerMenu> viewers = new HashMap<>();
+        // FE offered and drawn this tick, and the tick
+        private final long[] moved = {0, 0, -1};
         boolean gone;
 
         Fitted(FixtureType type, int slot) {
@@ -229,7 +235,16 @@ final class Fittings {
 
         @Override
         public CarriagePowerNetwork power() {
-            return CarriagePowerNetwork.NONE;
+            return c.power.view(type.power(), moved);
+        }
+
+        /** A consumer's menu says when its power is short. */
+        private Component title() {
+            Component t = impl.title(this);
+            if (type.power() == null || type.power().role() != com.workshopcraft.railworks.api.FixturePower.Role.CONSUMER) return t;
+            CarriagePowerNetwork.State s = c.power.state();
+            if (s == CarriagePowerNetwork.State.OK) return t;
+            return Component.empty().append(t).append(Component.translatable(s == CarriagePowerNetwork.State.LOW ? "container.railworks.low_power" : "container.railworks.no_power"));
         }
 
         @Override
@@ -249,7 +264,7 @@ final class Fittings {
                 AbstractContainerMenu m = impl.menu(this, cid, inv, pl);
                 if (m != null) made.add(m);
                 return m;
-            }, impl.title(this)));
+            }, title()));
             if (id.isEmpty() || made.isEmpty()) return false;
             viewers.entrySet().removeIf(e -> e.getKey().containerMenu != e.getValue());
             viewers.put(p, made.getFirst());

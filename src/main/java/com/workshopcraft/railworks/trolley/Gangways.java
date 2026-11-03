@@ -98,9 +98,12 @@ public final class Gangways {
         for (Joint j = c.joint(e); j != null && j.o() != c && !out.contains(j.o()); j = j.o().joint(-j.oe())) out.add(j.o());
     }
 
-    /** The carriage screw coupled to c at end e and its end there, or null. */
-    static @Nullable Joint find(Carriage c, int e) {
-        if (!c.done() || !finished(c.slots(), e)) return null;
+    /** A carriage screw coupled at one of our ends, and its end there. */
+    record Partner(Carriage o, int oe) {}
+
+    /** The finished carriage screw coupled to c at end e, or null. */
+    static @Nullable Partner partner(Carriage c, int e) {
+        if (!c.done()) return null;
         Carriage o = null;
         int oe = 0;
         if (c.towed() && !c.mounted() && c.towKind() == RailVehicle.SCREW && c.towEnd() == e && c.leader() instanceof Carriage l) {
@@ -115,7 +118,16 @@ public final class Gangways {
                 }
             }
         }
-        if (o == null || !o.done() || !finished(o.slots(), oe)) return null;
+        return o == null || !o.done() ? null : new Partner(o, oe);
+    }
+
+    /** The carriage screw coupled to c at end e and its end there, both with finished gangways that meet, or null. */
+    static @Nullable Joint find(Carriage c, int e) {
+        if (!finished(c.slots(), e)) return null;
+        Partner pt = partner(c, e);
+        if (pt == null || !finished(pt.o().slots(), pt.oe())) return null;
+        Carriage o = pt.o();
+        int oe = pt.oe();
         Pose p = c.pose(), q = o.pose();
         Vec3 pa = p.world(new Vec3(e * GO, FLT, 0)), pb = q.world(new Vec3(oe * GO, FLT, 0));
         if (pa.distanceToSqr(pb) > 4) return null;
