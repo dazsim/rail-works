@@ -6,8 +6,8 @@ import json, math, os, sys
 from PIL import Image
 
 REPO = sys.argv[1] if len(sys.argv) > 1 else os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-RES = REPO + '/common/src/main/resources/assets/railworks'
-JAVA = REPO + '/common/src/main/java/com/workshopcraft/railworks/block/BrickFurnaceShapes.java'
+RES = REPO + '/src/main/resources/assets/railworks'
+JAVA = REPO + '/src/main/java/com/workshopcraft/railworks/block/BrickFurnaceShapes.java'
 TEX = RES + '/textures/block'
 
 AIR, BRICK, FRONT, IRON, HOT, HIDDEN, SPY, MELT, COALS, GATE = range(10)

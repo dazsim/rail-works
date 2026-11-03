@@ -1,7 +1,7 @@
 """Item sprites and the entity texture for the M4 hand trolley. Run from the repo root."""
 from PIL import Image
 
-OUT = 'common/src/main/resources/assets/railworks/textures/'
+OUT = 'src/main/resources/assets/railworks/textures/'
 STEEL = {'a': (206, 212, 220), 'b': (138, 146, 158), 'c': (88, 94, 106), 'd': (40, 44, 52)}
 WOOD = {'a': (176, 132, 84), 'b': (128, 92, 56), 'c': (96, 66, 40), 'd': (58, 38, 22)}
 TREATED = {'a': (122, 94, 64), 'b': (92, 70, 48), 'c': (68, 50, 34), 'd': (36, 26, 18)}

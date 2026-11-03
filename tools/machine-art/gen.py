@@ -1,7 +1,7 @@
 """Item sprites for the M5a castings, patterns and machines. Run from the repo root."""
 from PIL import Image
 
-OUT = 'common/src/main/resources/assets/railworks/textures/item/'
+OUT = 'src/main/resources/assets/railworks/textures/item/'
 STEEL = {'a': (206, 212, 220), 'b': (138, 146, 158), 'c': (88, 94, 106), 'd': (40, 44, 52)}
 CAST = {'a': (132, 128, 124), 'b': (98, 94, 92), 'c': (70, 66, 64), 'd': (34, 32, 32)}
 WOOD = {'a': (176, 132, 84), 'b': (128, 92, 56), 'c': (96, 66, 40), 'd': (58, 38, 22)}

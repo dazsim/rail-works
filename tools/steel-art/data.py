@@ -1,7 +1,7 @@
 """Models, blockstates, item models, recipes, tags, loot and lang for M2. Run from the repo root."""
 import json, os
 
-R = 'common/src/main/resources/'
+R = 'src/main/resources/'
 A = R + 'assets/railworks/'
 D = R + 'data/'
 

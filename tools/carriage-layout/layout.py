@@ -4,7 +4,7 @@ import json
 import math
 import sys
 
-OUT = 'common/src/main/resources/data/railworks/carriage/'
+OUT = 'src/main/resources/data/railworks/carriage/'
 L, BW = 20.0, 4.7
 HW = BW / 2
 BASE, FL, FLT = 0.88, 1.18, 1.30

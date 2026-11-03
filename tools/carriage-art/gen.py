@@ -4,7 +4,7 @@ import os
 import random
 from PIL import Image
 
-RES = 'common/src/main/resources/assets/railworks/'
+RES = 'src/main/resources/assets/railworks/'
 OUT = RES + 'textures/'
 STEEL = {'a': (206, 212, 220), 'b': (138, 146, 158), 'c': (88, 94, 106), 'd': (40, 44, 52)}
 CAST = {'a': (132, 128, 124), 'b': (98, 94, 92), 'c': (70, 66, 64), 'd': (34, 32, 32)}

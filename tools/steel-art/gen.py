@@ -3,7 +3,7 @@ import json, random, shutil
 from PIL import Image
 
 VAN = '/workspace/mods/mc261src/assets/minecraft/textures/'
-OUT = 'common/src/main/resources/assets/railworks/textures/'
+OUT = 'src/main/resources/assets/railworks/textures/'
 rnd = random.Random(26)
 
 def lum(p): return (0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]) / 255
