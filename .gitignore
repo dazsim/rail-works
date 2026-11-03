@@ -27,3 +27,6 @@ runs
 .vscode
 .DS_Store
 logs
+
+# stonecutter / kotlin
+.kotlin
