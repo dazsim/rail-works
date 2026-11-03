@@ -78,6 +78,13 @@ public class PowerCheck {
         is("draw across two links", three.draw(0, 800, false), 800);
         is("middle link shared", three.draw(1, 300, false), 0);
         is("middle link has 200 left", three.draw(1, 200, false), 200);
+        Store l0 = new Store(0, 0), l1 = new Store(300, 10000), l2 = new Store(10000, 10000);
+        TrainPower shared = new TrainPower(List.of(l0, l1, l2));
+        is("offer crosses link 0", shared.offer(0, 500, false), 500);
+        is("draw needing 1000 over a half used link is refused", shared.draw(0, 1000, false), 0);
+        is("nothing moved", l1.have + l2.have, 10800);
+        is("what the link has left", shared.draw(0, 500, false), 500);
+        is("taken from the nearer carriage", l1.have, 300);
         three.tick();
         is("offer spreads in train order", three.offer(2, 1000, false), 1000);
         is("own filled first", a3.have, 10000);

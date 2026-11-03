@@ -87,13 +87,13 @@ public final class TrainPower {
         refused = false;
     }
 
-    private long room(int from, int to) {
+    private static long room(long[] used, int from, int to) {
         long r = Long.MAX_VALUE;
         for (int l = Math.min(from, to); l < Math.max(from, to); l++) r = Math.min(r, LINK_CAP - used[l]);
         return Math.max(0, r);
     }
 
-    private void carry(int from, int to, long amount) {
+    private static void carry(long[] used, int from, int to, long amount) {
         for (int l = Math.min(from, to); l < Math.max(from, to); l++) used[l] += amount;
     }
 
@@ -116,12 +116,13 @@ public final class TrainPower {
         order.add(at);
         for (int i = 0; i < nodes.size(); i++) if (i != at) order.add(i);
         long left = want;
-        long[] plan = new long[nodes.size()];
+        long[] plan = new long[nodes.size()], links = used.clone();
         for (int i : order) {
             if (left == 0) break;
-            long r = Math.min(left, room(i, at));
+            long r = Math.min(left, room(links, i, at));
             long got = in ? nodes.get(i).put(r, true) : nodes.get(i).take(r, true);
             plan[i] = got;
+            carry(links, i, at, got);
             left -= got;
         }
         if (!in && left > 0) return refuse(at, simulate);
@@ -133,8 +134,8 @@ public final class TrainPower {
             if (plan[i] == 0) continue;
             if (in) nodes.get(i).put(plan[i], false);
             else nodes.get(i).take(plan[i], false);
-            carry(i, at, plan[i]);
         }
+        System.arraycopy(links, 0, used, 0, used.length);
         return done;
     }
 
