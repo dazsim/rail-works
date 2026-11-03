@@ -77,6 +77,7 @@ public class Engine extends Carriage {
     private int shapeKey = -1;
     public float spin, spinO;
     int beat, valveIn;
+    Vec3 moved = Vec3.ZERO;
     private double lastX, lastZ;
 
     public Engine(EntityType<? extends Engine> type, Level level) {
@@ -370,6 +371,7 @@ public class Engine extends Carriage {
         spinO = spin;
         double hf = frontHeading(), d = (getX() - lastX) * Math.cos(hf) + (getZ() - lastZ) * Math.sin(hf);
         if (Math.abs(d) < 2) spin -= (float) (d / EngineShape.WR);
+        moved = Math.abs(d) < 2 ? new Vec3(getX() - lastX, 0, getZ() - lastZ) : Vec3.ZERO;
         lastX = getX();
         lastZ = getZ();
         if (done()) EngineEffects.tick(this);

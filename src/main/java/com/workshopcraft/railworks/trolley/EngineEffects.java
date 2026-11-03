@@ -8,7 +8,7 @@ import net.minecraft.world.phys.Vec3;
 
 /** Client side smoke, steam and beats: four chuffs a turn of the wheels while there is steam on. */
 final class EngineEffects {
-    static final Vec3 CHIMNEY = new Vec3(3.72, 5.3, 0), VALVE = new Vec3(-0.6, 3.95, 0), WHISTLE = new Vec3(-1.0, 3.98, 0.3);
+    static final Vec3 CHIMNEY = new Vec3(3.72, 5.55, 0), VALVE = new Vec3(-0.6, 3.95, 0), WHISTLE = new Vec3(-1.0, 3.98, 0.3);
 
     private EngineEffects() {}
 
@@ -16,6 +16,8 @@ final class EngineEffects {
         Level level = e.level();
         CarriageBody.Pose pose = e.pose();
         Vec3 ch = pose.world(CHIMNEY);
+        // smoke and steam keep most of the engine's speed, so they rise clear instead of blowing back through the cab
+        Vec3 mv = e.moved.scale(0.9);
         int beat = (int) Math.floor(e.spin / (Math.PI / 2));
         boolean beatNow = beat != e.beat;
         e.beat = beat;
@@ -24,13 +26,13 @@ final class EngineEffects {
             float vol = 0.35f + 0.05f * reg;
             level.playLocalSound(ch.x, ch.y, ch.z, ModContent.ENGINE_CHUFF, SoundSource.NEUTRAL, vol, 0.9f + e.getRandom().nextFloat() * 0.2f, false);
             for (int i = 0; i < 3 + reg / 2; i++)
-                level.addParticle(ParticleTypes.LARGE_SMOKE, ch.x + jitter(e), ch.y, ch.z + jitter(e), jitter(e) * 0.1, 0.25 + 0.03 * reg, jitter(e) * 0.1);
+                level.addParticle(ParticleTypes.LARGE_SMOKE, ch.x + jitter(e), ch.y, ch.z + jitter(e), mv.x + jitter(e) * 0.1, 0.35 + 0.03 * reg, mv.z + jitter(e) * 0.1);
         }
         if (e.lit() && e.tickCount % 6 == 0)
-            level.addParticle(ParticleTypes.SMOKE, ch.x + jitter(e), ch.y, ch.z + jitter(e), 0, 0.08, 0);
+            level.addParticle(ParticleTypes.SMOKE, ch.x + jitter(e), ch.y, ch.z + jitter(e), mv.x, 0.12, mv.z);
         if (e.lifting()) {
             Vec3 v = pose.world(VALVE);
-            if (e.tickCount % 2 == 0) level.addParticle(ParticleTypes.CLOUD, v.x + jitter(e) * 0.3, v.y, v.z + jitter(e) * 0.3, 0, 0.3, 0);
+            if (e.tickCount % 2 == 0) level.addParticle(ParticleTypes.CLOUD, v.x + jitter(e) * 0.3, v.y, v.z + jitter(e) * 0.3, mv.x, 0.3, mv.z);
             if (--e.valveIn <= 0) {
                 e.valveIn = 40 + e.getRandom().nextInt(21);
                 level.playLocalSound(v.x, v.y, v.z, ModContent.ENGINE_VALVES, SoundSource.NEUTRAL, 0.1f, 0.9f + e.getRandom().nextFloat() * 0.2f, false);
@@ -38,7 +40,7 @@ final class EngineEffects {
         }
         if (e.whistling()) {
             Vec3 w = pose.world(WHISTLE);
-            level.addParticle(ParticleTypes.CLOUD, w.x, w.y, w.z, 0, 0.2, 0);
+            level.addParticle(ParticleTypes.CLOUD, w.x, w.y, w.z, mv.x, 0.2, mv.z);
         }
     }
 
