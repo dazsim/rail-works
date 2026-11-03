@@ -538,6 +538,7 @@ public class Carriage extends RailVehicle {
         if (held.is(ModContent.HAMMER)) {
             if (level() instanceof ServerLevel sl) {
                 if (player.isSecondaryUseActive()) sneakHammer(sl, player, location);
+                else if (done() && aimed(player, j -> owes(slots(), j), false) < 0 && doorClick(player) >= 0) toggleDoor(sl, player, doorClick(player));
                 else hammer(sl, player);
             }
             return InteractionResult.SUCCESS;
@@ -547,7 +548,14 @@ public class Carriage extends RailVehicle {
             if (level() instanceof ServerLevel sl) fit(sl, player, held);
             return InteractionResult.SUCCESS;
         }
-        if (hand != InteractionHand.MAIN_HAND || !held.isEmpty() || partHand(player) != null) return InteractionResult.PASS;
+        if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
+        if (!held.isEmpty() || partHand(player) != null) {
+            // anything else in hand still works the doors, and keeps its own use elsewhere
+            int d = done() && player.getVehicle() != this ? doorClick(player) : -1;
+            if (d < 0) return InteractionResult.PASS;
+            if (level() instanceof ServerLevel sl) toggleDoor(sl, player, d);
+            return InteractionResult.SUCCESS;
+        }
         if (level() instanceof ServerLevel sl) emptyHand(sl, player, location);
         return InteractionResult.SUCCESS;
     }
@@ -563,12 +571,21 @@ public class Carriage extends RailVehicle {
         String st = slots();
         List<Slot> can = CarriageLayout.fitsFor(st, held.getItem());
         if (done()) can.removeIf(Slot::required);
+        int door = done() && player.getVehicle() != this ? doorClick(player) : -1;
+        if (can.isEmpty() && door >= 0) {
+            toggleDoor(level, player, door);
+            return;
+        }
         if (can.isEmpty()) {
             boolean anyFree = CarriageLayout.SLOTS.stream().anyMatch(s -> s.model(held.getItem()) != null && !CarriageLayout.fitted(st, s.i()));
             say(player, anyFree ? notYet(st, held.getItem()) : Component.translatable("message.railworks.carriage.all_on", held.getHoverName()));
             return;
         }
         int i = aimed(player, j -> can.stream().anyMatch(s -> s.i() == j), false);
+        if (i < 0 && door >= 0) {
+            toggleDoor(level, player, door);
+            return;
+        }
         if (i < 0) {
             say(player, Component.translatable("message.railworks.carriage.aim", held.getHoverName()));
             return;
@@ -812,30 +829,17 @@ public class Carriage extends RailVehicle {
             if (player instanceof ServerPlayer sp && !sp.isSleeping() && Berths.berth(this, seatOf(sp))) Berths.lieDown(this, sp, seatOf(sp));
             return;
         }
-        // the end face is for pushing: looking along the body must not reach a bench or door inside
+        // the end face is for pushing: only a door the look meets on the way is worked from there
         if (Math.abs(local(player.position(), true).x) > eyeReach()) {
-            pushAlong(player);
+            int d = doorClick(player);
+            if (d >= 0) toggleDoor(level, player, d);
+            else pushAlong(player);
             return;
         }
-        int i = aimed(player, j -> {
-            Slot s = CarriageLayout.SLOTS.get(j);
-            return (s.door() >= 0 || seats(st, j) || Fittings.typeAt(st, j) != null) && CarriageLayout.secure(st, j);
-        }, true);
-        // an open doorway is looked through: a bench behind it wins, and the door shuts from above the benches
-        if (i >= 0 && CarriageLayout.SLOTS.get(i).door() >= 0 && (doors() >> CarriageLayout.SLOTS.get(i).door() & 1) != 0) {
-            int b = aimed(player, j -> seats(st, j) && CarriageLayout.secure(st, j), true);
-            if (b >= 0) i = b;
-        }
+        int i = aimed(player, j -> usable(st, j), true);
         Slot s = i < 0 ? null : CarriageLayout.SLOTS.get(i);
         if (s != null && s.door() >= 0) {
-            boolean open = (doors() >> s.door() & 1) != 0;
-            if (!open && Math.abs(u) >= DOOR_TOP) {
-                say(player, Component.translatable("message.railworks.carriage.door_moving"));
-                return;
-            }
-            entityData.set(DATA_DOORS, doors() ^ (1 << s.door()));
-            Vec3 at = world(s.box().getCenter().x, 2, s.box().getCenter().z);
-            level.playSound(null, at.x, at.y, at.z, open ? SoundEvents.WOODEN_DOOR_CLOSE : SoundEvents.WOODEN_DOOR_OPEN, net.minecraft.sounds.SoundSource.NEUTRAL, 0.9f, 0.8f);
+            toggleDoor(level, player, i);
             return;
         }
         if (s != null) {
@@ -863,6 +867,31 @@ public class Carriage extends RailVehicle {
             return;
         }
         say(player, Component.translatable("message.railworks.carriage.how_to_board"));
+    }
+
+    private boolean usable(String st, int j) {
+        Slot s = CarriageLayout.SLOTS.get(j);
+        return (s.door() >= 0 || seats(st, j) || Fittings.typeAt(st, j) != null) && CarriageLayout.secure(st, j);
+    }
+
+    /** The door slot a click works, or -1: the nearest thing the look meets, or from beyond an end only a door. */
+    int doorClick(Player player) {
+        String st = slots();
+        boolean end = Math.abs(local(player.position(), true).x) > eyeReach();
+        int i = aimed(player, j -> end ? CarriageLayout.SLOTS.get(j).door() >= 0 && CarriageLayout.secure(st, j) : usable(st, j), true);
+        return i >= 0 && CarriageLayout.SLOTS.get(i).door() >= 0 ? i : -1;
+    }
+
+    private void toggleDoor(ServerLevel level, Player player, int i) {
+        Slot s = CarriageLayout.SLOTS.get(i);
+        boolean open = (doors() >> s.door() & 1) != 0;
+        if (!open && Math.abs(u) >= DOOR_TOP) {
+            say(player, Component.translatable("message.railworks.carriage.door_moving"));
+            return;
+        }
+        entityData.set(DATA_DOORS, doors() ^ (1 << s.door()));
+        Vec3 at = world(s.box().getCenter().x, 2, s.box().getCenter().z);
+        level.playSound(null, at.x, at.y, at.z, open ? SoundEvents.WOODEN_DOOR_CLOSE : SoundEvents.WOODEN_DOOR_OPEN, net.minecraft.sounds.SoundSource.NEUTRAL, 0.9f, 0.8f);
     }
 
     private void pushAlong(Player player) {
