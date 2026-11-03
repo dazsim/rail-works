@@ -75,7 +75,7 @@ public class Engine extends Carriage {
     private @Nullable CarriageBody shape;
     private int shapeKey = -1;
     public float spin, spinO;
-    int beat;
+    int beat, valveIn;
     private double lastX, lastZ;
 
     public Engine(EntityType<? extends Engine> type, Level level) {
@@ -401,6 +401,7 @@ public class Engine extends Carriage {
         }
         double demand = regulator() / 10.0 * cutoff() * (0.3 + 0.7 * Math.min(1, Math.abs(root().u) / 10));
         double want = !lit ? 0 : dr == null ? 0.25 : p < 0.9 ? 1 : 0.35 + 0.65 * demand;
+        if (p > 0.95) want = Math.min(want, 0.9 * demand + 0.04);
         if (lit && coal == 0 && coke <= 0 && burn <= 0) want = 0;
         if (lit) want = Math.min(want, w / 6000.0);
         h += (float) Mth.clamp(want - h, -1 / 200.0, 1 / 200.0);
@@ -440,7 +441,6 @@ public class Engine extends Carriage {
         setBit(11, lit);
         setBit(13, lift);
         setBit(10, whistleFor > 0 && p > 0.05);
-        if (lift && tickCount % 10 == 0) play(level, SoundEvents.FIRE_EXTINGUISH, 0.35f, 1.6f);
         readout(dr);
     }
 

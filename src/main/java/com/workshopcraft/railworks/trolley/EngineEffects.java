@@ -30,8 +30,11 @@ final class EngineEffects {
             level.addParticle(ParticleTypes.SMOKE, ch.x + jitter(e), ch.y, ch.z + jitter(e), 0, 0.08, 0);
         if (e.lifting()) {
             Vec3 v = pose.world(VALVE);
-            for (int i = 0; i < 2; i++) level.addParticle(ParticleTypes.CLOUD, v.x + jitter(e) * 0.3, v.y, v.z + jitter(e) * 0.3, 0, 0.3, 0);
-            if (e.tickCount % 30 == 0) level.playLocalSound(v.x, v.y, v.z, ModContent.ENGINE_VALVES, SoundSource.NEUTRAL, 0.6f, 1f, false);
+            if (e.tickCount % 2 == 0) level.addParticle(ParticleTypes.CLOUD, v.x + jitter(e) * 0.3, v.y, v.z + jitter(e) * 0.3, 0, 0.3, 0);
+            if (--e.valveIn <= 0) {
+                e.valveIn = 40 + e.getRandom().nextInt(21);
+                level.playLocalSound(v.x, v.y, v.z, ModContent.ENGINE_VALVES, SoundSource.NEUTRAL, 0.1f, 0.9f + e.getRandom().nextFloat() * 0.2f, false);
+            }
         }
         if (e.whistling()) {
             Vec3 w = pose.world(WHISTLE);
