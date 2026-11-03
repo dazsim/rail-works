@@ -1059,7 +1059,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                 for (double y = base + 0.15; y <= base + outlineHeight(); y += 0.4) {
                     BlockPos bp = BlockPos.containing(x, y, z);
                     BlockState st = level.getBlockState(bp);
-                    if (st.isAir() || st.is(ModContent.TRACK_NODE)) continue;
+                    if (st.isAir() || st.is(ModContent.TRACK_NODE) || st.is(ModContent.GROUND_FRAME)) continue;
                     VoxelShape shape = st.getCollisionShape(level, bp);
                     if (shape.isEmpty()) continue;
                     double lx = x - bp.getX(), ly = y - bp.getY(), lz = z - bp.getZ();

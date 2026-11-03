@@ -449,6 +449,16 @@ public class Engine extends Carriage {
         return reverser() == 0 ? 0 : 0.5 + 0.5 * Math.abs(reverser()) / 5.0;
     }
 
+    @Override
+    protected void tell(Component c, boolean echo) {
+        ServerPlayer dr = driver();
+        if (dr != null) {
+            dr.sendOverlayMessage(c);
+            readoutIn = 50;
+        }
+        super.tell(c, echo);
+    }
+
     private void readout(@Nullable ServerPlayer dr) {
         if (dr == null || --readoutIn > 0) return;
         readoutIn = 10;
