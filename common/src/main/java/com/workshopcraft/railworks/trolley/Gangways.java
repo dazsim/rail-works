@@ -83,6 +83,21 @@ public final class Gangways {
         return false;
     }
 
+    /** The carriages joined to c by gangways, in train order from the leading end; the power network's topology. */
+    public static List<Carriage> train(Carriage c) {
+        List<Carriage> out = new ArrayList<>();
+        walk(c, 1, out);
+        java.util.Collections.reverse(out);
+        out.add(c);
+        walk(c, -1, out);
+        if (out.getFirst().towed() && !out.getLast().towed()) java.util.Collections.reverse(out);
+        return out;
+    }
+
+    private static void walk(Carriage c, int e, List<Carriage> out) {
+        for (Joint j = c.joint(e); j != null && j.o() != c && !out.contains(j.o()); j = j.o().joint(-j.oe())) out.add(j.o());
+    }
+
     /** The carriage screw coupled to c at end e and its end there, or null. */
     static @Nullable Joint find(Carriage c, int e) {
         if (!c.done() || !finished(c.slots(), e)) return null;
