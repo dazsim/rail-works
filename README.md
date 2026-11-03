@@ -70,7 +70,7 @@ Hand cranked machines for finishing castings. They are the first step to a bogie
 
 ## Pannier tank engine
 
-A small six coupled tank engine, built on the track in 11 stages like a carriage. Place the engine frames on straight track, then hold the next part (its name shows above the hotbar) and use it on the engine. Riveted stages need rivets and a hammer; the others take a few hammer blows. The ghost shows where the next part goes.
+A small six coupled tank engine, built on the track in 11 stages like a carriage. Place the engine frames on the track, then hold the next part (its name shows above the hotbar) and use it on the engine. Riveted stages need rivets and a hammer; the others take a few hammer blows. The ghost shows where the next part goes.
 
 **Parts.** New treated plank patterns cast in the ingot mould (4 ingots): engine wheel pattern (a ring of 8) a rough engine wheel, cylinder pattern (a square of 4) a rough cylinder, chimney pattern (a U) the chimney, smokebox door pattern (2 rows of 3) the door. Rough engine wheels and cylinders are finished on the lathe (18 and 15 seconds), coupling rods are drilled from a steel beam on the pillar drill (5 seconds). Boiler and smokebox plate is rolled from steel plate on the new plate rolls (6 seconds): 3 rail bars over a steel ingot, lever and steel ingot, over 2 treated beams. It is 3 blocks wide with the crank wheel on the right. The rest is crafted from steel plate, beams, copper, glass and treated planks; the recipe book has them. An engine takes about 150 steel ingots and 16 copper.
 
