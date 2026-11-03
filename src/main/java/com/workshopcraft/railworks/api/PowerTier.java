@@ -1,10 +1,8 @@
 package com.workshopcraft.railworks.api;
 
-/** Voltage tiers for carriage power, with the most a single fixture may move each tick at that tier. */
+/** Carriage power tiers, with the most a single fixture may move each tick. LV is the only one. */
 public enum PowerTier {
-    LV(32),
-    MV(128),
-    HV(512);
+    LV(1000);
 
     private final int maxRate;
 

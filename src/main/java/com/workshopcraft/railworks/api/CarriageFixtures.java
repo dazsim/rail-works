@@ -11,7 +11,7 @@ import org.jspecify.annotations.Nullable;
 /** The registry of carriage fixtures. */
 public final class CarriageFixtures {
     /** Goes up when something here changes in a way callers must notice. */
-    public static final int API_VERSION = 1;
+    public static final int API_VERSION = 2;
 
     private static final Map<Identifier, FixtureType> TYPES = new LinkedHashMap<>();
     private static final Map<String, FixtureType> BY_PART = new LinkedHashMap<>();

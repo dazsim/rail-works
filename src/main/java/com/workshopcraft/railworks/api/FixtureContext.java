@@ -48,7 +48,7 @@ public interface FixtureContext {
     /** Marks the carriage to save. Item changes do this already. */
     void setChanged();
 
-    /** The power network this fixture is on; {@link CarriagePowerNetwork#NONE} until the power rail exists. */
+    /** The power network this fixture is on; {@link CarriagePowerNetwork#NONE} until an LV rail is finished in the carriage. Fixtures with no declared {@link FixturePower} can read it but move nothing. */
     CarriagePowerNetwork power();
 
     RandomSource random();

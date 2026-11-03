@@ -16,10 +16,10 @@
  * the aisle face (z 0) back to the wall (z 10). A block model is shrunk to 10/16 so a whole block fits, with
  * its north face to the aisle.
  *
- * <p>Power: {@link com.workshopcraft.railworks.api.FixturePower} declares what a fixture uses or makes and
- * {@link com.workshopcraft.railworks.api.CarriagePowerNetwork} is the shared network it will draw from. For now
- * every carriage hands out {@link com.workshopcraft.railworks.api.CarriagePowerNetwork#NONE}; the LV rail
- * along the outer walls comes later, first per carriage and then per train through couplings.
+ * <p>Power (API v2): {@link com.workshopcraft.railworks.api.FixturePower} declares what a fixture uses or makes
+ * in FE a tick, up to 1,000, and the buffer it adds to the carriage. {@link FixtureContext#power()} is the
+ * carriage's network once an LV rail is finished in it, else
+ * {@link com.workshopcraft.railworks.api.CarriagePowerNetwork#NONE}. Linked carriages share stores in train order.
  */
 @NullMarked
 package com.workshopcraft.railworks.api;
