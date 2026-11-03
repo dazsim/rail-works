@@ -36,7 +36,11 @@ public class MachineBlockEntity extends BlockEntity {
         CARRIAGE_WHEEL(MachineBlock.Kind.LATHE, 240, () -> ModContent.ROUGH_CARRIAGE_WHEEL, () -> ModContent.CARRIAGE_WHEEL),
         CARRIAGE_AXLE(MachineBlock.Kind.LATHE, 160, () -> ModContent.ROUGH_CARRIAGE_AXLE, () -> ModContent.CARRIAGE_AXLE),
         PLATE(MachineBlock.Kind.DRILL, 80, () -> ModContent.STEEL_PLATE, () -> ModContent.DRILLED_PLATE),
-        AXLE_BOX(MachineBlock.Kind.DRILL, 60, () -> ModContent.ROUGH_AXLE_BOX, () -> ModContent.AXLE_BOX);
+        AXLE_BOX(MachineBlock.Kind.DRILL, 60, () -> ModContent.ROUGH_AXLE_BOX, () -> ModContent.AXLE_BOX),
+        ENGINE_WHEEL(MachineBlock.Kind.LATHE, 360, () -> ModContent.engine("rough_engine_wheel"), () -> ModContent.engine("engine_wheel")),
+        CYLINDER(MachineBlock.Kind.LATHE, 300, () -> ModContent.engine("rough_cylinder"), () -> ModContent.engine("bored_cylinder")),
+        COUPLING_ROD(MachineBlock.Kind.DRILL, 100, () -> ModContent.STEEL_BEAM, () -> ModContent.engine("coupling_rod")),
+        ROLLED_PLATE(MachineBlock.Kind.ROLLS, 120, () -> ModContent.STEEL_PLATE, () -> ModContent.engine("rolled_plate"));
 
         public final MachineBlock.Kind kind;
         public final int ticks;
@@ -117,7 +121,7 @@ public class MachineBlockEntity extends BlockEntity {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         long now = level.getGameTime();
         if (job == null) {
-            player.sendOverlayMessage(Component.translatable("message.railworks." + (kind() == MachineBlock.Kind.LATHE ? "lathe" : "drill") + ".empty"));
+            player.sendOverlayMessage(Component.translatable("message.railworks." + kind().key() + ".empty"));
             return InteractionResult.SUCCESS;
         }
         if (done() || player.isShiftKeyDown()) {
@@ -182,7 +186,7 @@ public class MachineBlockEntity extends BlockEntity {
 
     private Component bar(boolean lathe) {
         int filled = Math.round(progress() * BAR);
-        return Component.translatable("message.railworks." + (lathe ? "lathe" : "drill") + ".progress", new ItemStack(job.input()).getHoverName())
+        return Component.translatable("message.railworks." + kind().key() + ".progress", new ItemStack(job.input()).getHoverName())
                 .append(" ")
                 .append(Component.literal("|".repeat(filled)).withStyle(ChatFormatting.GREEN))
                 .append(Component.literal("|".repeat(BAR - filled)).withStyle(ChatFormatting.DARK_GRAY))

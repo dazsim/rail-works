@@ -1,5 +1,6 @@
 package com.workshopcraft.railworks.client;
 
+import com.workshopcraft.railworks.block.MachineBlock;
 import com.workshopcraft.railworks.block.MachineBlockEntity;
 import java.util.EnumSet;
 import java.util.Set;
@@ -205,18 +206,65 @@ public class MachineModel extends Model<MachineRenderer.State> {
         return LayerDefinition.create(mesh, 256, 256);
     }
 
-    private final boolean lathe;
+    /** The hand cranked plate rolls, three blocks across: two cheeks, three rolls and the crank on the right. */
+    public static LayerDefinition rolls() {
+        count = 0;
+        MeshDefinition mesh = new MeshDefinition();
+        PartDefinition root = mesh.getRoot();
+        PartDefinition f = group(root, "frame", 0, 0, 0);
+        box(f, Zone.CAST, 0, 0.06, 0, 2.8, 0.12, 0.8);
+        for (double a : new double[]{-1.25, 1.25}) {
+            seated(f, Zone.CAST, a, 0.7, 0, 0.2, 1.16, 0.64);
+            box(f, Zone.DARK, a, 1.05, 0, 0.22, 0.14, 0.4);
+        }
+        box(f, Zone.CAST, 0, 0.4, -0.25, 2.3, 0.1, 0.1);
+        PartDefinition gear = group(f, "gear", -1.4, 0.95, 0, 0, Q);
+        disc(gear, Zone.CAST, 0, 0, 0, 0.26, 0.06);
+        String[] names = {"roll_top", "roll_a", "roll_b"};
+        double[][] at = {{1.05, 0}, {0.8, 0.17}, {0.8, -0.17}};
+        for (int i = 0; i < 3; i++) {
+            PartDefinition r = group(root, names[i], 0, at[i][0], at[i][1]);
+            PartDefinition rf = group(r, "face", 0, 0, 0, 0, Q);
+            disc(rf, Zone.STEEL, 0, 0, 0, i == 0 ? 0.12 : 0.1, 2.3);
+        }
+        PartDefinition plate = group(root, "plate", 0, 0, 0);
+        PartDefinition flat = group(plate, "flat", 0, 0.92, 0);
+        box(flat, Zone.PLATE, 0, 0, 0, 1.9, 0.03, 0.62);
+        PartDefinition bent = group(plate, "bent", 0, 1.05, 0);
+        for (int k = -3; k <= 3; k++) {
+            double a = k * 0.32;
+            box(bent, Zone.PLATE, 0, -0.32 * Math.cos(a) + 0.12, 0.32 * Math.sin(a), 1.9, 0.03, 0.11);
+        }
+        PartDefinition crank = group(root, "crank", 1.05, 1.0, 0.47);
+        wheel(crank, Zone.RED, 0.38, 0.05, 3);
+        handle(crank, 0.34, 1);
+        PartDefinition pulley = group(root, "pulley", 1.05, 1.0, -0.42);
+        disc(pulley, Zone.CAST, 0, 0, 0, 0.2, 0.12);
+        box(pulley, Zone.DARK, 0, 0, 0, 0.06, 0.06, 0.14);
+        return LayerDefinition.create(mesh, 256, 256);
+    }
+
+    private final boolean lathe, rolling;
+    private ModelPart rollTop, rollA, rollB, flat, bent, rollPlate;
     private final ModelPart crank, pulley;
     private ModelPart spin, roughWheel, turnedWheel, roughAxle, turnedAxle, saddle, faceTool, sideTool;
     private ModelPart plate, rawPlate, finePlate, axleBox, fineBox, spindle;
     private final ModelPart[] holes = new ModelPart[4];
 
-    public MachineModel(ModelPart root, boolean lathe) {
+    public MachineModel(ModelPart root, MachineBlock.Kind kind) {
         super(root, RenderTypes::entityCutout);
-        this.lathe = lathe;
+        this.lathe = kind == MachineBlock.Kind.LATHE;
+        this.rolling = kind == MachineBlock.Kind.ROLLS;
         crank = root.getChild("crank");
         pulley = root.getChild("pulley");
-        if (lathe) {
+        if (rolling) {
+            rollTop = root.getChild("roll_top");
+            rollA = root.getChild("roll_a");
+            rollB = root.getChild("roll_b");
+            rollPlate = root.getChild("plate");
+            flat = rollPlate.getChild("flat");
+            bent = rollPlate.getChild("bent");
+        } else if (lathe) {
             spin = root.getChild("spin");
             roughWheel = spin.getChild("rough_wheel");
             turnedWheel = spin.getChild("turned_wheel");
@@ -241,11 +289,21 @@ public class MachineModel extends Model<MachineRenderer.State> {
         super.setupAnim(s);
         MachineBlockEntity.Job j = s.job;
         float p = s.progress;
-        if (lathe) {
+        if (rolling) {
+            crank.zRot = -s.crank;
+            pulley.zRot = -s.crank;
+            rollTop.xRot = s.crank * 2;
+            rollA.xRot = -s.crank * 2;
+            rollB.xRot = -s.crank * 2;
+            rollPlate.visible = j == MachineBlockEntity.Job.ROLLED_PLATE;
+            flat.visible = p < 0.5F;
+            bent.visible = p >= 0.5F;
+        } else if (lathe) {
             crank.zRot = -s.crank;
             pulley.zRot = -s.crank;
             spin.xRot = s.crank * 2.5F;
-            boolean wheel = j == MachineBlockEntity.Job.CARRIAGE_WHEEL, axle = j == MachineBlockEntity.Job.CARRIAGE_AXLE;
+            boolean wheel = j == MachineBlockEntity.Job.CARRIAGE_WHEEL || j == MachineBlockEntity.Job.ENGINE_WHEEL,
+                    axle = j == MachineBlockEntity.Job.CARRIAGE_AXLE || j == MachineBlockEntity.Job.CYLINDER;
             roughWheel.visible = wheel && p < 0.5F;
             turnedWheel.visible = wheel && p >= 0.5F;
             roughAxle.visible = axle && p < 0.5F;
@@ -256,7 +314,7 @@ public class MachineModel extends Model<MachineRenderer.State> {
         } else {
             crank.xRot = s.crank;
             pulley.xRot = s.crank;
-            boolean pl = j == MachineBlockEntity.Job.PLATE, box = j == MachineBlockEntity.Job.AXLE_BOX;
+            boolean pl = j == MachineBlockEntity.Job.PLATE || j == MachineBlockEntity.Job.COUPLING_ROD, box = j == MachineBlockEntity.Job.AXLE_BOX;
             plate.visible = pl;
             rawPlate.visible = p < 1;
             finePlate.visible = p >= 1;

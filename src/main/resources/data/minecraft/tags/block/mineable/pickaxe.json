@@ -12,6 +12,7 @@
     "railworks:ingot_mould",
     "railworks:roller_table",
     "railworks:lathe",
-    "railworks:pillar_drill"
+    "railworks:pillar_drill",
+    "railworks:plate_rolls"
   ]
 }

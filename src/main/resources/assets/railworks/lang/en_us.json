@@ -203,8 +203,8 @@
   "item.railworks.rough_axle_box": "Rough Axle Box",
   "item.railworks.axle_box": "Axle Box",
   "item.railworks.bogie_spring": "Bogie Spring",
-  "message.railworks.lathe.empty": "Put a rough carriage wheel or axle on the lathe",
-  "message.railworks.drill.empty": "Put a steel plate or rough axle box on the drill table",
+  "message.railworks.lathe.empty": "Put a rough wheel, axle or cylinder on the lathe",
+  "message.railworks.drill.empty": "Put a steel plate, steel beam or rough axle box on the drill table",
   "message.railworks.lathe.progress": "Turning %s",
   "message.railworks.drill.progress": "Drilling %s",
   "message.railworks.machine.busy": "Something is already on the machine",
@@ -409,5 +409,8 @@
   "message.railworks.engine.painted": "Paint: green %s/%s, black %s/%s",
   "subtitles.railworks.engine.whistle": "Engine whistles",
   "subtitles.railworks.engine.chuff": "Engine chuffs",
-  "subtitles.railworks.engine.valves": "Safety valves blow"
+  "subtitles.railworks.engine.valves": "Safety valves blow",
+  "block.railworks.plate_rolls": "Plate Rolls",
+  "message.railworks.rolls.empty": "Put a steel plate in the rolls",
+  "message.railworks.rolls.progress": "Rolling %s"
 }

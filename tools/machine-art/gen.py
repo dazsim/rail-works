@@ -175,5 +175,24 @@ sprite(AXLEBOX, STEEL).save(OUT + 'axle_box.png')
 sprite(AXLEBOX, WOOD).save(OUT + 'axle_box_pattern.png')
 sprite(SPRING, STEEL).save(OUT + 'bogie_spring.png')
 sprite(SPRING, WOOD).save(OUT + 'spring_pattern.png')
+ROLLS = [
+    "................",
+    "................",
+    "................",
+    "................",
+    ".dd..........dd.",
+    ".dbdddddddddddbd",
+    ".dbaaaaaaaaaadbd",
+    ".dbddddddddddbbd",
+    ".dbdaaaaaaaaddbd",
+    ".dbddddddddddbbd",
+    ".dbd........dbbe",
+    ".dbd........dbd.",
+    ".dbd........dbd.",
+    "dddddddddddddddd",
+    "dccccccccccccccd",
+    "................",
+]
 sprite(LATHE, CAST, None, RED).save(OUT + 'lathe.png')
 sprite(DRILL, CAST, None, RED).save(OUT + 'pillar_drill.png')
+sprite(ROLLS, CAST, None, RED).save(OUT + 'plate_rolls.png')

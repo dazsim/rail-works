@@ -60,7 +60,11 @@ public class MouldBlock extends BaseEntityBlock {
                 cast(() -> ModContent.WHEEL_PATTERN, () -> new ItemStack(ModContent.WHEEL, 4)),
                 cast(() -> ModContent.CARRIAGE_WHEEL_PATTERN, () -> new ItemStack(ModContent.ROUGH_CARRIAGE_WHEEL, 2)),
                 cast(() -> ModContent.AXLE_BOX_PATTERN, () -> new ItemStack(ModContent.ROUGH_AXLE_BOX, 4)),
-                cast(() -> ModContent.BUFFER_PATTERN, () -> new ItemStack(ModContent.BUFFER_STOCK, 4)));
+                cast(() -> ModContent.BUFFER_PATTERN, () -> new ItemStack(ModContent.BUFFER_STOCK, 4)),
+                cast(() -> ModContent.engine("engine_wheel_pattern"), () -> new ItemStack(ModContent.engine("rough_engine_wheel"))),
+                cast(() -> ModContent.engine("cylinder_pattern"), () -> new ItemStack(ModContent.engine("rough_cylinder"))),
+                cast(() -> ModContent.engine("chimney_pattern"), () -> new ItemStack(ModContent.engine("engine_chimney"))),
+                cast(() -> ModContent.engine("smokebox_door_pattern"), () -> new ItemStack(ModContent.engine("smokebox_door"))));
 
         public final int need;
         public final boolean longBox;

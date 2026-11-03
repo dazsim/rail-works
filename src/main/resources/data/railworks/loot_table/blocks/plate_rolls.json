@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        },
+        {
+          "condition": "minecraft:block_state_property",
+          "block": "railworks:plate_rolls",
+          "properties": {
+            "part": "1"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "railworks:plate_rolls"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "railworks:blocks/plate_rolls"
+}

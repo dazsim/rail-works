@@ -90,6 +90,7 @@ public final class ModContent {
     public static Block GROUND_FRAME;
     public static Block LATHE;
     public static Block PILLAR_DRILL;
+    public static Block PLATE_ROLLS;
 
     public static Item HAMMER;
     public static Item COKE;
@@ -196,6 +197,10 @@ public final class ModContent {
             "rough_engine_wheel", "engine_wheel", "rough_cylinder", "bored_cylinder", "coupling_rod", "rolled_plate",
             "engine_wheelset", "engine_cylinders", "valve_motion", "boiler_ring", "boiler_tubes", "boiler_barrel", "engine_firebox",
             "smokebox", "smokebox_door", "engine_chimney", "pannier_tank", "engine_cab", "coal_bunker", "engine_controls"};
+    public static Item engine(String id) {
+        return ENGINE_ITEMS.get(id);
+    }
+
     public static SoundEvent ENGINE_WHISTLE, ENGINE_CHUFF, ENGINE_VALVES;
     public static final TicketType TROLLEY_TICKET = new TicketType(40L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
     public static final TicketType TRAIN_TICKET = new TicketType(600L, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE);
@@ -288,6 +293,8 @@ public final class ModContent {
                 .strength(3.5F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
         PILLAR_DRILL = block(r, "pillar_drill", p -> new MachineBlock(MachineBlock.Kind.DRILL, p), block("pillar_drill").mapColor(MapColor.METAL)
                 .strength(3.5F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
+        PLATE_ROLLS = block(r, "plate_rolls", p -> new MachineBlock(MachineBlock.Kind.ROLLS, p), block("plate_rolls").mapColor(MapColor.METAL)
+                .strength(3.5F, 6.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     }
 
     private static Item blockItem(BiConsumer<Identifier, Item> r, Block b, String name) {
@@ -379,6 +386,7 @@ public final class ModContent {
         r.accept(RailWorks.id("bogie"), BOGIE);
         blockItem(r, LATHE, "lathe");
         blockItem(r, PILLAR_DRILL, "pillar_drill");
+        blockItem(r, PLATE_ROLLS, "plate_rolls");
         RIVETS = simple(r, "rivets");
         RIVET_PATTERN = pattern(r, "rivet_pattern");
         STEEL_BEAM = simple(r, "steel_beam");
@@ -501,7 +509,7 @@ public final class ModContent {
         r.accept(RailWorks.id("mould"), MOULD_ENTITY);
         TRACK_NODE_ENTITY = new BlockEntityType<>(TrackNodeBlockEntity::new, Set.of(TRACK_NODE));
         r.accept(RailWorks.id("track_node"), TRACK_NODE_ENTITY);
-        MACHINE_ENTITY = new BlockEntityType<>(MachineBlockEntity::new, Set.of(LATHE, PILLAR_DRILL));
+        MACHINE_ENTITY = new BlockEntityType<>(MachineBlockEntity::new, Set.of(LATHE, PILLAR_DRILL, PLATE_ROLLS));
         r.accept(RailWorks.id("machine"), MACHINE_ENTITY);
     }
 
@@ -553,6 +561,7 @@ public final class ModContent {
                     out.accept(HAND_TROLLEY);
                     out.accept(LATHE);
                     out.accept(PILLAR_DRILL);
+                    out.accept(PLATE_ROLLS);
                     out.accept(CARRIAGE_WHEEL_PATTERN);
                     out.accept(CARRIAGE_AXLE_PATTERN);
                     out.accept(PLATE_PATTERN);

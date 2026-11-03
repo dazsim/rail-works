@@ -21,12 +21,14 @@ import org.jspecify.annotations.Nullable;
 
 public class MachineRenderer implements BlockEntityRenderer<MachineBlockEntity, MachineRenderer.State> {
     private static final Identifier TEXTURE = RailWorks.id("textures/entity/machine.png");
-    private final MachineModel lathe = new MachineModel(MachineModel.lathe().bakeRoot(), true);
-    private final MachineModel drill = new MachineModel(MachineModel.drill().bakeRoot(), false);
+    private final MachineModel lathe = new MachineModel(MachineModel.lathe().bakeRoot(), MachineBlock.Kind.LATHE);
+    private final MachineModel drill = new MachineModel(MachineModel.drill().bakeRoot(), MachineBlock.Kind.DRILL);
+    private final MachineModel rolls = new MachineModel(MachineModel.rolls().bakeRoot(), MachineBlock.Kind.ROLLS);
 
     public static class State extends BlockEntityRenderState {
         Direction facing = Direction.NORTH;
-        boolean isLathe, turning;
+        MachineBlock.Kind kind = MachineBlock.Kind.LATHE;
+        boolean turning;
         MachineBlockEntity.@Nullable Job job;
         float progress, crank;
     }
@@ -43,7 +45,7 @@ public class MachineRenderer implements BlockEntityRenderer<MachineBlockEntity, 
     public void extractRenderState(MachineBlockEntity be, State s, float partialTick, Vec3 camera, ModelFeatureRenderer.@Nullable CrumblingOverlay breaking) {
         BlockEntityRenderer.super.extractRenderState(be, s, partialTick, camera, breaking);
         s.facing = be.getBlockState().getValue(MachineBlock.FACING);
-        s.isLathe = be.kind() == MachineBlock.Kind.LATHE;
+        s.kind = be.kind();
         s.job = be.job();
         s.progress = be.progress();
         s.turning = be.turning();
@@ -55,7 +57,7 @@ public class MachineRenderer implements BlockEntityRenderer<MachineBlockEntity, 
         pose.pushPose();
         pose.translate(0.5, 0, 0.5);
         pose.mulPose(Axis.YP.rotationDegrees(180 - s.facing.toYRot()));
-        out.submitModel(s.isLathe ? lathe : drill, s, pose, TEXTURE, s.lightCoords, OverlayTexture.NO_OVERLAY, 0, s.breakProgress);
+        out.submitModel(s.kind == MachineBlock.Kind.LATHE ? lathe : s.kind == MachineBlock.Kind.DRILL ? drill : rolls, s, pose, TEXTURE, s.lightCoords, OverlayTexture.NO_OVERLAY, 0, s.breakProgress);
         pose.popPose();
     }
 

@@ -62,7 +62,12 @@ public class MachineBlock extends BaseEntityBlock {
                 new double[]{-0.14, 1.5, -0.3, 0.14, 2, 0.2},
                 new double[]{-0.07, 1, 0.05, 0.07, 1.5, 0.19},
                 new double[]{-0.37, 1.57, -0.08, 0.37, 1.63, -0.02},
-                new double[]{0.26, 1.4, -0.25, 0.4, 1.8, 0.15});
+                new double[]{0.26, 1.4, -0.25, 0.4, 1.8, 0.15}),
+        ROLLS(1, 3, new double[]{0.65, 0.6, 0.42, 1.45, 1.4, 0.52},
+                new double[]{-1.4, 0, -0.4, 1.4, 0.12, 0.4},
+                new double[]{-1.35, 0.12, -0.32, -1.15, 1.3, 0.32},
+                new double[]{1.15, 0.12, -0.32, 1.35, 1.3, 0.32},
+                new double[]{-1.15, 0.65, -0.3, 1.15, 1.2, 0.3});
 
         public final int main, parts;
         final double[] crank;
@@ -73,6 +78,10 @@ public class MachineBlock extends BaseEntityBlock {
             this.parts = parts;
             this.crank = crank;
             this.body = body;
+        }
+
+        public String key() {
+            return this == ROLLS ? "rolls" : this == DRILL ? "drill" : "lathe";
         }
     }
 
