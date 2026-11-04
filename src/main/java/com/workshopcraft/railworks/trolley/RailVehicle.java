@@ -690,6 +690,13 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         return t.flip[i] * v.f() * f();
     }
 
+    // a bogie that has slipped off its carriage for a tick still belongs to the train, not something to bump into
+    static boolean ownBogie(Train t, RailVehicle rv) {
+        if (!(rv instanceof Bogie b)) return false;
+        for (Member x : t.members) if (x.v() instanceof Carriage c && (c.bogie(-1) == b || c.bogie(1) == b)) return true;
+        return false;
+    }
+
     void sendTrain(ServerLevel level, Train t, boolean moving) {
         if (!trainDirty && !(moving || tickCount - lastTrainSync >= 20)) return;
         trainDirty = false;
@@ -960,7 +967,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             int li = leading(t, d * fr);
             RailVehicle by = ms.get(li).v();
             int along = d * k[li];
-            TrackRunner.Contact c = TrackRunner.ahead(level, by, along, Math.abs(ds) + 0.05, r -> r instanceof RailVehicle rv && t.indexOf(rv) >= 0);
+            TrackRunner.Contact c = TrackRunner.ahead(level, by, along, Math.abs(ds) + 0.05, r -> r instanceof RailVehicle rv && (t.indexOf(rv) >= 0 || ownBogie(t, rv)));
             if (c != null && c.gap() < Math.abs(ds)) {
                 double v1 = d * u, v2 = c.k() * c.other().trackSpeed() * along;
                 if (v1 > v2) {

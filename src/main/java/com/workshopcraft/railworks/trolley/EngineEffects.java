@@ -22,6 +22,8 @@ final class EngineEffects {
         boolean beatNow = beat != e.beat;
         e.beat = beat;
         int reg = e.regulator();
+        if (beatNow && com.workshopcraft.railworks.RailWorksConfig.debugObstacles && reg > 0)
+            RailVehicle.LOG.info(String.format(java.util.Locale.ROOT, "[chuff-client] beat %d pace %.4f %s", beat, e.pace, Math.abs(e.pace) > 0.01 ? "plays" : "held, not moving"));
         if (beatNow && reg > 0 && e.steam() > 0.05f && Math.abs(e.pace) > 0.01) {
             float vol = 0.35f + 0.05f * reg;
             level.playLocalSound(ch.x, ch.y, ch.z, ModContent.ENGINE_CHUFF, SoundSource.NEUTRAL, vol, 0.9f + e.getRandom().nextFloat() * 0.2f, false);
