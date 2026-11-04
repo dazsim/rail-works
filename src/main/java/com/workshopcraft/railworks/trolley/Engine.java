@@ -124,6 +124,11 @@ public class Engine extends Carriage {
     }
 
     @Override
+    protected double lowHalfWidth() {
+        return 1.0;
+    }
+
+    @Override
     public double eyeReach() {
         return 5.02;
     }
@@ -541,7 +546,10 @@ public class Engine extends Carriage {
             double tr = 0;
             if (rev != 0 && regulator() > 0) {
                 double pf = Mth.clamp((p - 0.1) / 0.7, 0, 1);
-                tr = Math.min(14, 115 / Math.max(Math.abs(ue), 0.1)) * regulator() / 10.0 * pf * cutoff();
+                // the regulator sets a speed: steam enough to hold it against drag and grade, up to what the cylinders give
+                double avail = 14 * pf * cutoff(), d = Math.signum(rev) * sgn;
+                double want = CAP * regulator() / 10.0, need = drag - force * d + 1.5 * (want - Math.abs(ue));
+                tr = Mth.clamp(need * m, 0, avail);
                 if (tr > 13 && Math.abs(ue) < 2.5) {
                     tr = 6;
                     slip = true;

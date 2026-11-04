@@ -123,6 +123,11 @@ public class Carriage extends RailVehicle {
     }
 
     @Override
+    protected double lowHalfWidth() {
+        return 1.0;
+    }
+
+    @Override
     protected double outlineHeight() {
         return 5.4;
     }

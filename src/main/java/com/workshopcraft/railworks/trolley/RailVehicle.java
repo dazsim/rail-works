@@ -1,6 +1,7 @@
 package com.workshopcraft.railworks.trolley;
 
 import com.workshopcraft.railworks.RailWorks;
+import com.workshopcraft.railworks.RailWorksConfig;
 import com.workshopcraft.railworks.registry.ModContent;
 import com.workshopcraft.railworks.track.TrackActions;
 import com.workshopcraft.railworks.track.TrackGraph;
@@ -932,14 +933,15 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                 RailVehicle v = ms.get(i).v();
                 if (!v.trackContact()) continue;
                 double[] at = Trains.walk(TrackGraph.get(level), v.seg, v.s, ds * k[i]);
-                BlockPos hit = at == null ? null : v.outlineHit(level, (long) at[0], at[1], sd * k[i] * (int) at[2]);
+                Obstacle hit = at == null ? null : v.obstacle(level, (long) at[0], at[1], sd * k[i] * (int) at[2], Math.abs(ds) + 0.1);
                 if (hit == null) continue;
                 if (Math.abs(u) > 0.3 || stopCooldown <= 0) {
-                    BlockState bs = level.getBlockState(hit);
-                    tell(Component.translatable("message.railworks.trolley.blocked", bs.getBlock().getName(), hit.getX(), hit.getY(), hit.getZ()).withStyle(ChatFormatting.RED), true);
+                    BlockPos hp = hit.pos();
+                    tell(Component.translatable("message.railworks.trolley.blocked", hit.state().getBlock().getName(), hp.getX(), hp.getY(), hp.getZ(), why(hit)).withStyle(ChatFormatting.RED), true);
                     v.play(level, SoundEvents.WOOD_HIT, 0.8f, 0.7f);
                     stopCooldown = 40;
                 }
+                if (RailWorksConfig.debugObstacles) ObstacleDebug.show(level, this, v, hit, ride);
                 ds = 0;
                 u = 0;
                 stopped = true;
@@ -978,6 +980,11 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             moved[i] = ds * k[i];
         }
         if (ds != 0 && !Trains.move(level, this, t, -ds * fr)) {
+            if (Math.abs(u) > 0.3 || stopCooldown <= 0) {
+                tell(Component.translatable("message.railworks.trolley.end").withStyle(ChatFormatting.YELLOW), true);
+                stopCooldown = 40;
+            }
+            if (RailWorksConfig.debugObstacles) LOG.info("[obstacle] {} ran out of track on segment {} at s {}", getStringUUID(), seg, String.format(java.util.Locale.ROOT, "%.2f", s));
             stopped = true;
             u = 0;
         }
@@ -1041,11 +1048,33 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         }
     }
 
-    /** The first solid block inside the outline, checking only the leading end when moving, dir along +s. */
+    /** A block in the way: where, what, and where it met the outline, w across (+ left) and h above the rail. */
+    record Obstacle(BlockPos pos, BlockState state, double w, double h) {}
+
+    // below LOW above the rail only the wheels and frames, lowHalfWidth wide, can touch: ground and platforms beside the line pass
+    static final double LOW = 0.5, STEP = 0.25;
+
+    protected double lowHalfWidth() {
+        return halfWidth();
+    }
+
     @Nullable BlockPos outlineHit(ServerLevel level, long seg, double at, int dir) {
+        Obstacle o = obstacle(level, seg, at, dir, 0);
+        return o == null ? null : o.pos();
+    }
+
+    /** The first solid block inside the outline; when moving only the leading end, swept back over the last step, dir along +s. */
+    @Nullable Obstacle obstacle(ServerLevel level, long seg, double at, int dir, double sweep) {
         TrackGraph g = TrackGraph.get(level);
-        double e = trackReach(), hw = halfWidth();
-        double[] as = dir == 0 ? new double[]{-e + 0.05, -e / 2, 0, e / 2, e - 0.05} : new double[]{dir * e};
+        double e = trackReach(), hw = halfWidth(), lw = lowHalfWidth();
+        double[] as;
+        if (dir == 0) as = new double[]{-e + 0.05, -e / 2, 0, e / 2, e - 0.05};
+        else {
+            int n = (int) Math.ceil(Math.min(sweep, 2) / STEP);
+            as = new double[n + 1];
+            for (int i = 0; i <= n; i++) as[i] = dir * (e - Math.min(sweep, 2) * i / Math.max(n, 1));
+        }
+        int nw = (int) Math.ceil(2 * hw / STEP);
         for (double a : as) {
             double[] w0 = Trains.walk(g, seg, at, a);
             Rail r = w0 == null ? null : Trains.rail(g, (long) w0[0]);
@@ -1053,21 +1082,28 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
             double ss = Mth.clamp(w0[1], 0, r.length());
             double[] c = r.path().pose(ss);
             double h = c[2], base = r.top(ss);
-            for (int i = 0; i <= 8; i++) {
-                double w = -hw + i * hw / 4;
+            for (int i = 0; i <= nw; i++) {
+                double w = -hw + i * 2 * hw / nw;
                 double x = c[0] - w * Math.sin(h), z = c[1] + w * Math.cos(h);
-                for (double y = base + 0.15; y <= base + outlineHeight(); y += 0.4) {
-                    BlockPos bp = BlockPos.containing(x, y, z);
+                for (double y = 0.15; y <= outlineHeight(); y += STEP) {
+                    if (y < LOW && Math.abs(w) > lw) continue;
+                    BlockPos bp = BlockPos.containing(x, base + y, z);
                     BlockState st = level.getBlockState(bp);
                     if (st.isAir() || st.is(ModContent.TRACK_NODE) || st.is(ModContent.GROUND_FRAME)) continue;
                     VoxelShape shape = st.getCollisionShape(level, bp);
                     if (shape.isEmpty()) continue;
-                    double lx = x - bp.getX(), ly = y - bp.getY(), lz = z - bp.getZ();
-                    for (AABB box : shape.toAabbs()) if (box.contains(lx, ly, lz)) return bp;
+                    double lx = x - bp.getX(), ly = base + y - bp.getY(), lz = z - bp.getZ();
+                    for (AABB box : shape.toAabbs()) if (box.contains(lx, ly, lz)) return new Obstacle(bp, st, w, y);
                 }
             }
         }
         return null;
+    }
+
+    static Component why(Obstacle o) {
+        String side = Math.abs(o.w()) < 0.3 ? "middle" : o.w() > 0 ? "left" : "right";
+        return Component.translatable("message.railworks.trolley.why", Component.translatable("message.railworks.trolley.side." + side),
+                String.format(java.util.Locale.ROOT, "%.1f", Math.abs(o.w())), String.format(java.util.Locale.ROOT, "%.1f", o.h()));
     }
 
     /** Runs down anything standing on the line, harder the faster it goes, and eases slow walkers aside. */

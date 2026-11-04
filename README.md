@@ -78,6 +78,10 @@ A small six coupled tank engine, built on the track in 11 stages like a carriage
 
 **Endless train.** For packs and servers that want trains running without a crew, set `endlessTrain=true` in `config/railworks.properties` (the file is written with `endlessTrain=false` on first start; the same file on both loaders) and restart. Every finished engine then runs at full line speed with nobody driving and needs no coal or water. It runs the way its reverser is set, or forwards in mid gear. Points, couplings and collisions work as normal.
 
+**Finding what stops a train.** Set `debugObstacles=true` in the same `config/railworks.properties` and restart. When something stops a train, the block in the way is outlined in red, and everyone nearby gets its name, position and where it touched the train (which side, how far out from the middle, how high above the rail) on the action bar. The driver's "Blocked by" message always says where it touched. The engine is about 4.4 blocks wide, so anything solid within 2.2 blocks of the middle of the line and higher than half a block above the rail will stop it; ground and platforms up to half a block above the rail are fine from 1 block out.
+
+**Regulator.** Each regulator notch sets a speed, 1 block a second per notch, and the engine works as hard as it needs to hold it, up to what the steam and cutoff give.
+
 ## Building
 
 The build uses [Stonecutter](https://stonecutter.kikugie.dev/) so both loaders come from the one source tree in `src`. Loader specific values are in `stonecutter.properties.toml`, the version is in `gradle.properties` and the nodes built are listed in `settings.gradle.kts`.
