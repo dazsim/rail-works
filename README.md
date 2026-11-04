@@ -80,6 +80,8 @@ A small six coupled tank engine, built on the track in 11 stages like a carriage
 
 **Finding what stops a train.** Set `debugObstacles=true` in the same `config/railworks.properties` and restart. When something stops a train, the block in the way is outlined in red, and everyone nearby gets its name, position and where it touched the train (which side, how far out from the middle, how high above the rail) on the action bar. The driver's "Blocked by" message always says where it touched. The engine is about 4.4 blocks wide, so anything solid within 2.2 blocks of the middle of the line and higher than half a block above the rail will stop it; ground and platforms up to half a block above the rail are fine from 1 block out.
 
+With the same setting on, an engine that has steam on and the brakes off but moves less than 0.05 blocks in a second writes a `[stall]` line to the log and the action bar. It reads: the reason motion was cut (for example "no pull: force under resistance", "buffer stop", "end of laid track", "blocked by", or "against" another vehicle with its id, segment and position), how far the physics asked to move versus how far it went, the segment, its nodes and the position along it, speed, force, resistance, mass, regulator, reverser, brakes, slip, steam, whether the chunk is loaded, and how many vehicles are in the train.
+
 **Regulator.** Each regulator notch sets a speed, 1 block a second per notch, and the engine works as hard as it needs to hold it, up to what the steam and cutoff give.
 
 ## Building

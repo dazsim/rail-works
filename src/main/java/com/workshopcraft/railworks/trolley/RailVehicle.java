@@ -84,6 +84,9 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
 
     // server only
     protected int stopCooldown;
+    // why the last tick of drive() moved less than asked, for the stall report
+    String halt = "";
+    double asked;
     private boolean holding;
     protected boolean endBraking;
     private int lastSync, towLost;
@@ -915,10 +918,13 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
         endBraking = endBrake;
         double nu = step(u, force, drag);
         double ds = (u + nu) / 2 * DT;
+        asked = ds;
+        halt = nu == 0 ? String.format(java.util.Locale.ROOT, "no pull: force %.3f under resistance %.3f", Math.abs(force), drag) : "";
         u = nu;
         boolean stopped = false;
         if (dir != 0 && Math.abs(ds) >= Math.max(0, stop.dist())) {
             ds = dir * Math.max(0, stop.dist());
+            halt = String.format(java.util.Locale.ROOT, "%s %.2f ahead", stop.buffer() ? "buffer stop" : "end of laid track", stop.dist());
             stopped = Math.abs(u) > 0.01 || hold;
             if (Math.abs(u) > 0.3 && stopCooldown <= 0 && (stop.buffer() || !endBraking)) {
                 if (stop.buffer()) play(level, SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, Math.min(1, (float) Math.abs(u) / 4 + 0.2f), 0.7f);
@@ -942,6 +948,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                     stopCooldown = 40;
                 }
                 if (RailWorksConfig.debugObstacles) ObstacleDebug.show(level, this, v, hit, ride);
+                halt = "blocked by " + hit.state().getBlock().getName().getString() + " at " + hit.pos().toShortString();
                 ds = 0;
                 u = 0;
                 stopped = true;
@@ -969,6 +976,9 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                     c.other().bumpTrackSpeed(c.k() * v[1] * along);
                 }
                 ds = d * Math.max(0, c.gap());
+                Entity o = (Entity) c.other();
+                halt = String.format(java.util.Locale.ROOT, "against %s %s on segment %d at s %.2f (%.1f %.1f %.1f), gap %.2f", o.getType().toShortString(), o.getStringUUID().substring(0, 8),
+                        c.other().trackSegment(), c.other().trackS(), o.getX(), o.getY(), o.getZ(), c.gap());
                 stopped = true;
             }
         }
@@ -984,7 +994,7 @@ public abstract class RailVehicle extends Entity implements TrackRunner {
                 tell(Component.translatable("message.railworks.trolley.end").withStyle(ChatFormatting.YELLOW), true);
                 stopCooldown = 40;
             }
-            if (RailWorksConfig.debugObstacles) LOG.info("[obstacle] {} ran out of track on segment {} at s {}", getStringUUID(), seg, String.format(java.util.Locale.ROOT, "%.2f", s));
+            halt = String.format(java.util.Locale.ROOT, "ran out of track on segment %d at s %.2f", seg, s);
             stopped = true;
             u = 0;
         }

@@ -3,6 +3,7 @@ package com.workshopcraft.railworks.trolley;
 import com.workshopcraft.railworks.RailWorks;
 import com.workshopcraft.railworks.RailWorksConfig;
 import com.workshopcraft.railworks.registry.ModContent;
+import com.workshopcraft.railworks.track.TrackGraph;
 import com.workshopcraft.railworks.trolley.EngineShape.Fix;
 import com.workshopcraft.railworks.trolley.EngineShape.Part;
 import com.workshopcraft.railworks.trolley.EngineShape.Stage;
@@ -10,6 +11,7 @@ import com.workshopcraft.railworks.trolley.EngineShape.Unit;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -46,7 +48,7 @@ import org.jspecify.annotations.Nullable;
  */
 public class Engine extends Carriage {
     public static final int DONE = EngineShape.STAGES.size();
-    static final double OWN_MASS = 10, TANK = 24000, PSI = 200;
+    static final double OWN_MASS = 10, TANK = 24000, PSI = 200, ADHESION = 13;
     static final int BUNKER = 256, GREEN = 4, BLACK_COATS = 2;
     // the driver leans out of the cab side opening to see ahead; bit 14 of ctrl picks the left side
     static final Vec3 DRIVER = new Vec3(-2.7, 1.7, 2.4);
@@ -76,6 +78,8 @@ public class Engine extends Carriage {
     private @Nullable CarriageBody shape;
     private int shapeKey = -1;
     public float spin, spinO;
+    // smoothed movement per tick: a train rocking in place averages near zero and does not beat
+    double pace;
     int beat, valveIn;
     Vec3 moved = Vec3.ZERO;
     private double lastX, lastZ;
@@ -376,6 +380,7 @@ public class Engine extends Carriage {
         spinO = spin;
         double hf = frontHeading(), d = (getX() - lastX) * Math.cos(hf) + (getZ() - lastZ) * Math.sin(hf);
         if (Math.abs(d) < 2) spin -= (float) (d / EngineShape.WR);
+        if (Math.abs(d) < 2) pace = pace * 0.85 + d * 0.15;
         moved = Math.abs(d) < 2 ? new Vec3(getX() - lastX, 0, getZ() - lastZ) : Vec3.ZERO;
         lastX = getX();
         lastZ = getZ();
@@ -548,10 +553,11 @@ public class Engine extends Carriage {
                 double pf = Mth.clamp((p - 0.1) / 0.7, 0, 1);
                 // the regulator sets a speed: steam enough to hold it against drag and grade, up to what the cylinders give
                 double avail = 14 * pf * cutoff(), d = Math.signum(rev) * sgn;
-                double want = CAP * regulator() / 10.0, need = drag - force * d + 1.5 * (want - Math.abs(ue));
+                double want = CAP * regulator() / 10.0, need = drag - force * d + 1.5 * (want - ru * d);
                 tr = Mth.clamp(need * m, 0, avail);
-                if (tr > 13 && Math.abs(ue) < 2.5) {
-                    tr = 6;
+                // past what the wheels grip they slip: a little less than the grip, never a collapse that stalls on a grade
+                if (tr > ADHESION && Math.abs(ue) < 2.5) {
+                    tr = ADHESION * 0.85;
                     slip = true;
                 }
             }
@@ -567,7 +573,42 @@ public class Engine extends Carriage {
         for (Member x : ms) if (x.v() != this && !x.v().isTrolley()) x.v().towedBrake(brake);
         towedBrake(brake || handBrake());
         boolean hold = dr != null || Math.abs(ru) > 0.01;
-        root.drive(level, t, force, drag, hold, new Ride(blame, 0.5f, safe), false);
+        double moved = root.drive(level, t, force, drag, hold, new Ride(blame, 0.5f, safe), false);
+        if (RailWorksConfig.debugObstacles) watch(level, root, t, moved, force, drag, brake, slip);
+    }
+
+    private int stallTicks;
+    private double stallMoved, stallAsked;
+
+    /** With the debug flag: when the controls ask for motion but the train has barely moved for a second, say why. */
+    private void watch(ServerLevel level, Carriage root, Train t, double moved, double force, double drag, boolean brake, boolean slip) {
+        boolean asked = RailWorksConfig.endlessTrain || reverser() != 0 && regulator() > 0 && !brake && !handBrake();
+        if (!asked) {
+            stallTicks = 0;
+            stallMoved = 0;
+            stallAsked = 0;
+            return;
+        }
+        stallTicks++;
+        stallMoved += Math.abs(moved);
+        stallAsked += Math.abs(root.asked);
+        if (stallTicks < 20) return;
+        if (stallMoved < 0.05) {
+            TrackGraph g = TrackGraph.get(level);
+            TrackGraph.Segment sg = g.segment(root.seg);
+            String where = sg == null ? "segment " + root.seg + " missing" : String.format(java.util.Locale.ROOT, "segment %d (nodes %d to %d, live %b) s %.3f of %.3f",
+                    sg.id, sg.a, sg.b, sg.live, root.s, sg.path.length);
+            BlockPos ahead = root.blockPosition();
+            String msg = String.format(java.util.Locale.ROOT, "[stall] %s | asked %.3f moved %.3f in 1s | %s | u %.3f force %.3f resist %.3f m %.1f | reg %d rev %d brake %b hand %b slip %b steam %.2f | chunk loaded %b | members %d | at %.2f %.2f %.2f",
+                    root.halt.isEmpty() ? "no reason recorded" : root.halt, stallAsked, stallMoved, where, root.u, force, drag, mass(t.members), regulator(), reverser(), brake, handBrake(), slip, steam(),
+                    level.isLoaded(ahead), t.members.size(), root.getX(), root.getY(), root.getZ());
+            LOG.info(msg);
+            Component c = Component.literal(msg).withStyle(ChatFormatting.GOLD);
+            for (ServerPlayer p : level.players()) if (p.distanceToSqr(root) < 64 * 64) p.sendSystemMessage(c, true);
+        }
+        stallTicks = 0;
+        stallMoved = 0;
+        stallAsked = 0;
     }
 
     // ---------------------------------------------------------------- interaction
